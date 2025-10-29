@@ -1,0 +1,194 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+@*GOOGLEAR CARD BOOTSTRAP 5*@
+@section Estilos {
+
+    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
+
+@*ESTILOS DE BOTONES*@
+    <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" />
+
+@*filter columns*@
+    <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <link href="~/css/usuarios.css" rel="stylesheet" />
+
+}
+
+<div class="container-fluid mt-5">
+    <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
+    <div class="row">
+        <div class="col-lg-10">
+            <div class="card" style="width: 88%; position: absolute; left: 7vw; border: none;">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Usuarios</span>
+
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa fa-cog me-2"></i> Config. Columnas
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu">
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="display nowrap" id="grd_Usuarios" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Usuario</th>
+                                <th>Nombre</th>
+                                <th>Apellido</th>
+                                <th>Dni</th>
+                                <th>Telefono</th>
+                                <th>Direccion</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Aquí va el contenido de tu datatable -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-end mt-2 mb-4">
+                    <a class="btn btn-primary btnnuevo" onclick="nuevoUsuario()">Nuevo</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header colorEncabezado">
+                <h5 class="modal-title fw-bold" id="modalEdicionLabel">Nuevo Proveedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="formProveedor" class="row g-3">
+
+                    <input type="text" class="input-nuevomodif" id="txtId" readonly hidden>
+
+                    <!-- Fila 1 -->
+                    <div class="col-md-4">
+                        <label id="lblUsuario" for="txtUsuario" class="form-label">Usuario</label>
+                        <input type="text" class="form-control" id="txtUsuario" required>
+                        <div class="invalid-feedback">Campo obligatorio</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label id="lblNombre" for="txtNombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="txtNombre" required>
+                        <div class="invalid-feedback">Campo obligatorio</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label id="lblApellido" for="txtApellido" class="form-label">Apellido</label>
+                        <input type="text" class="form-control" id="txtApellido">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label id="lblDni" for="txtDni" class="form-label">DNI</label>
+                        <input type="text" class="form-control" id="txtDni" >
+                    </div>
+
+
+                    <div class="col-md-4">
+                        <label id="lblDescripcion" for="txtTelefono" class="form-label">Telefono</label>
+                        <input type="text" class="form-control" id="txtTelefono" >
+                    </div>
+
+
+                    <div class="col-md-4">
+                        <label id="lblDireccion" for="txtDireccion" class="form-label">Direcion</label>
+                        <input type="text" class="form-control" id="txtDireccion" >
+                    </div>
+
+                    <div class="col-md-4">
+                        <label id="lblRoles" for="Roles" class="form-label">Rol</label>
+                        <select id="Roles" name="select" class="form-control">
+                            <option value="" selected>Rol</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label id="lblEstado" for="Estados" class="form-label">Estado</label>
+                        <select id="Estados" name="select" class="form-control">
+                            <option value="" selected>Rol</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4" id="divContrasena">
+                        <label id="lblContrasena" for="txtContrasena" class="form-label">Contrasena</label>
+                        <input type="text" class="form-control" id="txtContrasena" required>
+                        <div class="invalid-feedback">Campo obligatorio</div>
+                    </div>
+
+                    <div class="col-md-4" id="divContrasenaNueva">
+                        <label id="lblContrasenaNueva" for="txtContrasenaNueva" class="form-label">Contrasena Nueva</label>
+                        <input type="text" class="form-control" id="txtContrasenaNueva">
+                    </div>
+
+                    <!-- Validación -->
+                    <div id="errorCampos" class="alert alert-danger d-none">
+                        Debes completar los campos obligatorios.
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fa fa-arrow-left"></i> Volver
+                </button>
+                <button type="button" id="btnGuardar" class="btn btn-primary" onclick="guardarCambios()">
+                    <i class="fa fa-check"></i> Registrar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<partial name="~/Views/Utils/Modals.cshtml" />
+
+@section Scripts {
+
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
+@*SCRIPTS DE BOTONES*@
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js">
+
+    </script><script src="~/js/site.js"></script>
+
+@*excel*@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+
+@*pdf*@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+
+@*imprimir*@
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+
+@*filter columns*@
+    <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
+
+
+    <script src="~/js/Usuarios.js?v=1.2"></script>
+
+}

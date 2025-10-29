@@ -1,0 +1,133 @@
+﻿<link href="~/css/navbarlogin.css" rel="stylesheet" />
+
+
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: rgba(112, 112, 112, 0.1);">
+    <div class="container-fluid">
+        <a class="navbar-brand">Budy Jeans</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                @* ESTE LO DEJAMOS DE MODO EJEMPLO *@
+               @*  <li class="nav-item" id="seccionOperaciones" hidden>
+                    <a class="nav-link" href="@Url.Action("Index", "Operaciones")">Operaciones</a>
+                </li> *@ 
+
+                <li class="nav-item dropdown" id="seccionConfiguraciones" hidden>
+                    <a class="nav-link dropdown-toggle" href="#" id="configDropdownLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Configuraciones
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="configDropdownLink">
+                        <li><a class="dropdown-item" href="@Url.Action("Index", "Usuarios")">Usuarios</a></li>
+                        <li><a class="dropdown-item" onclick="abrirConfiguraciones()">Otras</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <!-- Usuario Dropdown -->
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-lg me-2" id="userName"></i> <!-- Ícono de Font Awesome 4.7 -->
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#" onclick="window.location.href='/Usuarios/Configuracion';">Configuración</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="cerrarSesion()">Cerrar Sesión</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+ <!-- Modal Configuraciones -->
+    <div class="modal fade" id="modalConfiguracion" tabindex="-1" role="dialog" aria-labelledby="modalConfiguracionLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalConfiguracionLabel">Configuracion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <label id="lblListaVacia" for="txtListaVacia" class="lblNombreInput" hidden></label>
+
+                <div class="list-container">
+                    <div id="configuracion-list">
+                        <!-- Lista de categorías se llenará dinámicamente -->
+                    </div>
+                </div>
+
+                <div id="contenedorNombreConfiguracion" class="form-group" hidden>
+                    <label id="lblNombre" for="txtNombre" class="lblNombreInput">Nombre</label>
+                    <input type="text" class="input-nuevomodif" id="txtNombreConfiguracion" required>
+                    <input type="text" class="input-nuevomodif" id="txtIdConfiguracion" hidden>
+
+
+                    <div class="btnModificarConfiguracion-container">
+                        <button id="btnRegistrarModificarConfiguracion" class="btnModificarConfiguracion" onclick="guardarCambiosConfiguracion()">Modificar</button>
+                        <button class="btnCancelarConfiguracion ml-2" onclick="cancelarModificarConfiguracion()">Cancelar</button>
+                    </div>
+                </div>
+
+                <div class="btnAgregarConfiguracion-container">
+                    <button id="agregarConfiguracion" class="btnAgregarConfiguracion" onclick="agregarConfiguracion()">Añadir</button>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Modal Configuraciones -->
+<div class="modal fade" id="ModalEdicionConfiguraciones" tabindex="-1" role="dialog" aria-labelledby="ModalEdicionConfiguracionesLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ModalEdicionConfiguracionesLabel">Configuraciones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <button type="button" class="btnConfiguraciones" onclick="abrirConfiguracion('Moneda', 'Monedas')">
+                        <img src="/Imagenes/Monedas.png" alt="Icono Categorias" class="imgConfiguraciones">
+                        <span>Monedas</span>
+                    </button>
+                   
+                    <button type="button" class="btnConfiguraciones mt-2" onclick="abrirConfiguracion('Rol', 'Roles')">
+                        <img src="/Imagenes/Roles.png" alt="Icono Roles" class="imgConfiguraciones">
+                        <span>Roles</span>
+                    </button>
+
+                    <button type="button" class="btnConfiguraciones" onclick="abrirConfiguracion('Tipos de Gastos', 'GastosTipos')">
+                        <img src="/Imagenes/configuraciones.png" alt="Icono Gastos" class="imgConfiguraciones">
+                        <span>Tipos de Gastos</span>
+                    </button>
+
+                    <button type="button" class="btnConfiguraciones" onclick="abrirConfiguracion('Tipos de Conceptos', 'MovimientosTiposConcepto')">
+                        <img src="/Imagenes/configuraciones.png" alt="Icono Conceptos" class="imgConfiguraciones">
+                        <span>Tipos de Conceptos</span>
+                    </button>
+                    @* <button type="button" class="btnConfiguraciones mt-2" onclick="abrirConfiguracion('Estados de Usuarios', 'EstadosUsuarios')">
+                    <img src="/Imagenes/Roles.png" alt="Icono Roles" class="imgConfiguraciones">
+                    <span>Estados de Usuarios</span>
+                    </button> *@
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/NavBarLogin.js?v=1.2" asp-append-version="true"></script>

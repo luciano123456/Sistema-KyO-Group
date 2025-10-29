@@ -1,0 +1,18 @@
+﻿@{
+    ViewBag.Title = "Acceso Denegado";
+    
+}
+
+<div class="container text-center mt-5">
+    <div class="card shadow-lg p-4">
+        <h1 class="display-4 text-danger">
+            <i class="fa fa-ban"></i> Acceso Denegado
+        </h1>
+        <p class="lead mt-3">
+            No tenés permisos para acceder a esta sección del sistema.
+        </p>
+        <a href="@Url.Action("Login", "Usuarios")" class="btn btn-primary mt-3">
+            <i class="fa fa-arrow-left"></i> Volver al inicio
+        </a>
+    </div>
+</div>

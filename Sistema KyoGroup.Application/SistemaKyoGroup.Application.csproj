@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\css\NavBarLogin.css~RF1f800e21.TMP" />
+    <Content Remove="wwwroot\js\Home.js" />
+    <Content Remove="wwwroot\js\Login.js" />
+    <Content Remove="wwwroot\js\NavBarLogin.js" />
+    <Content Remove="wwwroot\js\Usuarios.js" />
+    <Content Remove="wwwroot\js\UsuariosConfiguracion.js" />
+    <Content Remove="wwwroot\js\Utils\moment.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\Imagenes\Clientes.png" />
+    <None Include="wwwroot\js\Login.js" />
+    <None Include="wwwroot\js\UsuariosConfiguracion.js" />
+    <None Include="wwwroot\js\Usuarios.js" />
+    <None Include="wwwroot\js\NavBarLogin.js" />
+    <None Include="wwwroot\js\Utils\moment.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.32" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.29" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.18">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sistema KyoGroup.BLL\SistemaKyoGroup.BLL.csproj" />
+    <ProjectReference Include="..\Sistema KyoGroup.Models\SistemaKyoGroup.Models.csproj" />
+  </ItemGroup>
+
+</Project>

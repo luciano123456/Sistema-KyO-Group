@@ -1,0 +1,186 @@
+.menuUsuario {
+    position: relative;
+    left: 10px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+
+.nav-user {
+    opacity: 0.7 !important;
+    background: #2E4053;
+    text-align: center;
+    font-weight: bold;
+    color: rgb(107, 120, 205, 1) !important;
+    font-size: 1.7vw;
+    border-radius: 20px;
+    width: auto !important;
+    height: calc(1.7vh + 1.7vw);
+    padding-top: 5px;
+
+}
+
+    .nav-user:hover {
+        opacity: 1 !important;
+    }
+
+
+.btnConfiguraciones {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centra el contenido horizontalmente */
+    font-size: 30px;
+    color: white;
+    width: 100%;
+    outline: none;
+    border: none;
+    background-color: gray;
+    border-radius: 10px;
+    padding: 10px; /* Agrega algo de padding para un mejor aspecto */
+    cursor: pointer;
+    margin-bottom: 10px; /* Espacio entre los botones */
+}
+
+.list-item {
+    color: red;
+    background-color: gray;
+    margin-bottom: 5px;
+    text-align: center;
+    width: 95%;
+    height: 30px;
+    position: relative;
+    left: 2%;
+    border-radius: 3px;
+}
+
+    .list-item:hover {
+        background-color: dimgray;
+    }
+
+.btnModificarConfiguracion {
+    border: none;
+    background-color: blue;
+    color: white;
+    width: 35%;
+    margin-left: 2px;
+    height: 50px;
+    font-size: 30px;
+    text-align: center;
+    border-radius: 12px;
+    padding: 0px 5px 5px 5px;
+}
+
+
+
+    .btnModificarConfiguracion:hover {
+        background-color: darkblue;
+    }
+
+
+.btnCancelarConfiguracion {
+    border: none;
+    background-color: brown;
+    color: white;
+    width: 35%;
+    margin-left: 2px;
+    height: 50px;
+    font-size: 30px;
+    text-align: center;
+    border-radius: 12px;
+    padding: 0px 5px 5px 5px;
+}
+
+
+    .btnCancelarConfiguracion:hover {
+        background-color: darkred;
+    }
+
+.btnModificarConfiguracion-container {
+    display: flex;
+    justify-content: center; /* Centra el botón horizontalmente */
+    align-items: center; /* Centra el botón verticalmente (si es necesario) */
+    width: 100%; /* Asegúrate de que el contenedor tome el ancho completo del modal */
+    margin-bottom: 10px;
+}
+
+.btnAgregarConfiguracion-container {
+    display: flex;
+    justify-content: right; /* Centra el botón horizontalmente */
+    align-items: center; /* Centra el botón verticalmente (si es necesario) */
+    width: 100%; /* Asegúrate de que el contenedor tome el ancho completo del modal */
+    margin-bottom: 10px;
+    margin-top: 30px;
+}
+
+.btnAgregarConfiguracion {
+    border: none;
+    background-color: green;
+    color: white;
+    width: 30%;
+    margin-left: 2px;
+    height: 50px;
+    font-size: 30px;
+    text-align: center;
+    border-radius: 12px;
+    margin-right: 30px;
+}
+
+
+.edit-icon {
+    font-size: 20px;
+    color: white;
+    position: absolute;
+    bottom: 5px;
+    left: 10px;
+    cursor: pointer;
+}
+
+
+.eliminar-icon {
+    font-size: 20px;
+    color: white;
+    position: absolute;
+    bottom: 5px;
+    right: 20px;
+    cursor: pointer;
+}
+
+
+.list-container {
+    margin-top: 10px;
+    max-height: 300px;
+    overflow-y: auto; /* Habilita el desplazamiento vertical */
+}
+
+.btnConfiguraciones:hover {
+    background-color: dimgray;
+}
+
+.btnConfiguraciones img {
+    margin-right: 10px; /* Espacio entre la imagen y el texto */
+    width: 60px;
+    height: 60px;
+}
+
+.btnConfiguraciones span {
+    flex-grow: 1; /* Permite que el texto ocupe el espacio restante */
+    text-align: center; /* Centra el texto */
+}
+
+@media (max-width: 900px) {
+    .nav-user {
+        font-size: 2vw !important;
+    }
+}
+@media (max-width: 700px) {
+    .nav-user {
+        font-size: 3vw !important;
+    }
+
+}
+
+@media (max-width: 400px) {
+    .nav-user {
+        font-size: 4vw !important;
+    }
+}

@@ -1,0 +1,41 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace SistemaKyoGroup.Models;
+
+public partial class Insumo
+{
+    public int Id { get; set; }
+
+    public string? Sku { get; set; }
+
+    public string Descripcion { get; set; } = null!;
+
+    public int IdUnidadMedida { get; set; }
+
+    public int IdCategoria { get; set; }
+
+    public DateTime FechaActualizacion { get; set; }
+
+    public int IdUsuarioRegistra { get; set; }
+
+    public DateTime FechaRegistra { get; set; }
+
+    public int? IdUsuarioModifica { get; set; }
+
+    public DateTime? FechaModifica { get; set; }
+
+    public virtual ICollection<ComprasInsumo> ComprasInsumos { get; set; } = new List<ComprasInsumo>();
+
+    public virtual InsumosCategoria IdCategoriaNavigation { get; set; } = null!;
+
+    public virtual UnidadesMedida IdUnidadMedidaNavigation { get; set; } = null!;
+
+    public virtual User? IdUsuarioModificaNavigation { get; set; }
+
+    public virtual User IdUsuarioRegistraNavigation { get; set; } = null!;
+
+    public virtual ICollection<RecetasInsumo> RecetasInsumos { get; set; } = new List<RecetasInsumo>();
+
+    public virtual ICollection<SubrecetasInsumo> SubrecetasInsumos { get; set; } = new List<SubrecetasInsumo>();
+}

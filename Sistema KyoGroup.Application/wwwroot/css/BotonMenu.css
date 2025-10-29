@@ -1,0 +1,21 @@
+.imageMenu {
+    height: 80px;
+    width: 80px;
+    cursor: pointer;
+}
+
+
+@media (max-width: 1250px) {
+    .imagenMenu {
+        width: 100%;
+        margin-left: 50px;
+        position: absolute;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .card {
+        margin-top: 13vh;
+    }
+
+}

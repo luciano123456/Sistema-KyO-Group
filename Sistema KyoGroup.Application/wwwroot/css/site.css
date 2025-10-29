@@ -1,0 +1,603 @@
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+.select-modal-personalizado {
+    background: white !important;
+    color: black !important;
+}
+
+/* Cambiar el color del texto en los elementos select2 */
+.select2-container .select2-selection__rendered {
+    color: black !important; /* Asegura que el color del texto sea negro */
+}
+
+/* Cambiar el color del texto cuando el elemento select2 está abierto */
+.select2-dropdown {
+    color: black !important; /* Asegura que el color del texto sea negro en el dropdown */
+}
+
+/* Cambiar el color del texto en el desplegable de opciones */
+.select2-container--default .select2-results__option {
+    color: black !important; /* Asegura que el color del texto sea negro en las opciones */
+}
+
+
+
+
+body {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-attachment: fixed;
+    background-position: center center;
+    background-color: #1B2631;
+    background-repeat: no-repeat no-repeat;
+    background-size: cover;
+    width: 99%;
+    height: 98%;
+    margin-left: 5px;
+}
+
+
+.input-nuevo {
+    border: none;
+    border-bottom: 0px;
+    border-bottom: solid blue;
+    width: 70%;
+    margin-bottom: 20px;
+    color: black;
+    text-align: center !important;
+    font-size: 0.8vw;
+    max-width: 200px !important;
+    background: #1B2631 !important;
+    color: white !important;
+}
+
+.divFiltros {
+    padding: 5px 5px 5px 5px;
+    border: 3px solid;
+    border: solid blue;
+    display: flex;
+    width: 85%;
+    display: block;
+    position: relative;
+    left: 8%;
+    margin-top: 20px;
+    color: black;
+    text-align: center;
+}
+
+
+.lblfiltro {
+    margin-left: 30px;
+    font-size: 0.7vw;
+}
+
+
+td {
+    color: white;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    color: white;
+}
+
+tr {
+    color: white;
+}
+
+th {
+    text-align: center;
+}
+
+table {
+    color: white;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: #097CF7;
+}
+
+.divLogo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.imageLogo {
+    height: 80%;
+}
+
+tbody tr {
+    background-image: url(noise.png);
+}
+
+.general {
+    border: 1px solid;
+}
+
+.table-striped > tbody > tr:nth-child(odd) > td,
+.table-striped > tbody > tr:nth-child(odd) > th {
+    background-color: #2a303a;
+    color: white;
+}
+
+.table-striped > tbody > tr:nth-child(even) > td,
+.table-striped > tbody > tr:nth-child(even) > th {
+    background-color: #353c48;
+    color: white;
+}
+
+.table-striped > thead > tr > th {
+    background-color: #323844;
+    color: white;
+}
+
+
+
+/* Cambia el color de fondo de todas las celdas, incluida la primera columna, en filas pares */
+table.dataTable.display tbody tr:nth-child(even) td {
+    background-color: #353c48 !important;
+}
+
+/* Cambia el color de fondo de todas las celdas, incluida la primera columna, en filas impares */
+table.dataTable.display tbody tr:nth-child(odd) td {
+    background-color: #2a303a !important;
+}
+
+table.dataTable {
+    width: 100%;
+}
+
+    table.dataTable td, table.dataTable th {
+        padding: 8px;
+    }
+
+
+table,
+thead,
+tr,
+tbody,
+th,
+td {
+    text-align: center !important;
+}
+
+
+.dataTables_wrapper .dataTables_length select {
+    margin-top: 10px;
+}
+
+.dataTables_filter {
+    margin-top: 10px;
+}
+
+span {
+    color: white;
+}
+
+thead input {
+    background-color: white !important;
+    border-radius: 4px;
+    border: 1px solid #aaa;
+    cursor: text;
+}
+
+.btn-exportar-excel {
+    background-color: #198754 !important;
+    color: white !important;
+}
+
+.btn-exportar-pdf {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+
+.btn-exportar-print {
+    background-color: #00a7c9 !important;
+    color: white !important;
+}
+
+.datatablepersonalizado {
+    width: 99% !important;
+    max-width: auto !important;
+    position: absolute !important;
+    left: 12px !important;
+    font-size: calc(0.3vw, 0.7vh) !important;
+}
+
+.dataTables_info {
+    color: white !important;
+}
+
+
+label {
+    color: white;
+}
+
+
+.dataTables_wrapper a {
+    background: #E5E7E9 !important;
+}
+
+.card-body,
+.card-header {
+    background: #323844 !important;
+    color: white;
+}
+
+
+.card {
+    background-color: #1B2631 !important;
+    border-radius: 50px;
+}
+
+
+.imagenMenu {
+    position: absolute;
+    left: -5vw;
+}
+
+
+.input-nuevomodif {
+    display: flex;
+    border: none;
+    border-bottom: 10px;
+    border-bottom: solid blue;
+    width: 70%;
+    display: block;
+    position: relative;
+    left: 17%;
+    font-size: 30px;
+    margin-bottom: 10px;
+    color: black;
+    text-align: center;
+    font-size: 1.5vw;
+    max-width: 500px !important;
+    color: black !important;
+}
+
+    .input-nuevomodif:active {
+        border: none;
+        border-bottom: solid blue;
+    }
+
+    .input-nuevomodif::placeholder {
+        color: black;
+        opacity: 1 !important;
+    }
+
+    .input-nuevomodif:hover {
+        outline: none !important;
+    }
+
+    .input-nuevomodif:focus {
+        outline: none !important;
+        border-bottom: solid #00a7c9;
+    }
+
+
+.txtEdicion {
+    border-bottom: 10px;
+    border-bottom: solid orange !important;
+}
+
+
+.lblNombreInput {
+    display: flex;
+    justify-content: center;
+    text-align: center !important;
+    color: #05056C;
+    font-size: 1.3vw;
+}
+
+.estiloError {
+    max-width: 800px !important;
+    width: 95% !important;
+}
+
+/* Estilo personalizado para la colección de botones */
+div.dt-button-collection {
+    background-color: #0D82F7; /* Cambia el color de fondo */
+    border-color: #0D82F7 !important; /* Cambia el color del borde */
+}
+
+    div.dt-button-collection .dt-button {
+        color: white; /* Cambia el color del texto */
+        background-color: #0D82F7; /* Cambia el color de fondo */
+        border-color: #0D82F7 !important; /* Cambia el color del borde */
+    }
+
+        div.dt-button-collection .dt-button:hover {
+            background-color: #0E21E3 !important; /* Cambia el color de fondo al pasar el mouse */
+        }
+
+
+
+
+
+
+
+.divMenu {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.divImagen {
+    padding: 5px 5px 5px 5px;
+    border: 3px solid;
+    border: solid blue;
+    width: 70%;
+    display: flex;
+    width: 70%;
+    display: block;
+    position: relative;
+    left: 17%;
+    margin-bottom: 20px;
+    color: black;
+    text-align: center;
+    max-width: 500px !important;
+}
+
+.input-imagen {
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    position: relative;
+    left: 30%;
+    width: 40%;
+}
+
+.divImagen:active {
+    border: solid red;
+}
+
+.divImagen::placeholder {
+    color: black;
+    opacity: 1 !important;
+}
+
+.divImagen:hover {
+    outline: none !important;
+}
+
+.divImagen:focus {
+    outline: none !important;
+    border: solid red;
+}
+
+.divArchivo {
+    padding: 5px 5px 5px 5px;
+    border: 3px solid;
+    border: solid blue;
+    width: 70%;
+    display: flex;
+    width: 70%;
+    display: block;
+    position: relative;
+    left: 17%;
+    margin-bottom: 20px;
+    color: black;
+    text-align: center;
+    max-width: 500px !important;
+}
+
+
+@media (max-width: 1000px) {
+
+
+    .lblfiltro {
+        font-size: 4vw !important;
+        display: block;
+        margin-left: -16px !important;
+    }
+
+    .input-nuevo {
+        width: 100% !important;
+        font-size: 4vw !important;
+    }
+}
+
+@media (max-width: 900px) {
+
+    .lblNombreInput {
+        font-size: 3vw !important;
+    }
+
+    .input-nuevomodif {
+        font-size: 2.8vw !important;
+    }
+}
+
+
+@media (max-width: 600px) {
+    .lblNombreInput {
+        font-size: 3.5vw !important;
+    }
+
+    .input-nuevomodif {
+        font-size: 3.3vw !important;
+    }
+}
+
+@media (max-width: 450px) {
+    .lblNombreInput {
+        font-size: 3.8vw !important;
+    }
+
+    .input-nuevomodif {
+        font-size: 3.6vw !important;
+    }
+}
+
+
+
+
+@media (max-width: 400px) {
+    .imageMenu {
+        height: 60px;
+        width: 60px;
+    }
+}
+
+
+.dataTables_scrollHeadInner {
+    margin: 0 auto;
+}
+
+
+.dataTables_wrapper .dataTables_length select {
+    background-color: white !important;
+}
+
+.navbar-nav .nav-link {
+    color: white !important;
+}
+
+.navbar-brand {
+    color: white !important;
+}
+
+.navbar-nav .dropdown-menu .dropdown-item {
+    color: black !important; /* Mantén el dropdown con texto negro para legibilidad */
+}
+
+.navbar-nav .nav-link:hover {
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.9); /* Brillo blanco */
+    color: white !important; /* Asegura que el texto sea blanco */
+    transition: all 0.3s ease-in-out; /* Transición suave */
+}
+
+.navbar-brand:hover {
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.9); /* Brillo para el título */
+    transition: all 0.3s ease-in-out;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Cpath stroke='white' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E") !important;
+}
+
+table.dataTable.row-border tbody th, table.dataTable.row-border tbody td, table.dataTable.display tbody th, table.dataTable.display tbody td {
+    border-top: none !important;
+}
+
+
+@keyframes blinkTextShadow {
+    0% {
+        box-shadow: inset 0 0 10px #d4edda;
+        color: white;
+        transform: scale(1);
+    }
+
+    50% {
+        box-shadow: inset 0 0 10px #28a745;
+        color: #28a745;
+        transform: scale(1.1);
+    }
+
+    100% {
+        box-shadow: inset 0 0 10px #d4edda;
+        color: white;
+        transform: scale(1);
+    }
+}
+
+.blinking {
+    animation: blinkTextShadow 3s ease-out; /* Duración de 3 segundos, se repite infinitamente */
+}
+
+
+.acciones-menu {
+    position: relative;
+    z-index: 9999999 !important; /* Asegura que este contenedor se apile correctamente */
+}
+
+.acciones-dropdown {
+    position: absolute;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 10000; /* Eleva este elemento para superar otros */
+    margin-top: -30px;
+    padding: 5px;
+    border-radius: 4px;
+    min-width: 150px; /* Ajusta el ancho mínimo si es necesario */
+}
+
+    .acciones-dropdown button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 5px;
+        border: none;
+        background: none;
+    }
+
+        .acciones-dropdown button:hover {
+            background-color: #f0f0f0;
+        }
+
+
+select option:disabled {
+    color: red; /* Cambiar el color de la letra a rojo */
+}
+
+input:disabled {
+    cursor: not-allowed; /* Cambia el cursor para indicar que no se puede interactuar */
+}
+
+
+
+
+.paginate_button.current {
+    background-color: #007bff !important;
+    color: white !important;
+    border: 1px solid #007bff !important;
+    border-radius: 4px !important;
+}
+
+
+.select2-selection__rendered {
+    display: block !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    height: auto !important;
+    padding: 4px 8px;
+}
+
+
+.colorEncabezado {
+    background: linear-gradient(to right, #005bea, #418bf9, #7baaf7);
+    color: white;
+    border: none !important
+}
+
+
+.card-body,
+.card-header {
+    background: #323844 !important;
+    color: white;
+}
+
+.card {
+    background-color: #1B2631 !important;
+    border-radius: 50px;
+}
+
+.modal-content {
+    background-color: #323844 !important;
+    border-radius: 0 0 0.5rem 0.5rem;
+    box-shadow: none;
+}
