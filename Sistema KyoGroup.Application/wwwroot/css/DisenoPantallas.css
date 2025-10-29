@@ -1,0 +1,1469 @@
+﻿/* =========================================================
+   Pedidos.css — Skin oscuro + UI (mismo estilo que Ventas)
+   Cargar DESPUÉS de usuarios.css
+   ========================================================= */
+
+/* ===== Tokens base (coinciden con Ventas) ===== */
+:root {
+    --muted: #9aa8c5;
+    --text: #e7ecff;
+    --border: rgba(255,255,255,.08);
+    /* DataTables / superficies oscuras */
+    --dt-body: #0b1320;
+    --dt-head: #1d2633;
+    --dt-head-b: #2b3647;
+    --dt-row: #0f1722;
+    --dt-row-zebra: #363659;
+    --dt-row-zebra2: #525285;
+    --dt-row-hover: #152037;
+    --dt-text: #e5e7eb;
+    --dt-input: #111827;
+    --dt-input-b: #2b3647;
+    --dt-pag-bg: #0f192b;
+    --dt-pag-active: #3d6af2;
+    --chip-in: #18c37e;
+    --chip-out: #ff7a66;
+    --chip-stock: #7cc2ff;
+    --color-general: #05225E;
+    --bg: #0a111f;
+    --panel: #141c2b;
+    --panel2: #101726;
+    --soft: rgba(255,255,255,.06);
+    --b1: rgba(255,255,255,.12);
+    --head: #1b2740;
+    --primary: #4c8dff;
+    --accent: #7b5cff;
+    --ok: #1ecf93;
+    --warn: #ffb200;
+    --danger: #ff5a6a;
+    --txt: #eaf1ff;
+    --muted: #9db1d2;
+    --dt-row-hover: #152037;
+    --dt-row-zebra: #363659;
+    --dt-row-zebra2: #525285;
+}
+
+
+/* ===== Layout y contenedores ===== */
+html {
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
+}
+
+@media (min-width:768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+body {
+    padding: 10px 0;
+    background: #31314f;
+    background-attachment: fixed;
+    background-position: center;
+    background-size: cover;
+    color: var(--TEXT);
+}
+
+
+.container {
+    min-width: 99% !important;
+}
+
+.page-99 {
+    max-width: 99% !important;
+}
+
+.fw-800 {
+    font-weight: 800;
+}
+
+.text-muted-cc {
+    color: var(--muted) !important;
+}
+
+
+.btn-new {
+    background: #9BBD3C;
+    color: white;
+}
+
+/* ===== Header de módulo (KPIs) ===== */
+.cc-header {
+    width: 100%;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(90deg, var(--dt-row-zebra), var(--dt-row-zebra2));
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: .75rem;
+}
+
+    .cc-header h2 {
+        color: var(--text);
+        text-shadow: 0 2px 0 rgba(0,0,0,.25);
+    }
+
+.cc-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: inline-grid;
+    place-items: center;
+    background: linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,.06));
+    color: #fff;
+    font-size: 20px;
+    border: 1px solid var(--border);
+}
+
+.cc-stat {
+    min-width: 160px;
+    padding: .65rem .9rem;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+    border: 1px solid var(--border);
+}
+
+    .cc-stat .label {
+        color: var(--muted);
+        font-weight: 700;
+        font-size: .8rem;
+        text-transform: uppercase;
+        letter-spacing: .3px;
+    }
+
+    .cc-stat .value {
+        color: #fff;
+        font-size: 1.15rem;
+        font-weight: 800;
+    }
+
+@media (max-width:576px) {
+    .cc-stat {
+        min-width: 100%;
+    }
+
+    .cc-badge {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .cc-header {
+        border-radius: 16px;
+    }
+}
+
+/* ===== Zona tabla ===== */
+.tabla-wrap {
+    position: relative;
+    padding-top: 56px;
+}
+
+.tabla-controls-top {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    gap: .5rem;
+    display: flex;
+}
+
+.tabla-footer {
+    margin-top: 8px;
+    border-top: 1px solid rgba(255,255,255,.06);
+    padding-top: 10px;
+}
+
+    .filter-bar .form-label {
+        margin-bottom: .25rem;
+        font-weight: 600;
+    }
+
+@media (max-width:575.98px) {
+    #formFiltrosPedidos .btn {
+        width: 100%;
+    }
+}
+
+/* ===== DataTables – Skin oscuro ===== */
+.dt-dark-wrap .dataTables_scrollHead,
+.dt-dark-wrap .dataTables_scrollHeadInner {
+    border-bottom: 1px solid var(--dt-head-b) !important;
+}
+
+.dt-dark-wrap .dataTables_scrollBody {
+    background: var(--dt-body) !important;
+}
+
+.dt-dark thead th, .dt-dark thead td {
+    background: #6868b1 !important;
+    color: var(--dt-text) !important;
+    border-color: var(--dt-head-b) !important;
+}
+
+.dt-dark tbody tr {
+    background: var(--dt-row) !important;
+    color: var(--dt-text) !important;
+}
+
+.dt-dark.display tbody tr:nth-child(2n),
+.dt-dark.stripe tbody tr:nth-child(2n) {
+    background: var(--dt-row-zebra) !important;
+}
+
+.dt-dark tbody tr:nth-child(2n+1) {
+    background: var(--dt-row-zebra2) !important;
+}
+
+.dt-dark tbody td, .dt-dark thead th {
+    border-bottom: 1px solid var(--dt-head-b) !important;
+}
+
+.dt-dark tbody tr:hover {
+    background: var(--dt-row-hover) !important;
+}
+
+/* fila de filtros clonada en thead (si la usás) */
+.dt-dark thead tr.filters th {
+    padding: 6px !important;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--dt-head) !important;
+}
+
+    .dt-dark thead tr.filters th input,
+    .dt-dark thead tr.filters th select {
+        width: 100%;
+        font-size: .82rem;
+        background: var(--dt-input) !important;
+        color: var(--dt-text) !important;
+        border: 1px solid var(--dt-input-b) !important;
+        border-radius: 8px;
+        padding: 4px 6px;
+    }
+
+        .dt-dark thead tr.filters th input:focus,
+        .dt-dark thead tr.filters th select:focus {
+            border-color: #4ea0ff !important;
+            box-shadow: 0 0 0 .15rem rgba(78,160,255,.18) !important;
+            outline: none !important;
+        }
+
+/* Paginación + buscador/length */
+.dataTables_wrapper .dataTables_paginate {
+    float: right;
+    padding: .6rem .5rem;
+    background: var(--dt-row-zebra2);
+    border-radius: .75rem;
+    border: 1px solid var(--dt-head-b);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.dataTables_wrapper .dataTables_info {
+    float: right;
+    margin-left: 12px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled, .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover, .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:active {
+     color: white !important; 
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: #c9d2e4 !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    border-radius: .5rem !important;
+    margin: 0 .15rem !important;
+}
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        color: #fff !important;
+        background: rgba(255,255,255,.06) !important;
+        border-color: var(--dt-head-b) !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        color: #fff !important;
+        background: linear-gradient(180deg,var(--dt-pag-active),#2c55d8) !important;
+        border: 1px solid #1e3ea8 !important;
+        box-shadow: 0 2px 8px rgba(61,106,242,.35);
+    }
+
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input {
+    background: var(--dt-row-zebra) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--dt-input-b) !important;
+    border-radius: .5rem !important;
+}
+
+/* Botones (dt-buttons) */
+.dataTables_wrapper .dt-buttons .dt-button {
+    background: #6868b1 !important;
+    color: #e6ebff !important;
+    border: 1px solid var(--dt-head-b) !important;
+    border-radius: .6rem !important;
+    padding: .4rem .7rem !important;
+}
+
+    .dataTables_wrapper .dt-buttons .dt-button:hover {
+        filter: brightness(1.08);
+    }
+
+/* Scrollbar a tono (webkit) */
+.dataTables_wrapper .dataTables_scrollBody::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+}
+
+.dataTables_wrapper .dataTables_scrollBody::-webkit-scrollbar-track {
+    background: var(--dt-body);
+}
+
+.dataTables_wrapper .dataTables_scrollBody::-webkit-scrollbar-thumb {
+    background: #2a3952;
+    border-radius: 10px;
+    border: 2px solid var(--dt-body);
+}
+
+
+/* Botón trigger (… ) */
+.btnacciones {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 10px;
+    padding: 4px 8px;
+}
+
+    .btnacciones:hover {
+        background: rgba(255,255,255,.06);
+    }
+
+/* ===== Export helpers (coinciden con tu proyecto) ===== */
+.btn-exportar-excel {
+    background-color: #198754 !important;
+    color: #fff !important;
+}
+
+.btn-exportar-pdf {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+}
+
+.btn-exportar-print {
+    background-color: #00a7c9 !important;
+    color: #fff !important;
+}
+
+/* ===== Modales (coherentes con Ventas) ===== */
+.colorEncabezado {
+    background: linear-gradient(90deg, var(--dt-row-zebra), var(--dt-row-zebra2));
+    color: #eaf2ff;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+    .colorEncabezado .btn-close {
+        filter: invert(1) grayscale(100%);
+        opacity: .8;
+    }
+
+.modal-content {
+    background-color: var(--dt-row-zebra) !important;
+    border-radius: 14px;
+    box-shadow: none;
+    color: var(--dt-row-zebra);
+}
+
+
+
+.modal-footer {
+    background: #1b2434;
+    border-top: 1px solid rgba(255,255,255,.08);
+}
+
+/* Inputs/Selects en modales */
+.modal .form-label {
+    color: #cfd7e6;
+}
+
+.modal .form-control, .modal .form-select {
+    background: var(--dt-row-zebra) !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+    color: #e8eef7 !important;
+}
+
+    .modal .form-control::placeholder {
+        color: #8896ad !important;
+        opacity: 1 !important;
+    }
+
+    .modal .form-control:focus, .modal .form-select:focus {
+        background: #101b2f !important;
+        color: #fff !important;
+        border-color: #3f5ba7 !important;
+        box-shadow: none !important;
+    }
+
+
+
+
+.select2-container .select2-selection--single {
+    height: 48px !important;
+    display: flex;
+    align-items: center;
+    background: var(--dt-row-zebra2);
+    border: 1px solid var(--b1) !important;
+    border-radius: 12px !important;
+}
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 38px !important;
+    }
+
+.select2-dropdown {
+    background: #0f1625 !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+}
+
+.select2-results__option {
+    color: var(--dt-row-zebra);
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background: var(--dt-row-zebra) !important;
+    color: beige !important;
+}
+/* Estado de validación (opcional) */
+select.is-invalid + .select2 .select2-selection {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 .2rem rgba(220,53,69,.25) !important;
+}
+
+select.is-valid + .select2 .select2-selection {
+    border-color: #198754 !important;
+    box-shadow: 0 0 0 .2rem rgba(25,135,84,.25) !important;
+}
+
+/* ===== Tri-state mini switch de filtros booleanos (Finalizado/Facturado) ===== */
+.tri-filter {
+    text-align: center;
+}
+
+.tri-switch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    min-width: 74px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid var(--dt-head-b);
+    color: #cfe3ff;
+    font-size: .78rem;
+    letter-spacing: .2px;
+    position: relative;
+}
+
+    .tri-switch .tri-switch-input { /* checkbox oculto solo para indeterminate */
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .tri-switch .tri-switch-ui::after {
+        content: "Todos";
+        display: inline-block;
+        font-weight: 700;
+    }
+
+    .tri-switch[data-state="on"] .tri-switch-ui::after {
+        content: "Sí";
+        color: #18c37e;
+    }
+
+    .tri-switch[data-state="off"] .tri-switch-ui::after {
+        content: "No";
+        color: #ff7a66;
+    }
+
+    .tri-switch:hover {
+        filter: brightness(1.05);
+    }
+
+/* ===== Utilidades ===== */
+.badge-soft {
+    display: inline-block;
+    padding: .15rem .45rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .02em;
+    background: rgba(255,255,255,.06);
+    border: 1px solid var(--dt-head-b);
+}
+
+.badge-in {
+    color: var(--chip-in);
+    border-color: rgba(24,195,126,.35);
+    background: rgba(24,195,126,.10);
+}
+
+.badge-out {
+    color: var(--chip-out);
+    border-color: rgba(255,122,102,.35);
+    background: rgba(255,122,102,.10);
+}
+
+.badge-stock {
+    color: var(--chip-stock);
+    border-color: rgba(124,194,255,.35);
+    background: rgba(124,194,255,.10);
+}
+
+/* Fix generales DataTables */
+.dataTables_wrapper a {
+    background: transparent !important;
+    color: var(--dt-text) !important;
+}
+
+.dataTables_wrapper .dataTables_filter {
+    margin-bottom: 10px !important;
+    padding-bottom: 0 !important;
+}
+
+.dataTables_wrapper .dataTables_scroll {
+    margin-top: 0 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    margin-top: 10px !important;
+}
+
+.dataTables_wrapper .dataTables_info {
+    margin-top: 10px !important;
+}
+
+/* Hover/selección de filas (si marcás .seleccionada en JS) */
+#grd_Pedidos tbody tr.seleccionada,
+#grd_Pedidos tbody tr.seleccionada td {
+    background: var(--dt-row-hover) !important;
+}
+#grd_Productos tbody tr.seleccionada,
+#grd_Productos tbody tr.seleccionada td {
+    background: var(--dt-row-hover) !important;
+}
+
+/* Botón “Nuevo Pedido” coherente */
+.acciones-externas .btn {
+    border-radius: .8rem;
+    box-shadow: 0 6px 18px rgba(0,0,0,.35);
+}
+
+
+
+/* =========================================================
+   Tri-chips (Todos / Sí / No) — fachero y claro
+   ========================================================= */
+.tri-filter {
+    text-align: center;
+}
+
+.tri-chips {
+    display: flex;
+    gap: 0;
+    width: 100%;
+    border: 1px solid var(--dt-head-b);
+    border-radius: 999px;
+    background: rgba(255,255,255,.06);
+    overflow: hidden;
+}
+
+    .tri-chips .chip {
+        flex: 1 1 33%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 28px;
+        line-height: 28px;
+        padding: 0 .6rem;
+        border: none;
+        outline: 0;
+        background: transparent;
+        color: #cfe3ff;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .2px;
+        cursor: pointer;
+        user-select: none;
+        transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .05s ease;
+    }
+
+        .tri-chips .chip:hover {
+            background: rgba(255,255,255,.08);
+        }
+
+        .tri-chips .chip:active {
+            transform: scale(.98);
+        }
+
+        /* Estados activos con color semántico */
+        .tri-chips .chip.active[data-val="all"] {
+            background: linear-gradient(180deg,#2b3c65,#243556);
+            color: #fff;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+        }
+
+        .tri-chips .chip.active[data-val="1"] {
+            background: linear-gradient(180deg,rgba(24,195,126,.9),rgba(24,195,126,.7));
+            color: #0b1a14;
+            text-shadow: 0 1px 0 rgba(255,255,255,.35);
+        }
+
+        .tri-chips .chip.active[data-val="0"] {
+            background: linear-gradient(180deg,rgba(255,122,102,.92),rgba(255,122,102,.72));
+            color: #240a0a;
+            text-shadow: 0 1px 0 rgba(255,255,255,.25);
+        }
+
+        /* Para navegación con teclado */
+        .tri-chips .chip:focus-visible {
+            box-shadow: 0 0 0 .15rem rgba(78,160,255,.28);
+            border-radius: 999px;
+        }
+
+/* =========================================================
+   Panel de filtros — detalles de layout y foco
+   ========================================================= */
+
+
+    .filter-bar .form-label {
+        color: #cfd7e6;
+        font-weight: 700;
+        letter-spacing: .2px;
+    }
+
+
+
+        .filter-bar .form-control:focus, .filter-bar .form-select:focus {
+            border-color: #4ea0ff !important;
+            box-shadow: 0 0 0 .2rem rgba(78,160,255,.18) !important;
+        }
+
+/* Inputs de filtros del THEAD clonado (DataTables) */
+.dt-input-dark {
+    background: #0f1625 !important;
+    color: #e6eefb !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+    border-radius: 8px !important;
+    height: 30px;
+    padding: 2px 6px;
+}
+
+    .dt-input-dark::placeholder {
+        color: #9fb0cc !important;
+        opacity: .9;
+    }
+
+    .dt-input-dark:focus {
+        border-color: #4ea0ff !important;
+        box-shadow: 0 0 0 .15rem rgba(78,160,255,.18) !important;
+    }
+
+/* Botón Filtros (visibilidad) */
+#btnToggleFiltros {
+    border-radius: 10px;
+    box-shadow: 0 6px 16px rgba(0,0,0,.35);
+}
+
+
+/* Igual que Ventas: contenedor + panel filtros */
+.container{ min-width:99%!important; }
+.page-99{ max-width:99%!important; }
+.card-glass {
+    background: linear-gradient(90deg, var(--dt-row-zebra), var(--dt-row-zebra2));
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 16px;
+    box-shadow: 0 6px 22px rgba(0,0,0,.35);
+    color: #e8eef7;
+}
+.tabla-wrap{ position:relative; padding-top:56px; }
+.tabla-controls-top{ position:absolute; top:8px; right:8px; z-index:2; }
+
+.filter-bar{
+  background: rgba(17,24,39,.65);
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03);
+  border-radius: 14px;
+}
+.filter-bar .form-label{ margin-bottom:.25rem; font-weight:700; color:#cfd7e6; }
+
+.filter-bar .form-control:focus, .filter-bar .form-select:focus{
+  border-color:#4ea0ff!important; box-shadow:0 0 0 .2rem rgba(78,160,255,.18)!important;
+}
+
+    .filter-bar .select2-container .select2-selection--single {
+        height: 38px !important;
+        display: flex;
+        align-items: center;
+        color: black !important;
+        border: 1px solid var(--b1) !important;
+        border-radius: 0px !important;
+    }
+
+    .filter-bar .select2-container .select2-selection__rendered {
+        color: black !important;
+    }
+/* Select2 dentro del panel: ancho completo */
+.select2-container{ width:100%!important; }
+
+.select2-selection__rendered{ line-height:36px!important; color:#e6eef7!important; padding-left:10px!important; }
+.select2-selection__arrow{ height:38px!important; }
+
+/* Inputs del thead clonado (igual Ventas) */
+
+.dt-input-dark::placeholder{ color:#9fb0cc!important; opacity:.9; }
+.dt-input-dark:focus{ border-color:#4ea0ff!important; box-shadow:0 0 0 .15rem rgba(78,160,255,.18)!important; }
+
+
+/* ——— Misma “malla” y tono del panel que Ventas ——— */
+.tabla-wrap{ position:relative; padding-top:56px; }
+.tabla-controls-top{ position:absolute; top:8px; right:8px; z-index:2; }
+
+/* Panel (filter-bar) idéntico */
+.filter-bar{
+  background: rgba(17,24,39,.65);
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03);
+  border-radius: 14px;
+}
+.filter-bar .form-label{ margin-bottom:.25rem; font-weight:700; color:#cfd7e6; }
+
+.filter-bar .form-control:focus, .filter-bar .form-select:focus{
+  border-color:#4ea0ff!important; box-shadow:0 0 0 .2rem rgba(78,160,255,.18)!important;
+}
+
+/* Evitar “rayitas”/divisores raros en la grilla del panel */
+.filter-bar .row > [class^="col-"]{ position:relative; }
+.filter-bar .row > [class^="col-"]::before,
+.filter-bar .row > [class^="col-"]::after{ content:none !important; }
+
+/* Select2 igual al tema */
+.select2-container{ width:100% !important; }
+
+.select2-container .select2-selection__rendered{ line-height:36px!important; color:#e6eef7!important; padding-left:10px!important; }
+.select2-container .select2-selection__arrow{ height:38px!important; }
+
+/* Inputs de filtros del thead (clon) como Ventas */
+.dt-input-dark{
+  background:#0f1625!important; color:#e6eefb!important;
+  border:1px solid rgba(255,255,255,.12)!important; border-radius:8px!important;
+  height:30px; padding:2px 6px;
+}
+.dt-input-dark::placeholder{ color:#9fb0cc!important; opacity:.9; }
+.dt-input-dark:focus{ border-color:#4ea0ff!important; box-shadow:0 0 0 .15rem rgba(78,160,255,.18)!important; }
+
+
+/* === Panel de filtros igual a Ventas === */
+.tabla-wrap {
+    position: relative;
+    padding-top: 56px;
+}
+
+.tabla-controls-top {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+}
+
+.filter-bar {
+    background: var(--dt-row-zebra);
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03);
+    border-radius: 14px;
+}
+
+    .filter-bar .form-label {
+        margin-bottom: .25rem;
+        font-weight: 700;
+        color: #cfd7e6;
+    }
+
+
+        .filter-bar .form-control:focus,
+        .filter-bar .form-select:focus {
+            border-color: #4ea0ff !important;
+            box-shadow: 0 0 0 .2rem rgba(78,160,255,.18) !important;
+        }
+
+/* FIX: borrar “rayita” y textos huérfanos en grid del panel */
+#formFiltrosPedidos .row > [class^="col-"]::before,
+#formFiltrosPedidos .row > [class^="col-"]::after {
+    content: none !important;
+}
+
+#formFiltrosPedidos .hint,
+#formFiltrosPedidos small,
+#formFiltrosPedidos .divider {
+    display: none !important;
+}
+
+/* Select2 como en Ventas */
+.select2-container {
+    width: 100% !important;
+}
+
+
+
+    .select2-container .select2-selection__rendered {
+        line-height: 36px !important;
+        color: #e6eef7 !important;
+        padding-left: 10px !important;
+    }
+
+    .select2-container .select2-selection__arrow {
+        height: 38px !important;
+    }
+
+/* Inputs del thead clonado (tabla) */
+.dt-input-dark {
+    background: #0f1625 !important;
+    color: #e6eefb !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+    border-radius: 8px !important;
+    height: 30px;
+    padding: 2px 6px;
+}
+
+    .dt-input-dark::placeholder {
+        color: #9fb0cc !important;
+        opacity: .9;
+    }
+
+    .dt-input-dark:focus {
+        border-color: #4ea0ff !important;
+        box-shadow: 0 0 0 .15rem rgba(78,160,255,.18) !important;
+    }
+
+
+
+/* ===========================
+   Select2 – Tema oscuro genérico
+   Usa esto en TODAS las pantallas
+   =========================== */
+
+/* --- Contenedor base --- */
+.select2-container {
+    width: 100% !important;
+    font: inherit;
+}
+
+    /* Asegura que los dropdowns se vean por encima de todo (DataTables, modales, etc.) */
+    .select2-container .select2-dropdown {
+        z-index: 4000; /* > toolbars/DT headers */
+    }
+
+  
+.select2-container--open .select2-selection--single {
+    border-color: #2962ff;
+    box-shadow: 0 0 0 2px rgba(41,98,255,.25);
+}
+
+.select2-container .select2-selection--single .select2-selection__rendered {
+    color: #e9eef5;
+    padding-left: 12px;
+    padding-right: 34px; /* espacio para la flecha */
+    line-height: 1.2; /* evita texto “cortado” */
+}
+
+.select2-container .select2-selection--single .select2-selection__placeholder {
+    color: #90a4b8;
+}
+
+.select2-container .select2-selection--single .select2-selection__arrow {
+    height: 100%;
+    right: 10px;
+}
+
+/* --- MULTIPLE --- */
+.select2-container .select2-selection--multiple {
+    min-height: 44px;
+    background-color: #121a24;
+    border: 1px solid #2a3442;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    padding: 2px 6px;
+}
+
+    .select2-container .select2-selection--multiple .select2-selection__choice {
+        background: #1e2a38;
+        border: 1px solid #314255;
+        color: #e9eef5;
+        border-radius: 8px;
+        padding: 2px 8px;
+        margin-top: 6px;
+    }
+
+    .select2-container .select2-selection--multiple .select2-selection__choice__remove {
+        color: #a8c0d8;
+        margin-right: 6px;
+    }
+
+/* --- Dropdown / lista --- */
+.select2-dropdown {
+    background: #0f1620;
+    border: 1px solid #2a3442;
+    border-radius: 10px;
+    overflow: hidden; /* esquinas redondeadas reales */
+    box-shadow: 0 10px 30px rgba(0,0,0,.45);
+}
+
+.select2-results__options {
+    max-height: 260px; /* scroll amigable */
+}
+
+.select2-results__option {
+    padding: 8px 12px;
+    color: #e9eef5;
+}
+
+.select2-results__option--highlighted {
+    background: #2962ff;
+    color: #fff;
+}
+
+.select2-search--dropdown .select2-search__field {
+    background: var(--dt-row-zebra);
+    color: #e9eef5;
+    border: 1px solid var(--dt-row-zebra2);
+    border-radius: 8px;
+    outline: none;
+}
+
+/* --- Estados hover/focus --- */
+.select2-container--default .select2-selection--single:hover,
+.select2-container--default .select2-selection--multiple:hover {
+    border-color: #3a4760;
+}
+
+/* --- Integración con tu panel de filtros (“filter-bar”/card) --- */
+.filter-bar,
+#formFiltros,
+#formFiltrosPedidos {
+    position: relative; /* necesario para dropdownParent */
+    overflow: visible; /* evita que el dropdown se “corte” */
+}
+
+/* Alturas compactas si usás .form-control-sm en headers de DataTables */
+th .select2-container .select2-selection--single {
+    height: 36px;
+    border-radius: 8px;
+}
+
+th .select2-container .select2-selection--multiple {
+    min-height: 36px;
+    border-radius: 8px;
+}
+
+th .select2-results__options {
+    max-height: 220px;
+}
+
+/* Botón “X” (allowClear) visible en oscuro */
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    color: #90a4b8;
+    margin-right: 4px;
+}
+
+/* Corrige cualquier salto o texto “suelto” del theme */
+.select2-container .select2-selection__rendered > .select2-selection__clear + span {
+    vertical-align: middle;
+}
+
+/* Cuando Select2 está dentro de .input-group, respeta altura */
+.input-group .select2-container .select2-selection--single {
+    height: 100%;
+}
+
+/* ===== Select2 – tema oscuro, reutilizable (scope: #formFiltros) ===== */
+
+/* ocultá SIEMPRE el <select> original cuando select2 lo inicializa */
+.select2-hidden-accessible { display: none !important; }
+
+/* que el contenedor tome el ancho del column */
+#formFiltros .select2-container { width: 100% !important; }
+
+/* caja "single" con look de tus inputs */
+#formFiltros .select2-container--default .select2-selection--single{
+  height: 44px;                       /* mismo alto que tus inputs */
+  background: #0f1620;
+  border: 1px solid #2a3442;
+  border-radius: 10px;
+  display: flex; align-items: center;
+  transition: border-color .15s, box-shadow .15s;
+}
+#formFiltros .select2-container--default.select2-container--open
+.select2-selection--single{
+  border-color: #2962ff;
+  box-shadow: 0 0 0 2px rgba(41,98,255,.25);
+}
+#formFiltros .select2-selection__rendered{
+  color: #e9eef5;
+  padding: 0 36px 0 12px;             /* espacio para la flecha */
+  line-height: 1.2;
+}
+#formFiltros .select2-selection__placeholder{ color:#90a4b8; }
+#formFiltros .select2-selection__arrow{ height:100%; right:10px; }
+
+/* dropdown (lista + buscador) */
+#formFiltros .select2-dropdown{
+  background:#0f1620;
+  border:1px solid #2a3442;
+  border-radius:10px;
+  overflow:hidden;
+  z-index:4000;                        /* por encima de DataTables */
+}
+#formFiltros .select2-results__option{ color:#e9eef5; }
+#formFiltros .select2-results__option--highlighted{
+  background:#2962ff; color:#fff;
+}
+#formFiltros .select2-search__field{
+  background:#0f1620; color:#e9eef5;
+  border:1px solid #2a3442;
+  border-radius:8px; padding:.35rem .5rem;
+}
+
+/* disabled, focus, etc. */
+#formFiltros .select2-container--default.select2-container--disabled
+.select2-selection--single{
+  opacity:.6; cursor:not-allowed;
+}
+
+
+
+/* ===========================
+   Select2 – Tema oscuro genérico
+   Reutilizable en todas las pantallas
+   =========================== */
+
+/* Asegura ancho completo y que el select original no interfiera */
+.select2-hidden-accessible {
+    display: none !important;
+}
+
+.select2-container {
+    width: 100% !important;
+    font: inherit;
+}
+
+
+.select2-container--open .select2-selection--single {
+    border-color: #2962ff;
+    box-shadow: 0 0 0 2px rgba(41,98,255,.25);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #e9eef5;
+    padding: 0 36px 0 12px;
+    line-height: 1.2;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #90a4b8;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 100%;
+    right: 10px;
+}
+
+/* Dropdown (arriba de DataTables y modales) */
+.select2-dropdown {
+    background: #0f1620;
+    border: 1px solid #2a3442;
+    border-radius: 10px;
+    overflow: hidden;
+    z-index: 4000 !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,.45);
+}
+
+.select2-results__option {
+    color: #e9eef5;
+    padding: 8px 12px;
+}
+
+.select2-results__option--highlighted {
+    background: #2962ff;
+    color: #fff;
+}
+
+.select2-search__field {
+    background: #0f1620;
+    color: #e9eef5;
+    border: 1px solid #2a3442;
+    border-radius: 8px;
+}
+
+/* Integración con el panel de filtros */
+#formFiltrosPedidos, #formFiltros {
+    position: relative;
+    overflow: visible;
+}
+
+/* ===========================
+   DataTables – filtros en THEAD
+   =========================== */
+.dt-dark thead tr.filters th {
+    padding: 6px !important;
+    background: #6868b1 !important;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+
+    .dt-dark thead tr.filters th input,
+    .dt-dark thead tr.filters th select {
+        width: 100%;
+        font-size: .82rem;
+        background: var(--dt-row-zebra) !important;
+        color: #e5e7eb !important;
+        border: 1px solid #2b3647 !important;
+        border-radius: 8px;
+        padding: 4px 6px;
+    }
+
+        .dt-dark thead tr.filters th input:focus,
+        .dt-dark thead tr.filters th select:focus {
+            border-color: #4ea0ff !important;
+            box-shadow: 0 0 0 .15rem rgba(78,160,255,.18) !important;
+            outline: none;
+        }
+
+/* ===========================
+   Tri-chips (Todos / Sí / No)
+   =========================== */
+.tri-filter {
+    text-align: center;
+}
+
+.tri-chips {
+    display: flex;
+    gap: 0;
+    width: 100%;
+    border: 1px solid #2b3647;
+    border-radius: 999px;
+    background: rgba(255,255,255,.06);
+    overflow: hidden;
+}
+
+    .tri-chips .chip {
+        flex: 1 1 33%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 28px;
+        line-height: 28px;
+        padding: 0 .6rem;
+        border: none;
+        outline: 0;
+        background: transparent;
+        color: #cfe3ff;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .2px;
+        cursor: pointer;
+        transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .05s ease;
+    }
+
+        .tri-chips .chip:hover {
+            background: rgba(255,255,255,.08);
+        }
+
+        .tri-chips .chip:active {
+            transform: scale(.98);
+        }
+
+        .tri-chips .chip.active[data-val="all"] {
+            background: linear-gradient(180deg,#2b3c65,#243556);
+            color: #fff;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+        }
+
+        .tri-chips .chip.active[data-val="1"] {
+            background: linear-gradient(180deg,rgba(24,195,126,.9),rgba(24,195,126,.7));
+            color: #0b1a14;
+        }
+
+        .tri-chips .chip.active[data-val="0"] {
+            background: linear-gradient(180deg,rgba(255,122,102,.92),rgba(255,122,102,.72));
+            color: #240a0a;
+        }
+
+        .tri-chips .chip:focus-visible {
+            box-shadow: 0 0 0 .15rem rgba(78,160,255,.28);
+            border-radius: 999px;
+        }
+
+
+.select2-container--default .select2-results__option {
+     color: white !important; 
+     background: var(--dt-row-zebra2)
+}
+
+    .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: #292946 !important;
+    }
+
+
+
+    /* =========================================================
+   SECCIÓN PRODUCTOS (fuera del modal) = MISMO LOOK DEL MODAL
+   ========================================================= */
+
+/* Titlebar y panel */
+#productos .cc-section.cc-card{
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+  border: 1px solid var(--b1);
+  border-radius: 18px;
+}
+
+
+
+
+table.dataTable.display tbody tr:nth-child(odd) td {
+    background-color: var(--dt-row-zebra) !important;
+}
+
+table.dataTable.display tbody tr:nth-child(even) td {
+    background-color: var(--dt-row-zebra2) !important;
+}
+
+table.dataTable tbody tr.selected {
+    background-color: #292946 !important;
+}
+
+/* ===========================
+   Pedidos (page-99) – MOBILE FIX
+   Solo ≤576px, sin tocar HTML
+   =========================== */
+@media (max-width: 576px) {
+
+    /* 1) La barra de acciones deja de ser absoluta y se apila arriba de la tabla */
+    .page-99 .tabla-wrap {
+        padding-top: 0; /* ya no necesitamos “techo” */
+    }
+
+    .page-99 .tabla-controls-top {
+        position: static; /* quita absolute */
+        display: grid; /* apilar */
+        grid-template-columns: 1fr; /* una columna */
+        gap: 10px;
+        margin-bottom: 10px; /* respirito sobre la tabla */
+    }
+
+        /* 2) Botones y dropdown ocupan ancho completo */
+        .page-99 .tabla-controls-top .btn,
+        .page-99 .tabla-controls-top .dropdown,
+        .page-99 .tabla-controls-top .dropdown > .btn {
+            width: 100%;
+            min-height: 44px;
+            border-radius: 12px;
+            font-weight: 800;
+        }
+        /* Menú del dropdown igual de ancho que el botón */
+        .page-99 .tabla-controls-top .dropdown-menu {
+            width: 100%;
+            min-width: 0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+    /* 3) DataTables: length, buscador, info y paginación en vertical */
+    .page-99 .dataTables_wrapper .dataTables_length,
+    .page-99 .dataTables_wrapper .dataTables_filter,
+    .page-99 .dataTables_wrapper .dataTables_info,
+    .page-99 .dataTables_wrapper .dataTables_paginate {
+        float: none !important;
+        width: 100% !important;
+        text-align: left !important;
+        margin: 6px 0 !important;
+    }
+        /* buscador full width y con look del tema */
+        .page-99 .dataTables_wrapper .dataTables_filter input {
+            width: 100% !important;
+            box-sizing: border-box;
+            min-height: 40px;
+            background: #0f1625 !important;
+            color: #e6eef7 !important;
+            border: 1px solid rgba(255,255,255,.12) !important;
+            border-radius: 10px !important;
+        }
+        /* selector “Mostrar N entradas” más táctil */
+        .page-99 .dataTables_wrapper .dataTables_length select {
+            min-height: 36px;
+            background: #0f1625 !important;
+            color: #e6eef7 !important;
+            border: 1px solid rgba(255,255,255,.12) !important;
+            border-radius: 10px !important;
+        }
+    /* paginación cómoda en móvil */
+    .page-99 .dataTables_wrapper .dataTables_paginate {
+        display: flex;
+        gap: 8px;
+        padding: .45rem .5rem;
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 10px;
+    }
+
+    /* 4) Un poco de aire dentro del contenedor oscuro de la tabla */
+    .page-99 .dt-dark-wrap {
+        padding: 8px;
+        border-radius: 14px;
+    }
+}
+
+
+table.dataTable tbody tr.selected {
+    background-color: var(--dt-row-hover) !important;
+}
+
+
+
+/* ---- Select2 multiple: scroll cuando crece (en thead de DataTables) ---- */
+.dt-dark-wrap thead .filters .select2-container { width:100% !important; }
+
+/* Caja múltiple */
+.dt-dark-wrap thead .filters .select2-selection--multiple{
+  background:var(--dt-row-zebra) !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  border-radius:10px !important;
+  padding:4px 6px;
+  min-height:36px;
+}
+
+/* El UL donde se pintan los chips */
+.dt-dark-wrap thead .filters .select2-selection--multiple .select2-selection__rendered{
+  display:flex;                 /* que envuelva chips en filas */
+  flex-wrap:wrap;
+  gap:6px;
+  padding:2px;                  /* evita que el scroll tape chips */
+  max-height:120px;             /* <-- altura a partir de la cual aparece scroll */
+  overflow-y:auto;              /* solo vertical */
+  overflow-x:hidden;
+  scrollbar-width: thin;        /* Firefox */
+  scrollbar-color: #2a3952 transparent;
+}
+
+/* Scrollbar WebKit */
+.dt-dark-wrap thead .filters .select2-selection__rendered::-webkit-scrollbar{
+  width:10px;
+}
+.dt-dark-wrap thead .filters .select2-selection__rendered::-webkit-scrollbar-thumb{
+  background:#2a3952; border-radius:10px; border:2px solid #0f1625;
+}
+
+/* Chips (coherentes con tu skin) */
+.dt-dark-wrap thead .filters .select2-selection__choice{
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04)) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  color:#eaf1ff !important;
+  border-radius:9px;
+  padding:1px 8px;
+  margin:2px 0;
+  font-weight:800;
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+.dt-dark-wrap thead .filters .select2-selection__choice__remove{
+  color:#9db1d2 !important; margin-right:6px; font-weight:900;
+}
+
+/* Buscador inline: que no “salte” */
+.dt-dark-wrap thead .filters .select2-search--inline .select2-search__field{
+  color:#eaf1ff !important;
+  min-width:90px; height:26px; line-height:26px; margin:2px 2px;
+}
+
+/* Dropdown (lista) sin cambios de funcionalidad, solo look */
+.dt-dark-wrap thead .filters .select2-dropdown{
+  background:#101726 !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  border-radius:12px !important;
+  box-shadow:0 18px 40px rgba(0,0,0,.45);
+  overflow:hidden;
+}
+.dt-dark-wrap thead .filters .select2-results__options{ max-height:280px; }
+.dt-dark-wrap thead .filters .select2-results__option{ color:#eaf1ff; padding:.5rem .75rem; font-weight:700; }
+.dt-dark-wrap thead .filters .select2-results__option--highlighted[aria-selected]{ background:#294167 !important; color:#fff !important; }
+
+
+
+
+
+.table thead th {
+    position: relative;
+}
+
+
+
+.modal-content {
+    background: #1d2636 !important;
+    color: #e8eef7 !important;
+    border-radius: 14px;
+    border: none;
+}
+
+.modal-footer-cc {
+    background: linear-gradient(90deg, var(--dt-row-zebra), var(--dt-row-zebra2));
+    border-top: 1px solid rgba(255,255,255,.08);
+}
+
+
+/* Fondo para modal-body en general, excepto exito/Error/Advertencia */
+.modal:not(#exitoModal):not(#ErrorModal):not(#AdvertenciaModal) .modal-body {
+    background: var(--dt-row-zebra2) !important;
+}
+
+
+
+table.dataTable.display tbody tr.selected td {
+    background-color: antiquewhite !important;
+    color: black !important;
+}
+
+
+
+.select2-container {
+    width: 100% !important;
+    min-width: 0;
+    display: block;
+}
+
+.filter-bar .select2-container .select2-selection--single {
+    background: white !important;
+}
+
+    .select2-container .select2-selection--single {
+        height: 44px !important;
+        display: flex;
+        align-items: center;
+        background: var(--dt-row-zebra) !important;
+        border-radius: 12px !important;
+    }
+
+    .select2-container .select2-selection__arrow {
+        height: 48px !important;
+    }
+
+
+
+.select2-results__option {
+    color: #eaf1ff;
+    font-weight: 700;
+}
+
+
