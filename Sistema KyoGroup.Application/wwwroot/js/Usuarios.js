@@ -265,7 +265,7 @@ async function configurarDataTable(data) {
                     filename: 'Reporte Usuarios',
                     title: '',
                     exportOptions: {
-                        columns: [0, 1, 2]
+                        columns: [1, 2, 3, 4, 5, 6, 7]
                     },
                     className: 'btn-exportar-excel',
                 },
@@ -275,7 +275,7 @@ async function configurarDataTable(data) {
                     filename: 'Reporte Usuarios',
                     title: '',
                     exportOptions: {
-                        columns: [0, 1, 2]
+                        columns: [1, 2, 3, 4, 5, 6, 7]
                     },
                     className: 'btn-exportar-pdf',
                 },
@@ -284,7 +284,7 @@ async function configurarDataTable(data) {
                     text: 'Imprimir',
                     title: '',
                     exportOptions: {
-                        columns: [0, 1, 2]
+                        columns: [1, 2,3,4,5,6,7]
                     },
                     className: 'btn-exportar-print'
                 },
@@ -338,6 +338,8 @@ async function configurarDataTable(data) {
                     gridUsuarios.columns.adjust();
                 }, 10);
 
+                actualizarKpisUsuarios(data)
+
                 $('body').on('mouseenter', '#grd_Usuarios .fa-map-marker', function () {
                     $(this).css('cursor', 'pointer');
                 });
@@ -354,6 +356,7 @@ async function configurarDataTable(data) {
         });
     } else {
         gridUsuarios.clear().rows.add(data).draw();
+        actualizarKpisUsuarios(data)
     }
 }
 
@@ -570,3 +573,10 @@ function validarCampos() {
     return valido;
 }
 
+
+
+function actualizarKpisUsuarios(data) {
+    const cant = Array.isArray(data) ? data.length : 0;
+    const el = document.getElementById('kpiCantUsuarios');
+    if (el) el.textContent = cant;
+}

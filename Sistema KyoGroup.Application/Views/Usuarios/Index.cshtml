@@ -1,164 +1,174 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Usuarios";
 }
 
-
-@*GOOGLEAR CARD BOOTSTRAP 5*@
 @section Estilos {
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" />
 
-    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
-
-@*ESTILOS DE BOTONES*@
-    <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" />
-
-@*filter columns*@
-    <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
-
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-    <link href="~/css/usuarios.css" rel="stylesheet" />
+    <!-- Estilos base del proyecto -->
 
+    <link rel="stylesheet" href="~/css/usuarios.css" />
+    <link rel="stylesheet" href="~/css/DisenoPantallas.css"/>
 }
 
-<div class="container-fluid mt-5">
-    <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
-    <div class="row">
-        <div class="col-lg-10">
-            <div class="card" style="width: 88%; position: absolute; left: 7vw; border: none;">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Usuarios</span>
-
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa fa-cog me-2"></i> Config. Columnas
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu">
-                        </ul>
-                    </div>
+<div class="container page-99">
+    <!-- Header tipo KPI -->
+    <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="d-flex align-items-center gap-3">
+                <span class="cc-badge"><i class="fa fa-users"></i></span>
+                <div>
+                    <h2 class="m-0 fw-800">Usuarios</h2>
+                    <small class="text-muted-cc">Administración y acciones rápidas</small>
                 </div>
-                <div class="card-body">
-                    <table class="display nowrap" id="grd_Usuarios" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>Usuario</th>
-                                <th>Nombre</th>
-                                <th>Apellido</th>
-                                <th>Dni</th>
-                                <th>Telefono</th>
-                                <th>Direccion</th>
-                                <th>Rol</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Aquí va el contenido de tu datatable -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="d-flex justify-content-end mt-2 mb-4">
-                    <a class="btn btn-primary btnnuevo" onclick="nuevoUsuario()">Nuevo</a>
-                </div>
-
             </div>
+
+            <!-- KPIs -->
+            <div class="ms-auto d-flex gap-3 flex-wrap">
+                <div class="cc-stat">
+                    <div class="label">Cantidad</div>
+                    <div class="value" id="kpiCantUsuarios">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card-glass p-3">
+                <div class="tabla-wrap position-relative">
+
+                    <!-- Controles top -->
+                    <div class="tabla-controls-top d-flex gap-2 flex-wrap align-items-center mb-2">
+                        <button class="btn btn-new d-flex align-items-center px-3 py-2 ms-auto"
+                                onclick="nuevoUsuario()">
+                            <i class="fa fa-plus-square me-2"></i> Nuevo Usuario
+                        </button>
+
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="btnConfigColsG"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa fa-cog me-2"></i> Config. Columnas
+                            </button>
+                            <ul class="dropdown-menu" id="configColumnasMenu" aria-labelledby="btnConfigColsG"></ul>
+                        </div>
+                    </div>
+
+                    <!-- DataTable -->
+                    <div class="dt-dark-wrap">
+                        <table class="dt-dark display nowrap compact" id="grd_Usuarios" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Usuario</th>
+                                    <th>Nombre</th>
+                                    <th>Apellido</th>
+                                    <th>DNI</th>
+                                    <th>Telefono</th>
+                                    <th>Direccion</th>
+                                    <th>Rol</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                </div><!-- /tabla-wrap -->
+            </div><!-- /card-glass -->
         </div>
     </div>
 </div>
 
-
-
-
+<!-- Modal Usuarios -->
 <div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
-        <div class="modal-content">
-
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-edicion" role="document">
+        <div class="modal-content cc-modal">
             <div class="modal-header colorEncabezado">
-                <h5 class="modal-title fw-bold" id="modalEdicionLabel">Nuevo Proveedor</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                <h5 class="modal-title fw-bold" id="modalEdicionLabel">Editar Usuario</h5>
+                <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
 
             <div class="modal-body">
-                <form id="formProveedor" class="row g-3">
+                <form id="formEditarUsuario" class="row g-3">
+                    <input type="text" id="txtId" hidden readonly>
 
-                    <input type="text" class="input-nuevomodif" id="txtId" readonly hidden>
-
-                    <!-- Fila 1 -->
-                    <div class="col-md-4">
-                        <label id="lblUsuario" for="txtUsuario" class="form-label">Usuario</label>
+                    <div class="col-md-6">
+                        <label for="txtUsuario" class="form-label" id="lblUsuario">Usuario (*)</label>
                         <input type="text" class="form-control" id="txtUsuario" required>
                         <div class="invalid-feedback">Campo obligatorio</div>
                     </div>
 
-                    <div class="col-md-4">
-                        <label id="lblNombre" for="txtNombre" class="form-label">Nombre</label>
+                    <div class="col-md-6">
+                        <label for="txtNombre" class="form-label" id="lblNombre">Nombre (*)</label>
                         <input type="text" class="form-control" id="txtNombre" required>
                         <div class="invalid-feedback">Campo obligatorio</div>
                     </div>
 
-                    <div class="col-md-4">
-                        <label id="lblApellido" for="txtApellido" class="form-label">Apellido</label>
+                    <div class="col-md-6">
+                        <label for="txtApellido" class="form-label" id="lblApellido">Apellido</label>
                         <input type="text" class="form-control" id="txtApellido">
+                        <div class="invalid-feedback">Campo obligatorio</div>
                     </div>
 
-                    <div class="col-md-4">
-                        <label id="lblDni" for="txtDni" class="form-label">DNI</label>
-                        <input type="text" class="form-control" id="txtDni" >
+                    <div class="col-md-6">
+                        <label for="txtDni" class="form-label" id="lblDni">DNI</label>
+                        <input type="text" class="form-control" id="txtDni">
                     </div>
 
-
-                    <div class="col-md-4">
-                        <label id="lblDescripcion" for="txtTelefono" class="form-label">Telefono</label>
-                        <input type="text" class="form-control" id="txtTelefono" >
+                    <div class="col-md-6">
+                        <label for="txtTelefono" class="form-label" id="lblTelefono">Teléfono</label>
+                        <input type="text" class="form-control" id="txtTelefono">
                     </div>
 
-
-                    <div class="col-md-4">
-                        <label id="lblDireccion" for="txtDireccion" class="form-label">Direcion</label>
-                        <input type="text" class="form-control" id="txtDireccion" >
+                    <div class="col-md-6">
+                        <label for="txtDireccion" class="form-label" id="lblDireccion">Dirección</label>
+                        <input type="text" class="form-control" id="txtDireccion">
                     </div>
 
-                    <div class="col-md-4">
-                        <label id="lblRoles" for="Roles" class="form-label">Rol</label>
+                    <div class="col-md-6">
+                        <label for="Roles" class="form-label" id="lblRol">Rol</label>
                         <select id="Roles" name="select" class="form-control">
                             <option value="" selected>Rol</option>
                         </select>
                     </div>
 
-                    <div class="col-md-4">
-                        <label id="lblEstado" for="Estados" class="form-label">Estado</label>
+                    <div class="col-md-6">
+                        <label for="Estados" class="form-label" id="lblEstado">Estado</label>
                         <select id="Estados" name="select" class="form-control">
-                            <option value="" selected>Rol</option>
+                            <option value="" selected>Estado</option>
                         </select>
                     </div>
 
-                    <div class="col-md-4" id="divContrasena">
-                        <label id="lblContrasena" for="txtContrasena" class="form-label">Contrasena</label>
-                        <input type="text" class="form-control" id="txtContrasena" required>
+                    <div class="col-md-6" id="divContrasena">
+                        <label for="txtContrasena" class="form-label" id="lblContrasena">Contraseña (*)</label>
+                        <input type="password" class="form-control" id="txtContrasena">
                         <div class="invalid-feedback">Campo obligatorio</div>
                     </div>
 
-                    <div class="col-md-4" id="divContrasenaNueva">
-                        <label id="lblContrasenaNueva" for="txtContrasenaNueva" class="form-label">Contrasena Nueva</label>
-                        <input type="text" class="form-control" id="txtContrasenaNueva">
+                    <div class="col-md-6" id="divContrasenaNueva">
+                        <label for="txtContrasenaNueva" class="form-label" id="lblContrasenaNueva">Contraseña Nueva</label>
+                        <input type="password" class="form-control" id="txtContrasenaNueva">
                     </div>
 
-                    <!-- Validación -->
-                    <div id="errorCampos" class="alert alert-danger d-none">
-                        Debes completar los campos obligatorios.
+                    <!-- Mensaje general de error que usa el JS -->
+                    <div id="errorCampos" class="alert alert-danger d-none mt-2">
+                        Debes completar los campos requeridos.
                     </div>
                 </form>
             </div>
 
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fa fa-arrow-left"></i> Volver
-                </button>
-                <button type="button" id="btnGuardar" class="btn btn-primary" onclick="guardarCambios()">
-                    <i class="fa fa-check"></i> Registrar
-                </button>
+            <div class="modal-footer modal-footer-cc">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" id="btnGuardar" class="btn btn-new" onclick="guardarCambios()">Guardar</button>
             </div>
-
         </div>
     </div>
 </div>
