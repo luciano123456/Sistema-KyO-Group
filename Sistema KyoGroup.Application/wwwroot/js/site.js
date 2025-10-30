@@ -288,3 +288,28 @@ function initSelect2Simple(selector, dropdownParentSelector, placeholderText, to
         return this.nodeType === 3 && this.nodeValue.trim() !== '';
     }).remove();
 }
+
+
+
+function fmtFechaAR(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d)) return "";
+    return d.toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+function setInfoAuditoria(vm) {
+    const el = document.getElementById('lblUltimaModif');
+    if (!el) return;
+
+    // Si tiene modificación, mostramos última modif; si no, mostramos creado por
+    if (vm.FechaModifica && vm.UsuarioModifica) {
+        el.textContent = `Última modificación: ${vm.UsuarioModifica} — ${fmtFechaAR(vm.FechaModifica)}`;
+    } else if (vm.FechaRegistra && vm.UsuarioRegistra) {
+        el.textContent = `Creado por: ${vm.UsuarioRegistra} — ${fmtFechaAR(vm.FechaRegistra)}`;
+    } else if (vm.FechaRegistra) {
+        el.textContent = `Creado el ${fmtFechaAR(vm.FechaRegistra)}`;
+    } else {
+        el.textContent = "";
+    }
+}

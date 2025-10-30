@@ -24,7 +24,7 @@ namespace SistemaKyoGroup.Application.Controllers
         {
             var EstadosUsuarios = await _EstadosUsuariosService.ObtenerTodos();
 
-            var lista = EstadosUsuarios.Select(c => new VMEstadosUsuarios
+            var lista = EstadosUsuarios.Select(c => new ClaimsPrincipalExtensions
             {
                 Id = c.Id,
                 Nombre = c.Nombre,
@@ -35,7 +35,7 @@ namespace SistemaKyoGroup.Application.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Insertar([FromBody] VMEstadosUsuarios model)
+        public async Task<IActionResult> Insertar([FromBody] ClaimsPrincipalExtensions model)
         {
             var EstadosUsuario = new EstadosUsuario
             {
@@ -49,7 +49,7 @@ namespace SistemaKyoGroup.Application.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Actualizar([FromBody] VMEstadosUsuarios model)
+        public async Task<IActionResult> Actualizar([FromBody] ClaimsPrincipalExtensions model)
         {
             var EstadosUsuario = new EstadosUsuario
             {

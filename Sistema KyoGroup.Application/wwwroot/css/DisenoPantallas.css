@@ -83,6 +83,10 @@ body {
     color: var(--muted) !important;
 }
 
+.text-new {
+    color: #9BBD3C;
+}
+
 
 .btn-new {
     background: #9BBD3C;
