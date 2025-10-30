@@ -7,13 +7,13 @@ public partial class Local
 {
     public int Id { get; set; }
 
-    public int IdUnidadNegocio { get; set; }
+    public int? IdUnidadNegocio { get; set; }
 
-    public string Nombre { get; set; } = null!;
+    public string? Nombre { get; set; }
 
     public virtual ICollection<Compra> Compras { get; set; } = new List<Compra>();
 
-    public virtual UnidadesNegocio IdUnidadNegocioNavigation { get; set; } = null!;
+    public virtual UnidadesNegocio? IdUnidadNegocioNavigation { get; set; }
 
     public virtual ICollection<Importacion> Importaciones { get; set; } = new List<Importacion>();
 

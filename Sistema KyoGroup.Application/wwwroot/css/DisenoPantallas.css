@@ -382,7 +382,7 @@ body {
 
 
 .modal-footer {
-    background: #1b2434;
+    background: linear-gradient(90deg, var(--dt-row-zebra), var(--dt-row-zebra2));
     border-top: 1px solid rgba(255,255,255,.08);
 }
 
