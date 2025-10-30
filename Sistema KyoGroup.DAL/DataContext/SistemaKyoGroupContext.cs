@@ -496,22 +496,34 @@ public partial class SistemaKyoGroupContext : DbContext
         {
             entity.ToTable("Insumos_Proveedores");
 
-            entity.Property(e => e.IdInsumo)
-                .HasMaxLength(50)
-                .IsUnicode(false);
+            entity.HasOne(d => d.IdInsumoNavigation).WithMany(p => p.InsumosProveedores)
+                .HasForeignKey(d => d.IdInsumo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Insumos_Proveedores_Insumos");
+
+            entity.HasOne(d => d.IdInsumo1).WithMany(p => p.InverseIdInsumo1)
+                .HasForeignKey(d => d.IdInsumo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Insumos_Proveedores_Insumos_Proveedores");
 
             entity.HasOne(d => d.IdListaProveedorNavigation).WithMany(p => p.InsumosProveedores)
                 .HasForeignKey(d => d.IdListaProveedor)
                 .HasConstraintName("FK_Insumos_Proveedores_Proveedores_Insumos_Listas");
+
+            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.InsumosProveedores)
+                .HasForeignKey(d => d.IdProveedor)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Insumos_Proveedores_Proveedores");
         });
 
         modelBuilder.Entity<InsumosUnidadesNegocio>(entity =>
         {
             entity.ToTable("Insumos_UnidadesNegocio");
 
-            entity.Property(e => e.IdInsumo)
-                .HasMaxLength(50)
-                .IsUnicode(false);
+            entity.HasOne(d => d.IdInsumoNavigation).WithMany(p => p.InsumosUnidadesNegocios)
+                .HasForeignKey(d => d.IdInsumo)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Insumos_UnidadesNegocio_Insumos");
 
             entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany(p => p.InsumosUnidadesNegocios)
                 .HasForeignKey(d => d.IdUnidadNegocio)
@@ -668,7 +680,7 @@ public partial class SistemaKyoGroupContext : DbContext
                 .HasMaxLength(150)
                 .IsUnicode(false);
 
-            entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany(p => p.Local)
+            entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany(p => p.Locales)
                 .HasForeignKey(d => d.IdUnidadNegocio)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_Locales_Unidades_Negocio");

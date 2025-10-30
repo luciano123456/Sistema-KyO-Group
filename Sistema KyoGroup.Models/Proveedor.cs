@@ -33,6 +33,8 @@ public partial class Proveedor
 
     public virtual User IdUsuarioRegistraNavigation { get; set; } = null!;
 
+    public virtual ICollection<InsumosProveedor> InsumosProveedores { get; set; } = new List<InsumosProveedor>();
+
     public virtual ICollection<OrdenesCompra> OrdenesCompras { get; set; } = new List<OrdenesCompra>();
 
     public virtual ICollection<ProveedoresCuentaCorriente> ProveedoresCuentaCorrientes { get; set; } = new List<ProveedoresCuentaCorriente>();

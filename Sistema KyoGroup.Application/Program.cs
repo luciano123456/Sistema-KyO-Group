@@ -46,6 +46,19 @@ builder.Services.AddScoped<IUnidadesNegocioService, UnidadesNegociosService>();
 builder.Services.AddScoped<IProveedoresRepository<Proveedor>, ProveedoresRepository>();
 builder.Services.AddScoped<IProveedoresService, ProveedoresService>();
 
+builder.Services.AddScoped<IInsumosCategoriaRepository<InsumosCategoria>, InsumosCategoriaRepository>();
+builder.Services.AddScoped<IInsumosCategoriaService, InsumosCategoriaService>();
+
+builder.Services.AddScoped<IInsumoRepository<Insumo>, InsumoRepository>();
+builder.Services.AddScoped<IInsumoService, InsumoService>();
+
+builder.Services.AddScoped<IProveedoresInsumosRepository<ProveedoresInsumosLista>, ProveedoresInsumosRepository>();
+builder.Services.AddScoped<IProveedoresInsumoservice, ProveedoresInsumoservice>();
+
+
+builder.Services.AddScoped<IUnidadesMedidaRepository<UnidadesMedida>, UnidadesMedidaRepository>();
+builder.Services.AddScoped<IUnidadesMedidaService, UnidadesMedidaService>();
+
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o =>
     {

@@ -11,12 +11,22 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
+
+                <li class="nav-item" id="seccionProveedores">
+                    <a class="nav-link" href="@Url.Action("Index", "Insumos")">Insumos</a>
+                </li>
+
                 <li class="nav-item" id="seccionProveedores">
                     <a class="nav-link" href="@Url.Action("Index", "Proveedores")">Proveedores</a>
-                </li> 
+                </li>
+
+                <li class="nav-item" id="seccionProveedoresInsumos">
+                    <a class="nav-link" href="@Url.Action("Index", "ProveedoresInsumos")">Proveedores Insumos</a>
+                </li>
+
 
                 <li class="nav-item dropdown" id="seccionConfiguraciones" hidden>
-                    <a class="nav-link dropdown-toggle" href="#" id="configDropdownLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" id="configDropdownLink" Rol="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Configuraciones
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="configDropdownLink">
@@ -29,7 +39,7 @@
             <!-- Usuario Dropdown -->
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" Rol="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fa-lg me-2" id="userName"></i> <!-- Ícono de Font Awesome 4.7 -->
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
@@ -141,6 +151,7 @@
                         </button>
                     </div>
 
+
                     <div class="col">
                         <button type="button" class="config-card w-100"
                                 onclick="abrirConfiguracion('Unidad de Negocio', 'UnidadesNegocio')"
@@ -159,6 +170,26 @@
                             <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
                             <span class="config-card__title">Locales</span>
                             <span class="config-card__subtitle">Locales</span>
+                        </button>
+                    </div>
+
+                    <div class="col">
+                        <button type="button" class="config-card w-100"
+                                onclick="abrirConfiguracion('Unidad de Medida', 'UnidadesMedida')"
+                                data-label="Unidades de Medida" data-table="UnidadesMedida">
+                            <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
+                            <span class="config-card__title">Unidades de Medida</span>
+                            <span class="config-card__subtitle">Unidades de Medida</span>
+                        </button>
+                    </div>
+
+                    <div class="col">
+                        <button type="button" class="config-card w-100"
+                                onclick="abrirConfiguracion('Insumos Categorias', 'InsumosCategoria')"
+                                data-label="Insumos Categorias" data-table="InsumosCategorias">
+                            <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
+                            <span class="config-card__title">Insumos Categorias</span>
+                            <span class="config-card__subtitle">Insumos Categorias</span>
                         </button>
                     </div>
 

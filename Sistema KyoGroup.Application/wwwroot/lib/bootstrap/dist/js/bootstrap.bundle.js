@@ -4696,7 +4696,7 @@
 
       this._element.setAttribute('aria-modal', true);
 
-      this._element.setAttribute('role', 'dialog');
+      this._element.setAttribute('Rol', 'dialog');
 
       this._element.scrollTop = 0;
 
@@ -4754,7 +4754,7 @@
 
       this._element.removeAttribute('aria-modal');
 
-      this._element.removeAttribute('role');
+      this._element.removeAttribute('Rol');
 
       this._isTransitioning = false;
 
@@ -5007,7 +5007,7 @@
 
       this._element.setAttribute('aria-modal', true);
 
-      this._element.setAttribute('role', 'dialog');
+      this._element.setAttribute('Rol', 'dialog');
 
       this._element.classList.add(CLASS_NAME_SHOW$3);
 
@@ -5050,7 +5050,7 @@
 
         this._element.removeAttribute('aria-modal');
 
-        this._element.removeAttribute('role');
+        this._element.removeAttribute('Rol');
 
         this._element.style.visibility = 'hidden';
 
@@ -5215,7 +5215,7 @@
 
   const DefaultAllowlist = {
     // Global attributes allowed on any supplied element below.
-    '*': ['class', 'dir', 'id', 'lang', 'role', ARIA_ATTRIBUTE_PATTERN],
+    '*': ['class', 'dir', 'id', 'lang', 'Rol', ARIA_ATTRIBUTE_PATTERN],
     a: ['target', 'href', 'title', 'rel'],
     area: [],
     b: [],
@@ -5326,7 +5326,7 @@
   };
   const Default$3 = {
     animation: true,
-    template: '<div class="tooltip" role="tooltip">' + '<div class="tooltip-arrow"></div>' + '<div class="tooltip-inner"></div>' + '</div>',
+    template: '<div class="tooltip" Rol="tooltip">' + '<div class="tooltip-arrow"></div>' + '<div class="tooltip-inner"></div>' + '</div>',
     trigger: 'hover focus',
     title: '',
     delay: 0,
@@ -6001,7 +6001,7 @@
     offset: [0, 8],
     trigger: 'click',
     content: '',
-    template: '<div class="popover" role="tooltip">' + '<div class="popover-arrow"></div>' + '<h3 class="popover-header"></h3>' + '<div class="popover-body"></div>' + '</div>'
+    template: '<div class="popover" Rol="tooltip">' + '<div class="popover-arrow"></div>' + '<h3 class="popover-header"></h3>' + '<div class="popover-body"></div>' + '</div>'
   };
   const DefaultType$2 = { ...Tooltip.DefaultType,
     content: '(string|element|function)'
@@ -6441,14 +6441,14 @@
           dropdownChild.classList.remove(CLASS_NAME_ACTIVE);
         }
 
-        if (active.getAttribute('role') === 'tab') {
+        if (active.getAttribute('Rol') === 'tab') {
           active.setAttribute('aria-selected', false);
         }
       }
 
       element.classList.add(CLASS_NAME_ACTIVE);
 
-      if (element.getAttribute('role') === 'tab') {
+      if (element.getAttribute('Rol') === 'tab') {
         element.setAttribute('aria-selected', true);
       }
 
