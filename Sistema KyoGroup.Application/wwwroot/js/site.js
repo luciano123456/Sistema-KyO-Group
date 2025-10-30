@@ -222,3 +222,69 @@ function formatearSinMiles(valor) {
 
 let audioContext = null;
 let audioBuffer = null;
+
+
+function llenarSelect(selectId, data, valueField = 'Id', textField = 'Nombre', conOpcionVacia = true) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    sel.innerHTML = conOpcionVacia ? '<option value="">Seleccione</option>' : '';
+    (data || []).forEach(it => {
+        const opt = document.createElement('option');
+        opt.value = it[valueField];
+        opt.textContent = it[textField];
+        sel.appendChild(opt);
+    });
+}
+
+
+/**
+* Inicializa Select2 "como select normal" en un scope reutilizable.
+* Evita dobles inits, asegura placeholder real y arregla el dropdown dentro de paneles colapsables.
+*
+* @param {string} selectSel   selector del <select> (ej: '#ClientesFiltro')
+* @param {string} scopeSel    contenedor (por defecto '#formFiltros')
+* @param {string} placeholder texto placeholder (por defecto 'Todos')
+*/
+// Reemplazar en Pedidos.js
+function initSelect2Simple(selector, dropdownParentSelector, placeholderText, todosValue = -1) {
+    const $el = $(selector);
+    if (!$el.length) return;
+
+    // Evita doble init
+    if ($el.data('select2')) $el.select2('destroy');
+
+    // Asegurá que exista la opción "Todos" (valor -1 por defecto)
+    if (!$el.find(`option[value="${todosValue}"]`).length) {
+        $el.prepend(new Option('Todos', todosValue));
+    }
+
+    // No agregamos opción vacía: queremos que "clear" vuelva a -1
+    const $parent = $(dropdownParentSelector);
+    $el.select2({
+        placeholder: placeholderText || 'Todos',
+        allowClear: true,              // deja la "x"
+        width: '100%',
+        dropdownParent: $parent.length ? $parent : $('body')
+    });
+
+    // Al hacer clear (click en la "x"), volver a -1 (Todos)
+    $el.on('select2:clear', function () {
+        // Pequeño defer para no pelear con el clear interno
+        setTimeout(() => {
+            $el.val(String(todosValue)).trigger('change.select2');
+        }, 0);
+    });
+
+    // Si por cualquier motivo queda vacío, forzamos -1
+    $el.on('change', function () {
+        const v = $el.val();
+        if (v === null || v === '') {
+            $el.val(String(todosValue)).trigger('change.select2');
+        }
+    });
+
+    // Limpia posibles nodos de texto sueltos (evita “Todos” duplicado)
+    $el.parent().contents().filter(function () {
+        return this.nodeType === 3 && this.nodeValue.trim() !== '';
+    }).remove();
+}

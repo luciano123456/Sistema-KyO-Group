@@ -1,3 +1,43 @@
+:root {
+    --muted: #9aa8c5;
+    --text: #e7ecff;
+    --border: rgba(255,255,255,.08);
+    /* DataTables / superficies oscuras */
+    --dt-body: #0b1320;
+    --dt-head: #1d2633;
+    --dt-head-b: #2b3647;
+    --dt-row: #0f1722;
+    --dt-row-zebra: #363659;
+    --dt-row-zebra2: #525285;
+    --dt-row-hover: #152037;
+    --dt-text: #e5e7eb;
+    --dt-input: #111827;
+    --dt-input-b: #2b3647;
+    --dt-pag-bg: #0f192b;
+    --dt-pag-active: #3d6af2;
+    --chip-in: #18c37e;
+    --chip-out: #ff7a66;
+    --chip-stock: #7cc2ff;
+    --color-general: #05225E;
+    --bg: #0a111f;
+    --panel: #141c2b;
+    --panel2: #101726;
+    --soft: rgba(255,255,255,.06);
+    --b1: rgba(255,255,255,.12);
+    --head: #1b2740;
+    --primary: #4c8dff;
+    --accent: #7b5cff;
+    --ok: #1ecf93;
+    --warn: #ffb200;
+    --danger: #ff5a6a;
+    --txt: #eaf1ff;
+    --muted: #9db1d2;
+    --dt-row-hover: #152037;
+    --dt-row-zebra: #363659;
+    --dt-row-zebra2: #525285;
+    --dt-row-zebra3: #DE0EE8;
+}
+
 
 /* Fondo azul oscuro */
 body {
@@ -10,28 +50,28 @@ body {
     align-items: center;
 }
 
-
 .login-container {
     display: flex;
     width: 80%;
     height: 70%;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 8px 15px rgba(238, 48, 12, 1);
+    box-shadow: 0 8px 15px var(--dt-row-zebra3);
 }
 
+/* Parte izquierda (azul oscuro) */
 .left-side {
-    flex: 1;
+    background-color: var(--dt-row-zebra);
+    width: 75%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     position: relative;
-    min-height: 100%;
 }
 
     .left-side img {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: fill; /* llena el recuadro, recorta si sobra */
+        max-width: 80%;
+        height: auto;
     }
 
 /* Parte derecha (blanco) */
@@ -98,30 +138,3 @@ body {
         color: #333;
         cursor: pointer;
     }
-
-
-
-
-.left-side {
-    flex: 1; /* que ocupe todo el espacio disponible en el contenedor */
-    position: relative; /* necesario para que la img absoluta se posicione bien */
-    min-height: 100%; /* asegura altura completa */
-}
-
-    .left-side img {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        o
-        /* derecha */
-        .right-side {
-    width: 25%;
-    background: #fff;
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-

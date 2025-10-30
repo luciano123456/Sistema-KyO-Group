@@ -37,6 +37,11 @@ builder.Services.AddScoped<IRolesService, RolesService>();
 builder.Services.AddScoped<ILoginRepository<User>, LoginRepository>();
 builder.Services.AddScoped<ILoginService, LoginService>();
 
+builder.Services.AddScoped<ILocalesRepository<Local>, LocalesRepository>();
+builder.Services.AddScoped<ILocalesService, LocalesService>();
+
+builder.Services.AddScoped<IUnidadesNegocioRepository<UnidadesNegocio>, UnidadesNegocioRepository>();
+builder.Services.AddScoped<IUnidadesNegocioService, UnidadesNegociosService>();
 
 
 builder.Services.AddControllersWithViews()
