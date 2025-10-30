@@ -71,7 +71,7 @@ namespace SistemaKyoGroup.DAL.Repository
 
         public async Task<bool> Actualizar(Insumo model)
         {
-            using var transaction = await _dbcontext.Database.BeginTransactionAsync();
+            await using var transaction = await _dbcontext.Database.BeginTransactionAsync();
             try
             {
                 var insumoExistente = await _dbcontext.Insumos
@@ -81,7 +81,21 @@ namespace SistemaKyoGroup.DAL.Repository
 
                 if (insumoExistente == null) return false;
 
-                _dbcontext.Entry(insumoExistente).CurrentValues.SetValues(model);
+                // Copia escalares del modelo
+                var entry = _dbcontext.Entry(insumoExistente);
+                entry.CurrentValues.SetValues(model);
+
+                // ⛔ No tocar IdUsuarioRegistra
+                // (Ajustá el nombre si tu propiedad se llama distinto)
+                var pUsr = entry.Property(nameof(Insumo.IdUsuarioRegistra));
+                var pUsrFecha = entry.Property(nameof(Insumo.FechaRegistra));
+
+                pUsr.CurrentValue = pUsr.OriginalValue;       // no tocar
+                pUsr.IsModified = false;
+
+                pUsrFecha.CurrentValue = pUsrFecha.OriginalValue;  // no tocar
+                pUsrFecha.IsModified = false;
+
 
                 // === UNIDADES DE NEGOCIO ===
                 var nuevosUnidades = model.InsumosUnidadesNegocios ?? new List<InsumosUnidadesNegocio>();
@@ -115,9 +129,11 @@ namespace SistemaKyoGroup.DAL.Repository
                 {
                     if (!insumoExistente.InsumosProveedores.Any(x => x.IdListaProveedor == proveedor.IdListaProveedor))
                     {
-                        proveedor.IdListaProveedor = proveedor.IdListaProveedor;
-                        proveedor.IdProveedor = proveedor.IdProveedor;
+                        proveedor.Id = 0;
                         proveedor.IdInsumo = model.Id;
+                        // (estas dos eran redundantes)
+                        // proveedor.IdListaProveedor = proveedor.IdListaProveedor;
+                        // proveedor.IdProveedor      = proveedor.IdProveedor;
                         _dbcontext.InsumosProveedores.Add(proveedor);
                     }
                 }
@@ -126,12 +142,13 @@ namespace SistemaKyoGroup.DAL.Repository
                 await transaction.CommitAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
                 return false;
             }
         }
+
 
 
         public async Task<bool> Eliminar(int id)
@@ -152,6 +169,8 @@ namespace SistemaKyoGroup.DAL.Repository
                     .ThenInclude(x => x.IdUnidadNegocioNavigation)
                 .Include(x => x.IdCategoriaNavigation)
                 .Include(x => x.IdUnidadMedidaNavigation)
+                .Include(p => p.IdUsuarioRegistraNavigation)
+                        .Include(p => p.IdUsuarioModificaNavigation)
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 
@@ -166,7 +185,10 @@ namespace SistemaKyoGroup.DAL.Repository
                 .Include(x => x.InsumosUnidadesNegocios)
                     .ThenInclude(x => x.IdUnidadNegocioNavigation)
                 .Include(x => x.IdCategoriaNavigation)
+                .Include(p => p.IdUsuarioRegistraNavigation)
+                        .Include(p => p.IdUsuarioModificaNavigation)
                 .Include(x => x.IdUnidadMedidaNavigation);
+
             return await Task.FromResult(query);
         }
 
@@ -178,6 +200,8 @@ namespace SistemaKyoGroup.DAL.Repository
                         .ThenInclude(lp => lp.IdProveedorNavigation)
                 .Include(x => x.IdCategoriaNavigation)
                 .Include(x => x.IdUnidadMedidaNavigation)
+                .Include(p => p.IdUsuarioRegistraNavigation)
+                        .Include(p => p.IdUsuarioModificaNavigation)
                 .Where(c => c.InsumosProveedores.Any(p =>
                     p.IdListaProveedorNavigation != null &&
                     p.IdListaProveedorNavigation.IdProveedor == idProveedor));
@@ -197,6 +221,8 @@ namespace SistemaKyoGroup.DAL.Repository
                     .ThenInclude(un => un.IdUnidadNegocioNavigation)
                 .Include(x => x.IdCategoriaNavigation)
                 .Include(x => x.IdUnidadMedidaNavigation)
+                .Include(p => p.IdUsuarioRegistraNavigation)
+                        .Include(p => p.IdUsuarioModificaNavigation)
                 .Where(c => c.InsumosUnidadesNegocios
                     .Any(un => un.IdUnidadNegocio == idUnidadNegocio || idUnidadNegocio == -1));
 

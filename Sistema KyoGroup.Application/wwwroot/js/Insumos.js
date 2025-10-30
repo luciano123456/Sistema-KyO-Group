@@ -128,7 +128,10 @@ function guardarCambios() {
     })
         .then(async response => {
             const data = await response.json();
-            if (!response.ok) throw new Error(data.mensaje || 'Error inesperado');
+            if (data.valor == false) {
+                errorModal("El insumo no se ha podido guardar correctamente");
+                return;
+            }
 
             $('#modalEdicion').modal('hide');
             exitoModal(data.mensaje || "Insumo guardado correctamente");
@@ -143,6 +146,7 @@ function guardarCambios() {
 }
 
 function nuevoInsumo() {
+
     limpiarModal();
     listaUnidadesNegocio();
     listaUnidadesMedida();
@@ -161,6 +165,8 @@ async function mostrarModal(modelo) {
     await listaUnidadesNegocio();
     await listaUnidadesMedida();
     await listaInsumosCategoria();
+    setInfoAuditoria(modelo);
+
 
     document.getElementById("Categorias").value = modelo.IdCategoria;
     document.getElementById("UnidadesMedida").value = modelo.IdUnidadMedida;
@@ -174,6 +180,8 @@ async function mostrarModal(modelo) {
         cb.checked = seleccionado;
         if (seleccionado) unidadesNegocioSeleccionados.push(id);
     });
+
+
 
     actualizarTextoUnidadesNegocio();
 
@@ -269,7 +277,9 @@ async function listaInsumos(UnidadNegocio) {
 }
 
 const editarInsumo = id => {
-    fetch("Insumos/EditarInfo?id=" + id, {
+    $('.acciones-dropdown').hide();
+    fetch("Insumos/EditarInfo?id=" + id,
+    {
         method: 'GET',
         headers: {
             'Authorization': 'Bearer ' + token,
@@ -832,6 +842,9 @@ function limpiarModal() {
         el.classList.remove("is-invalid", "is-valid");
     });
 
+    const el = document.getElementById('lblUltimaModif');
+    if (el) el.textContent = "";
+
     // Limpiar Unidades de Negocio
     document.querySelectorAll('.unidades-check').forEach(cb => cb.checked = false);
     unidadesNegocioSeleccionados = [];
@@ -840,6 +853,8 @@ function limpiarModal() {
         btnUnidades.textContent = "Seleccionar Unidades";
         btnUnidades.classList.remove("is-valid", "is-invalid");
     }
+
+
 
     const errorMsg = document.getElementById("errorCampos");
     if (errorMsg) errorMsg.classList.add("d-none");
@@ -990,13 +1005,13 @@ function initFiltroUnidadNegocioPersistente() {
     } catch { }
 
     bar.classList.toggle('d-none', !visible);
-    icon.classList.toggle('fa-arrow-down', visible);
-    icon.classList.toggle('fa-arrow-up', !visible);
+    icon.classList.toggle('fa-arrow-up', visible);
+    icon.classList.toggle('fa-arrow-down', !visible);
 
     btn.addEventListener('click', () => {
         const oculto = bar.classList.toggle('d-none');   // true si queda oculto
-        icon.classList.toggle('fa-arrow-down', !oculto);
-        icon.classList.toggle('fa-arrow-up', oculto);
+        icon.classList.toggle('fa-arrow-up', !oculto);
+        icon.classList.toggle('fa-arrow-down', oculto);
         try { localStorage.setItem(_KEY_BAR_VISIBLE, oculto ? '0' : '1'); } catch { }
     });
 }

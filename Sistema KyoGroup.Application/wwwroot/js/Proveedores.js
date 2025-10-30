@@ -39,16 +39,16 @@ async function listaProveedores() {
 
 function nuevoProveedor() {
     provLimpiarModal();
-    const el = document.getElementById('lblUltimaModif');
-    if (el) el.textContent = "";
+  
     $('#modalProveedor').modal('show');
     $("#btnGuardarProv").text("Registrar");
     $("#modalProveedorLabel").text("Nuevo Proveedor");
 }
 
 async function mostrarProveedor(modelo) {
-    setInfoAuditoria(modelo);
+ 
     provLimpiarModal();
+    setInfoAuditoria(modelo);
 
     $("#provId").val(modelo.Id);
     $("#provNombre").val(modelo.Nombre);
@@ -296,6 +296,8 @@ function provLimpiarModal() {
     });
     const errorMsg = document.getElementById("provErrorCampos");
     if (errorMsg) errorMsg.classList.add("d-none");
+    const el = document.getElementById('lblUltimaModif');
+    if (el) el.textContent = "";
 }
 
 function provValidarCampo(el) {

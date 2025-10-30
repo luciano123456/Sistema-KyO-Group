@@ -16,7 +16,6 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
         public int? IdUsuarioModifica { get; set; }
         public DateTime? FechaModifica { get; set; }
 
-        // NUEVOS (opcionales, para mostrar nombres en el modal)
         public string? UsuarioRegistra { get; set; }
         public string? UsuarioModifica { get; set; }
     }

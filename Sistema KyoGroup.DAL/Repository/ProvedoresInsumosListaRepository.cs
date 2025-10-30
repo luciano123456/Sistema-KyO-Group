@@ -42,10 +42,29 @@ namespace SistemaKyoGroup.DAL.Repository
 
         public async Task<bool> Actualizar(ProveedoresInsumosLista model)
         {
-            using var transaction = await _dbcontext.Database.BeginTransactionAsync();
+            await using var transaction = await _dbcontext.Database.BeginTransactionAsync();
             try
             {
-                _dbcontext.ProveedoresInsumosListas.Update(model);
+                // Traemos el registro existente
+                var existente = await _dbcontext.ProveedoresInsumosListas
+                    .FirstOrDefaultAsync(x => x.Id == model.Id);
+
+                if (existente == null)
+                    return false;
+
+                // Copiamos valores escalares desde el model
+                var entry = _dbcontext.Entry(existente);
+                entry.CurrentValues.SetValues(model);
+
+                // ⛔ No tocar usuario/fecha de registro
+                var pUsr = entry.Property(nameof(ProveedoresInsumosLista.IdUsuarioRegistra));
+                var pFecha = entry.Property(nameof(ProveedoresInsumosLista.FechaRegistra));
+
+                pUsr.CurrentValue = pUsr.OriginalValue;
+                pUsr.IsModified = false;
+
+                pFecha.CurrentValue = pFecha.OriginalValue;
+                pFecha.IsModified = false;
 
                 await _dbcontext.SaveChangesAsync();
                 await transaction.CommitAsync();
@@ -57,6 +76,7 @@ namespace SistemaKyoGroup.DAL.Repository
                 return false;
             }
         }
+
 
 
         public async Task<bool> Eliminar(int id)
@@ -71,6 +91,8 @@ namespace SistemaKyoGroup.DAL.Repository
         public async Task<Models.ProveedoresInsumosLista> Obtener(int id)
         {
             return await _dbcontext.ProveedoresInsumosListas
+                .Include(p => p.IdUsuarioRegistraNavigation)
+                 .Include(p => p.IdUsuarioModificaNavigation)
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 
@@ -151,7 +173,7 @@ namespace SistemaKyoGroup.DAL.Repository
                 await transaction.CommitAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
                 return false;

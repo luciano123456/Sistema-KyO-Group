@@ -29,6 +29,15 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
      
         public DateTime FechaActualizacion { get; set; }
 
+        public int IdUsuarioRegistra { get; set; }
+        public DateTime FechaRegistra { get; set; }
+        public int? IdUsuarioModifica { get; set; }
+        public DateTime? FechaModifica { get; set; }
+
+        // NUEVOS (opcionales, para mostrar nombres en el modal)
+        public string? UsuarioRegistra { get; set; }
+        public string? UsuarioModifica { get; set; }
+
         public virtual InsumosCategoria IdCategoriaNavigation { get; set; } = null!;
 
         public virtual UnidadesMedida IdUnidadMedidaNavigation { get; set; } = null!;
