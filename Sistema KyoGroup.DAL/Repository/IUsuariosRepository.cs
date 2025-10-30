@@ -16,5 +16,13 @@ namespace SistemaKyoGroup.DAL.Repository
         Task<User> Obtener(int id);
         Task<User> ObtenerUsuario(string usuario);
         Task<IQueryable<User>> ObtenerTodos();
+
+        Task<List<UsuariosUnidadesNegocio>> ObtenerUnidadesDeUsuario(int idUsuario);
+        Task<List<UsuariosLocal>> ObtenerLocalesDeUsuario(int idUsuario);
+
+        Task<bool> ReemplazarAsignacionesUsuario(
+            int idUsuario,
+            IEnumerable<int> unidades,
+            IReadOnlyDictionary<int, IReadOnlyCollection<int>> localesPorUnidad);
     }
 }

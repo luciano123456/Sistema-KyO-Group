@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SistemaKyoGroup.Models;
 
-public partial class ImportacionsSubreceta
+public partial class ImportacionesSubreceta
 {
     public int Id { get; set; }
 
@@ -31,5 +31,5 @@ public partial class ImportacionsSubreceta
 
     public virtual User IdUsuarioRegistraNavigation { get; set; } = null!;
 
-    public virtual ImportacionsReceta IdVentaRecetaNavigation { get; set; } = null!;
+    public virtual ImportacionesReceta IdVentaRecetaNavigation { get; set; } = null!;
 }

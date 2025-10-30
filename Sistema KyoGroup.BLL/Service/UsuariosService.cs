@@ -43,6 +43,17 @@ namespace SistemaKyoGroup.BLL.Service
             return await _contactRepo.ObtenerTodos();
         }
 
+        public async Task<IList<UsuariosUnidadesNegocio>> ObtenerUnidadesDeUsuario(int idUsuario)
+            => await _contactRepo.ObtenerUnidadesDeUsuario(idUsuario);
+
+        public async Task<IList<UsuariosLocal>> ObtenerLocalesDeUsuario(int idUsuario)
+            => await _contactRepo.ObtenerLocalesDeUsuario(idUsuario);
+
+        public Task<bool> GuardarAsignaciones(
+            int idUsuario,
+            IEnumerable<int> unidades,
+            IReadOnlyDictionary<int, IReadOnlyCollection<int>> localesPorUnidad)
+            => _contactRepo.ReemplazarAsignacionesUsuario(idUsuario, unidades, localesPorUnidad);
 
 
     }

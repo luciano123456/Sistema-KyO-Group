@@ -29,7 +29,7 @@ public partial class Importacion
 
     public virtual Local IdLocalNavigation { get; set; } = null!;
 
-    public virtual ImportacionsTipo IdTipoNavigation { get; set; } = null!;
+    public virtual ImportacionesTipo IdTipoNavigation { get; set; } = null!;
 
     public virtual UnidadesNegocio IdUnidadNegocioNavigation { get; set; } = null!;
 
@@ -39,5 +39,5 @@ public partial class Importacion
 
     public virtual User IdUsuarioRegistraNavigation { get; set; } = null!;
 
-    public virtual ICollection<ImportacionsReceta> ImportacionsReceta { get; set; } = new List<ImportacionsReceta>();
+    public virtual ICollection<ImportacionesReceta> ImportacionesReceta { get; set; } = new List<ImportacionesReceta>();
 }

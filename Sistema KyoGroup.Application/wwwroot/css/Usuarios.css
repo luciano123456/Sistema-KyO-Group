@@ -14,3 +14,99 @@
         max-width: 98%; /* o lo que necesites */
     }
 }
+
+
+/* ===== Tabs compactas (sin fondo blanco) ===== */
+.cc-tabs .nav-link {
+    background: transparent !important;
+    border: 0 !important;
+    color: #cfd6ff !important;
+    border-radius: .5rem .5rem 0 0;
+    padding: .5rem .9rem;
+}
+
+    .cc-tabs .nav-link:hover {
+        color: #fff !important;
+    }
+
+    .cc-tabs .nav-link.active {
+        color: #fff !important;
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        position: relative;
+    }
+
+        .cc-tabs .nav-link.active::after {
+            content: "";
+            position: absolute;
+            left: 8px;
+            right: 8px;
+            bottom: -2px;
+            height: 2px;
+            background: var(--primary, #6c8cff);
+            border-radius: 2px;
+        }
+
+/* ===== Lista de Unidades con checkbox visible y lindo ===== */
+.acc-units-list .list-group-item {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    color: #eaeafa;
+    border-radius: .75rem;
+    margin-bottom: .4rem;
+    transition: border-color .2s, background .2s;
+    cursor: pointer;
+}
+
+    .acc-units-list .list-group-item:hover {
+        border-color: rgba(108,140,255,.5);
+        background: rgba(108,140,255,.08);
+    }
+
+.acc-units-list .accUnitChk {
+    width: 1.1rem;
+    height: 1.1rem;
+    border: 2px solid rgba(255,255,255,.45);
+    background: transparent;
+    margin-right: .6rem;
+}
+
+    .acc-units-list .accUnitChk:checked {
+        background-color: var(--primary, #6c8cff);
+        border-color: var(--primary, #6c8cff);
+    }
+
+.acc-units-list .unit-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ===== Caja de locales ===== */
+#accLocalesMulti {
+    min-height: 240px;
+    background: #13182b;
+    color: #e8ecff;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: .75rem;
+}
+
+    #accLocalesMulti:disabled {
+        opacity: .6;
+    }
+
+/* Chips resumen */
+.acc-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .3rem .6rem;
+    margin: .2rem .25rem 0 0;
+    background: rgba(108,140,255,.15);
+    border: 1px solid rgba(108,140,255,.28);
+    color: #dfe7ff;
+    border-radius: 999px;
+    font-size: .83rem;
+}

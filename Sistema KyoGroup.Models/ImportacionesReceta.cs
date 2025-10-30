@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SistemaKyoGroup.Models;
 
-public partial class ImportacionsReceta
+public partial class ImportacionesReceta
 {
     public int Id { get; set; }
 
@@ -43,7 +43,7 @@ public partial class ImportacionsReceta
 
     public virtual User IdUsuarioRegistraNavigation { get; set; } = null!;
 
-    public virtual ICollection<ImportacionsInsumo> ImportacionsInsumos { get; set; } = new List<ImportacionsInsumo>();
+    public virtual ICollection<ImportacionesInsumo> ImportacionesInsumos { get; set; } = new List<ImportacionesInsumo>();
 
-    public virtual ICollection<ImportacionsSubreceta> ImportacionsSubreceta { get; set; } = new List<ImportacionsSubreceta>();
+    public virtual ICollection<ImportacionesSubreceta> ImportacionesSubreceta { get; set; } = new List<ImportacionesSubreceta>();
 }

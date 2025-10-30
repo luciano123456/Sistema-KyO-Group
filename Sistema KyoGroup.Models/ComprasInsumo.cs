@@ -47,7 +47,7 @@ public partial class ComprasInsumo
 
     public virtual Insumo IdInsumoNavigation { get; set; } = null!;
 
-    public virtual ProveedorsInsumosLista IdProveedorListaNavigation { get; set; } = null!;
+    public virtual ProveedoresInsumosLista IdProveedorListaNavigation { get; set; } = null!;
 
     public virtual User? IdUsuarioModificaNavigation { get; set; }
 

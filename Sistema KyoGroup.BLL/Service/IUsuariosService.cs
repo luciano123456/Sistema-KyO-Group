@@ -12,6 +12,14 @@ namespace SistemaKyoGroup.BLL.Service
         Task<User> ObtenerUsuario(string usuario);
 
         Task<IQueryable<User>> ObtenerTodos();
+
+        Task<IList<UsuariosUnidadesNegocio>> ObtenerUnidadesDeUsuario(int idUsuario);
+        Task<IList<UsuariosLocal>> ObtenerLocalesDeUsuario(int idUsuario);
+
+        Task<bool> GuardarAsignaciones(
+            int idUsuario,
+            IEnumerable<int> unidades,
+            IReadOnlyDictionary<int, IReadOnlyCollection<int>> localesPorUnidad);
     }
 
 }

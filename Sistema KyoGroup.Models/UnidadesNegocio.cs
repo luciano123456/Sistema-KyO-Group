@@ -11,7 +11,7 @@ public partial class UnidadesNegocio
 
     public virtual ICollection<Compra> Compras { get; set; } = new List<Compra>();
 
-    public virtual ICollection<Importacion> Importacions { get; set; } = new List<Importacion>();
+    public virtual ICollection<Importacion> Importaciones { get; set; } = new List<Importacion>();
 
     public virtual ICollection<InsumosUnidadesNegocio> InsumosUnidadesNegocios { get; set; } = new List<InsumosUnidadesNegocio>();
 

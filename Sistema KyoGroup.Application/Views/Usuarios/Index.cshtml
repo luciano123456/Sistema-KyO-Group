@@ -87,9 +87,10 @@
     </div>
 </div>
 
-<!-- Modal Usuarios -->
-<div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-edicion" role="document">
+
+<!-- Modal Usuarios (compacto con tabs) -->
+<div class="modal fade" id="modalEdicion" tabindex="-1" aria-labelledby="modalEdicionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-edicion">
         <div class="modal-content cc-modal">
             <div class="modal-header colorEncabezado">
                 <h5 class="modal-title fw-bold" id="modalEdicionLabel">Editar Usuario</h5>
@@ -97,72 +98,134 @@
             </div>
 
             <div class="modal-body">
-                <form id="formEditarUsuario" class="row g-3">
-                    <input type="text" id="txtId" hidden readonly>
+                <!-- NAV TABS -->
+                <ul class="nav nav-tabs cc-tabs mb-3" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="tab-datos" data-bs-toggle="tab" data-bs-target="#pane-datos" type="button" role="tab">
+                            <i class="fa fa-id-card-o me-1"></i> Datos
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="tab-accesos" data-bs-toggle="tab" data-bs-target="#pane-accesos" type="button" role="tab">
+                            <i class="fa fa-sitemap me-1"></i> Accesos
+                        </button>
+                    </li>
+                </ul>
 
-                    <div class="col-md-6">
-                        <label for="txtUsuario" class="form-label" id="lblUsuario">Usuario (*)</label>
-                        <input type="text" class="form-control" id="txtUsuario" required>
-                        <div class="invalid-feedback">Campo obligatorio</div>
+                <div class="tab-content">
+                    <!-- Pestaña: Datos -->
+                    <div class="tab-pane fade show active" id="pane-datos" role="tabpanel" aria-labelledby="tab-datos">
+                        <form id="formEditarUsuario" class="row g-3">
+                            <input type="text" id="txtId" hidden readonly>
+
+                            <!-- Línea 1 -->
+                            <div class="col-md-4">
+                                <label for="txtUsuario" class="form-label" id="lblUsuario">Usuario (*)</label>
+                                <input type="text" class="form-control" id="txtUsuario" required>
+                                <div class="invalid-feedback">Campo obligatorio</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="txtNombre" class="form-label" id="lblNombre">Nombre (*)</label>
+                                <input type="text" class="form-control" id="txtNombre" required>
+                                <div class="invalid-feedback">Campo obligatorio</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="txtApellido" class="form-label" id="lblApellido">Apellido</label>
+                                <input type="text" class="form-control" id="txtApellido">
+                            </div>
+
+                            <!-- Línea 2 -->
+                            <div class="col-md-4">
+                                <label for="txtDni" class="form-label" id="lblDni">DNI</label>
+                                <input type="text" class="form-control" id="txtDni">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="txtTelefono" class="form-label" id="lblTelefono">Teléfono</label>
+                                <input type="text" class="form-control" id="txtTelefono">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="txtDireccion" class="form-label" id="lblDireccion">Dirección</label>
+                                <input type="text" class="form-control" id="txtDireccion">
+                            </div>
+
+                            <!-- Línea 3 -->
+                            <div class="col-md-4">
+                                <label for="Roles" class="form-label" id="lblRol">Rol</label>
+                                <select id="Roles" class="form-control">
+                                    <option value="" selected>Rol</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="Estados" class="form-label" id="lblEstado">Estado</label>
+                                <select id="Estados" class="form-control">
+                                    <option value="" selected>Estado</option>
+                                </select>
+                            </div>
+
+                            <!-- Línea 4 (passwords compactas) -->
+                            <div class="col-md-4" id="divContrasena">
+                                <label for="txtContrasena" class="form-label" id="lblContrasena">Contraseña (*)</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="txtContrasena">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('txtContrasena')">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback">Campo obligatorio</div>
+                            </div>
+
+                            <div class="col-md-4" id="divContrasenaNueva">
+                                <label for="txtContrasenaNueva" class="form-label" id="lblContrasenaNueva">Contraseña Nueva</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="txtContrasenaNueva">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('txtContrasenaNueva')">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Alert genérico de validación -->
+                            <div class="col-12">
+                                <div id="errorCampos" class="alert alert-danger d-none mt-2">
+                                    Debes completar los campos requeridos.
+                                </div>
+                            </div>
+                        </form>
                     </div>
 
-                    <div class="col-md-6">
-                        <label for="txtNombre" class="form-label" id="lblNombre">Nombre (*)</label>
-                        <input type="text" class="form-control" id="txtNombre" required>
-                        <div class="invalid-feedback">Campo obligatorio</div>
-                    </div>
+                    <!-- Pestaña: Accesos -->
+                    <div class="tab-pane fade" id="pane-accesos" role="tabpanel" aria-labelledby="tab-accesos">
+                        <div class="row g-3">
+                            <!-- Unidades -->
+                            <div class="col-12 col-lg-4">
+                                <div class="card-glass p-3 h-100">
+                                    <h6 class="fw-bold mb-2"><i class="fa fa-building-o me-2"></i>Unidades de Negocio</h6>
+                                    <div id="accUnidadesList" class="list-group acc-units-list"></div>
+                                </div>
+                            </div>
 
-                    <div class="col-md-6">
-                        <label for="txtApellido" class="form-label" id="lblApellido">Apellido</label>
-                        <input type="text" class="form-control" id="txtApellido">
-                        <div class="invalid-feedback">Campo obligatorio</div>
-                    </div>
+                            <!-- Locales -->
+                            <div class="col-12 col-lg-8">
+                                <div class="card-glass p-3 h-100">
+                                    <div class="d-flex align-items-center justify-content-between mb-2" id="cardLocalesHeader">
+                                        <h6 class="fw-bold m-0"><i class="fa fa-map-marker me-2"></i>Locales</h6>
+                                        <div class="form-check form-switch header-actions">
+                                            <input class="form-check-input" type="checkbox" id="accSelectAllLocales">
+                                            <label class="form-check-label" for="accSelectAllLocales">Seleccionar todos los locales</label>
+                                        </div>
+                                    </div>
 
-                    <div class="col-md-6">
-                        <label for="txtDni" class="form-label" id="lblDni">DNI</label>
-                        <input type="text" class="form-control" id="txtDni">
-                    </div>
+                                    <!-- El JS reemplaza este select por una lista de checkboxes -->
+                                    <select id="accLocalesMulti" class="form-control" multiple size="10" disabled></select>
+                                    <div id="accLocalesList" class="list-group" style="border:1px solid rgba(255,255,255,.12);border-radius:12px;min-height:220px;"></div>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div class="col-md-6">
-                        <label for="txtTelefono" class="form-label" id="lblTelefono">Teléfono</label>
-                        <input type="text" class="form-control" id="txtTelefono">
+                        <!-- Resumen chips -->
+                        <div class="mt-3" id="accResumenChips"></div>
                     </div>
-
-                    <div class="col-md-6">
-                        <label for="txtDireccion" class="form-label" id="lblDireccion">Dirección</label>
-                        <input type="text" class="form-control" id="txtDireccion">
-                    </div>
-
-                    <div class="col-md-6">
-                        <label for="Roles" class="form-label" id="lblRol">Rol</label>
-                        <select id="Roles" name="select" class="form-control">
-                            <option value="" selected>Rol</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label for="Estados" class="form-label" id="lblEstado">Estado</label>
-                        <select id="Estados" name="select" class="form-control">
-                            <option value="" selected>Estado</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-6" id="divContrasena">
-                        <label for="txtContrasena" class="form-label" id="lblContrasena">Contraseña (*)</label>
-                        <input type="password" class="form-control" id="txtContrasena">
-                        <div class="invalid-feedback">Campo obligatorio</div>
-                    </div>
-
-                    <div class="col-md-6" id="divContrasenaNueva">
-                        <label for="txtContrasenaNueva" class="form-label" id="lblContrasenaNueva">Contraseña Nueva</label>
-                        <input type="password" class="form-control" id="txtContrasenaNueva">
-                    </div>
-
-                    <!-- Mensaje general de error que usa el JS -->
-                    <div id="errorCampos" class="alert alert-danger d-none mt-2">
-                        Debes completar los campos requeridos.
-                    </div>
-                </form>
+                </div>
             </div>
 
             <div class="modal-footer modal-footer-cc">

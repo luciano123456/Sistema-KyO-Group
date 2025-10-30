@@ -15,7 +15,7 @@ public partial class Local
 
     public virtual UnidadesNegocio IdUnidadNegocioNavigation { get; set; } = null!;
 
-    public virtual ICollection<Importacion> Importacions { get; set; } = new List<Importacion>();
+    public virtual ICollection<Importacion> Importaciones { get; set; } = new List<Importacion>();
 
     public virtual ICollection<InventarioMovimiento> InventarioMovimientos { get; set; } = new List<InventarioMovimiento>();
 
@@ -27,5 +27,5 @@ public partial class Local
 
     public virtual ICollection<OrdenesCompra> OrdenesCompras { get; set; } = new List<OrdenesCompra>();
 
-    public virtual ICollection<UsuariosLocal> UsuariosLocals { get; set; } = new List<UsuariosLocal>();
+    public virtual ICollection<UsuariosLocal> UsuariosLocales { get; set; } = new List<UsuariosLocal>();
 }

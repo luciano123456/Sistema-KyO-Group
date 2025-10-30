@@ -35,7 +35,7 @@ public partial class Proveedor
 
     public virtual ICollection<OrdenesCompra> OrdenesCompras { get; set; } = new List<OrdenesCompra>();
 
-    public virtual ICollection<ProveedorsCuentaCorriente> ProveedorsCuentaCorrientes { get; set; } = new List<ProveedorsCuentaCorriente>();
+    public virtual ICollection<ProveedoresCuentaCorriente> ProveedoresCuentaCorrientes { get; set; } = new List<ProveedoresCuentaCorriente>();
 
-    public virtual ICollection<ProveedorsInsumosLista> ProveedorsInsumosLista { get; set; } = new List<ProveedorsInsumosLista>();
+    public virtual ICollection<ProveedoresInsumosLista> ProveedoresInsumosLista { get; set; } = new List<ProveedoresInsumosLista>();
 }
