@@ -13,5 +13,5 @@ public partial class InsumosProveedor
 
     public int IdListaProveedor { get; set; }
 
-    public virtual ProveedorsInsumosLista IdListaProveedorNavigation { get; set; } = null!;
+    public virtual ProveedoresInsumosLista IdListaProveedorNavigation { get; set; } = null!;
 }

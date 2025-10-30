@@ -49,23 +49,23 @@ public partial class User
 
     public virtual Rol IdRolNavigation { get; set; } = null!;
 
-    public virtual ICollection<Importacion> ImportacionIdUsuarioModificaNavigations { get; set; } = new List<Importacion>();
+    public virtual ICollection<Importacion> ImportacioneIdUsuarioModificaNavigations { get; set; } = new List<Importacion>();
 
-    public virtual ICollection<Importacion> ImportacionIdUsuarioNavigations { get; set; } = new List<Importacion>();
+    public virtual ICollection<Importacion> ImportacioneIdUsuarioNavigations { get; set; } = new List<Importacion>();
 
-    public virtual ICollection<Importacion> ImportacionIdUsuarioRegistraNavigations { get; set; } = new List<Importacion>();
+    public virtual ICollection<Importacion> ImportacioneIdUsuarioRegistraNavigations { get; set; } = new List<Importacion>();
 
-    public virtual ICollection<ImportacionsInsumo> ImportacionsInsumoIdUsuarioModificaNavigations { get; set; } = new List<ImportacionsInsumo>();
+    public virtual ICollection<ImportacionesInsumo> ImportacionesInsumoIdUsuarioModificaNavigations { get; set; } = new List<ImportacionesInsumo>();
 
-    public virtual ICollection<ImportacionsInsumo> ImportacionsInsumoIdUsuarioRegistraNavigations { get; set; } = new List<ImportacionsInsumo>();
+    public virtual ICollection<ImportacionesInsumo> ImportacionesInsumoIdUsuarioRegistraNavigations { get; set; } = new List<ImportacionesInsumo>();
 
-    public virtual ICollection<ImportacionsReceta> ImportacionsRecetaIdUsuarioModificaNavigations { get; set; } = new List<ImportacionsReceta>();
+    public virtual ICollection<ImportacionesReceta> ImportacionesRecetaIdUsuarioModificaNavigations { get; set; } = new List<ImportacionesReceta>();
 
-    public virtual ICollection<ImportacionsReceta> ImportacionsRecetaIdUsuarioRegistraNavigations { get; set; } = new List<ImportacionsReceta>();
+    public virtual ICollection<ImportacionesReceta> ImportacionesRecetaIdUsuarioRegistraNavigations { get; set; } = new List<ImportacionesReceta>();
 
-    public virtual ICollection<ImportacionsSubreceta> ImportacionsSubrecetaIdUsuarioModificaNavigations { get; set; } = new List<ImportacionsSubreceta>();
+    public virtual ICollection<ImportacionesSubreceta> ImportacionesSubrecetaIdUsuarioModificaNavigations { get; set; } = new List<ImportacionesSubreceta>();
 
-    public virtual ICollection<ImportacionsSubreceta> ImportacionsSubrecetaIdUsuarioRegistraNavigations { get; set; } = new List<ImportacionsSubreceta>();
+    public virtual ICollection<ImportacionesSubreceta> ImportacionesSubrecetaIdUsuarioRegistraNavigations { get; set; } = new List<ImportacionesSubreceta>();
 
     public virtual ICollection<Insumo> InsumoIdUsuarioModificaNavigations { get; set; } = new List<Insumo>();
 
@@ -91,17 +91,17 @@ public partial class User
 
     public virtual ICollection<OrdenesComprasInsumo> OrdenesComprasInsumoIdUsuarioRegistraNavigations { get; set; } = new List<OrdenesComprasInsumo>();
 
-    public virtual ICollection<Proveedor> ProveedorIdUsuarioModificaNavigations { get; set; } = new List<Proveedor>();
+    public virtual ICollection<Proveedor> ProveedoreIdUsuarioModificaNavigations { get; set; } = new List<Proveedor>();
 
-    public virtual ICollection<Proveedor> ProveedorIdUsuarioRegistraNavigations { get; set; } = new List<Proveedor>();
+    public virtual ICollection<Proveedor> ProveedoreIdUsuarioRegistraNavigations { get; set; } = new List<Proveedor>();
 
-    public virtual ICollection<ProveedorsInsumosLista> ProveedorsInsumosListaIdUsuarioModificaNavigations { get; set; } = new List<ProveedorsInsumosLista>();
+    public virtual ICollection<ProveedoresInsumosLista> ProveedoresInsumosListaIdUsuarioModificaNavigations { get; set; } = new List<ProveedoresInsumosLista>();
 
-    public virtual ICollection<ProveedorsInsumosLista> ProveedorsInsumosListaIdUsuarioRegistraNavigations { get; set; } = new List<ProveedorsInsumosLista>();
+    public virtual ICollection<ProveedoresInsumosLista> ProveedoresInsumosListaIdUsuarioRegistraNavigations { get; set; } = new List<ProveedoresInsumosLista>();
 
-    public virtual ICollection<ProveedorsPago> ProveedorsPagoIdUsuarioModificaNavigations { get; set; } = new List<ProveedorsPago>();
+    public virtual ICollection<ProveedoresPago> ProveedoresPagoIdUsuarioModificaNavigations { get; set; } = new List<ProveedoresPago>();
 
-    public virtual ICollection<ProveedorsPago> ProveedorsPagoIdUsuarioRegistraNavigations { get; set; } = new List<ProveedorsPago>();
+    public virtual ICollection<ProveedoresPago> ProveedoresPagoIdUsuarioRegistraNavigations { get; set; } = new List<ProveedoresPago>();
 
     public virtual ICollection<Receta> RecetaIdUsuarioModificaNavigations { get; set; } = new List<Receta>();
 
@@ -126,4 +126,8 @@ public partial class User
     public virtual ICollection<SubrecetasSubreceta> SubrecetasSubrecetaIdUsuarioModificaNavigations { get; set; } = new List<SubrecetasSubreceta>();
 
     public virtual ICollection<SubrecetasSubreceta> SubrecetasSubrecetaIdUsuarioRegistraNavigations { get; set; } = new List<SubrecetasSubreceta>();
+
+    public virtual ICollection<UsuariosLocal> UsuariosLocales { get; set; } = new List<UsuariosLocal>();
+
+    public virtual ICollection<UsuariosUnidadesNegocio> UsuariosUnidadesNegocios { get; set; } = new List<UsuariosUnidadesNegocio>();
 }

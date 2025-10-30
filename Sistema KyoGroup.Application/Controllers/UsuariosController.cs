@@ -78,9 +78,7 @@ namespace SistemaKyoGroup.Application.Controllers
         [HttpPost]
         public async Task<IActionResult> Insertar([FromBody] VMUser model)
         {
-
             var passwordHasher = new PasswordHasher<User>();
-
 
             var Usuario = new User
             {
@@ -97,6 +95,25 @@ namespace SistemaKyoGroup.Application.Controllers
 
             bool respuesta = await _Usuarioservice.Insertar(Usuario);
 
+            if (respuesta && model.Unidades?.Any() == true)
+            {
+                var creado = await _Usuarioservice.ObtenerUsuario(model.Usuario);
+                if (creado != null)
+                {
+                    var unidades = model.Unidades.Select(x => x.IdUnidadNegocio).Distinct().ToList();
+
+                    // Diccionario unidad -> lista de locales (solo cuando es subset)
+                    var localesPorUnidad = model.Unidades
+                        .Where(x => !x.TodosLocales && x.LocalesIds != null && x.LocalesIds.Count > 0)
+                        .ToDictionary(
+                            x => x.IdUnidadNegocio,
+                            x => (IReadOnlyCollection<int>)x.LocalesIds.Distinct().ToList()
+                        );
+
+                    await _Usuarioservice.GuardarAsignaciones(creado.Id, unidades, localesPorUnidad);
+                }
+            }
+
             return Ok(new { valor = respuesta });
         }
 
@@ -105,31 +122,23 @@ namespace SistemaKyoGroup.Application.Controllers
         {
             var passwordHasher = new PasswordHasher<User>();
 
-            // Obtiene el usuario de la base de datos
-            User userbase = await _Usuarioservice.Obtener(model.Id);
-
-            User nombreUsuario = await _Usuarioservice.ObtenerUsuario(model.Usuario);
+            var userbase = await _Usuarioservice.Obtener(model.Id);
+            var nombreUsuario = await _Usuarioservice.ObtenerUsuario(model.Usuario);
 
             if (nombreUsuario != null && nombreUsuario.Id != model.Id)
-            {
                 return Ok(new { valor = "Usuario" });
-            }
 
-                if (model.CambioAdmin != 1) //YA QUE DESDE EL EDITAR DESDE EL ADMIN, NO VAMOS A MANDARLE LA CONTRASENA, SE LA CAMBIA DE UNA
+            if (model.CambioAdmin != 1)
             {
                 var result = passwordHasher.VerifyHashedPassword(null, userbase.Contrasena, model.Contrasena);
                 if (result != PasswordVerificationResult.Success)
-                {
                     return Ok(new { valor = "Contrasena" });
-                }
             }
 
-            // Si se proporciona una contraseña nueva, úsala; de lo contrario, mantén la contraseña actual
             var passnueva = !string.IsNullOrEmpty(model.ContrasenaNueva)
-                ? passwordHasher.HashPassword(null, model.ContrasenaNueva) // Hashea la nueva contraseña si es proporcionada
-                : userbase.Contrasena; // Mantén la contraseña actual si no se proporciona una nueva
+                ? passwordHasher.HashPassword(null, model.ContrasenaNueva)
+                : userbase.Contrasena;
 
-            // Actualiza las propiedades del objeto ya cargado
             userbase.Nombre = model.Nombre;
             userbase.Usuario = model.Usuario;
             userbase.Apellido = model.Apellido;
@@ -138,13 +147,27 @@ namespace SistemaKyoGroup.Application.Controllers
             userbase.Direccion = model.Direccion;
             userbase.IdRol = model.IdRol;
             userbase.IdEstado = model.IdEstado;
-            userbase.Contrasena = passnueva; // Asigna la nueva contraseña hasheada
+            userbase.Contrasena = passnueva;
 
-            // Realiza la actualización en la base de datos
-            bool respuesta = await _Usuarioservice.Actualizar(userbase);
+            bool ok = await _Usuarioservice.Actualizar(userbase);
 
-            return Ok(new { valor = respuesta ? "OK" : "Error" });
+            if (ok && model.Unidades?.Any() == true)
+            {
+                var unidades = model.Unidades.Select(x => x.IdUnidadNegocio).Distinct().ToList();
+
+                var localesPorUnidad = model.Unidades
+                    .Where(x => !x.TodosLocales && x.LocalesIds != null && x.LocalesIds.Count > 0)
+                    .ToDictionary(
+                        x => x.IdUnidadNegocio,
+                        x => (IReadOnlyCollection<int>)x.LocalesIds.Distinct().ToList()
+                    );
+
+                await _Usuarioservice.GuardarAsignaciones(userbase.Id, unidades, localesPorUnidad);
+            }
+
+            return Ok(new { valor = ok ? "OK" : "Error" });
         }
+
 
 
 
@@ -171,6 +194,46 @@ namespace SistemaKyoGroup.Application.Controllers
                 return StatusCode(StatusCodes.Status404NotFound);
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Asignaciones(int idUsuario)
+        {
+            var unidades = await _Usuarioservice.ObtenerUnidadesDeUsuario(idUsuario);
+            var locales = await _Usuarioservice.ObtenerLocalesDeUsuario(idUsuario);
+
+            // Agrupo por unidad (sin HasValue)
+            // - IdLocalNavigation puede venir null: filtro por != null
+            // - IdLocal es int? : uso GetValueOrDefault() y luego filtro > 0
+            var localesPorUnidad = locales
+                .Where(l => l.IdLocalNavigation != null)
+                .GroupBy(l => l.IdLocalNavigation.IdUnidadNegocio)       // int (no nullable)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(x => x.IdLocal)     // int
+                          .Where(id => id > 0)                            // descarto nulls/0
+                          .ToList()                                       // List<int>
+                );
+
+            var vm = unidades.Select(u =>
+            {
+                int idU = (u.IdUnidadNegocio != null) ? u.IdUnidadNegocio : 0;
+
+                localesPorUnidad.TryGetValue(idU, out List<int> lst);
+                bool todos = (lst == null) || (lst.Count == 0);
+
+                return new VMUnidadAsignada
+                {
+                    IdUnidadNegocio = idU,
+                    TodosLocales = todos,
+                    LocalesIds = lst ?? new List<int>(),
+                    NombreUnidad = u.IdUnidadNegocioNavigation?.Nombre
+                };
+            }).ToList();
+
+            return Ok(vm);
+        }
+
+
 
 
 

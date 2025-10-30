@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SistemaKyoGroup.Models;
 
-public partial class ProveedorsCuentaCorriente
+public partial class ProveedoresCuentaCorriente
 {
     public int Id { get; set; }
 

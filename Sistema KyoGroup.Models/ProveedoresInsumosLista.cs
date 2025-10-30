@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SistemaKyoGroup.Models;
 
-public partial class ProveedorsInsumosLista
+public partial class ProveedoresInsumosLista
 {
     public int Id { get; set; }
 
@@ -33,7 +33,7 @@ public partial class ProveedorsInsumosLista
 
     public virtual User IdUsuarioRegistraNavigation { get; set; } = null!;
 
-    public virtual ICollection<InsumosProveedor> InsumosProveedors { get; set; } = new List<InsumosProveedor>();
+    public virtual ICollection<InsumosProveedor> InsumosProveedores { get; set; } = new List<InsumosProveedor>();
 
     public virtual ICollection<OrdenesComprasInsumo> OrdenesComprasInsumos { get; set; } = new List<OrdenesComprasInsumo>();
 }

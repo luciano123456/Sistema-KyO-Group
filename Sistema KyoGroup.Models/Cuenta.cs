@@ -17,5 +17,5 @@ public partial class Cuenta
 
     public virtual ICollection<ChequesEmitido> ChequesEmitidos { get; set; } = new List<ChequesEmitido>();
 
-    public virtual ICollection<ProveedorsPago> ProveedorsPagos { get; set; } = new List<ProveedorsPago>();
+    public virtual ICollection<ProveedoresPago> ProveedoresPagos { get; set; } = new List<ProveedoresPago>();
 }

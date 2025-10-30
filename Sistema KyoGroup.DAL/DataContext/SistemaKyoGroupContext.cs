@@ -32,21 +32,21 @@ public partial class SistemaKyoGroupContext : DbContext
 
     public virtual DbSet<EstadosUsuario> EstadosUsuarios { get; set; }
 
-    public virtual DbSet<Importacion> Importacions { get; set; }
+    public virtual DbSet<Importacion> Importaciones { get; set; }
 
-    public virtual DbSet<ImportacionsInsumo> ImportacionsInsumos { get; set; }
+    public virtual DbSet<ImportacionesInsumo> ImportacionesInsumos { get; set; }
 
-    public virtual DbSet<ImportacionsReceta> ImportacionsRecetas { get; set; }
+    public virtual DbSet<ImportacionesReceta> ImportacionesRecetas { get; set; }
 
-    public virtual DbSet<ImportacionsSubreceta> ImportacionsSubrecetas { get; set; }
+    public virtual DbSet<ImportacionesSubreceta> ImportacionesSubrecetas { get; set; }
 
-    public virtual DbSet<ImportacionsTipo> ImportacionsTipos { get; set; }
+    public virtual DbSet<ImportacionesTipo> ImportacionesTipos { get; set; }
 
     public virtual DbSet<Insumo> Insumos { get; set; }
 
     public virtual DbSet<InsumosCategoria> InsumosCategorias { get; set; }
 
-    public virtual DbSet<InsumosProveedor> InsumosProveedors { get; set; }
+    public virtual DbSet<InsumosProveedor> InsumosProveedores { get; set; }
 
     public virtual DbSet<InsumosUnidadesNegocio> InsumosUnidadesNegocios { get; set; }
 
@@ -70,13 +70,13 @@ public partial class SistemaKyoGroupContext : DbContext
 
     public virtual DbSet<OrdenesComprasInsumosEstado> OrdenesComprasInsumosEstados { get; set; }
 
-    public virtual DbSet<Proveedor> Proveedors { get; set; }
+    public virtual DbSet<Proveedor> Proveedores { get; set; }
 
-    public virtual DbSet<ProveedorsCuentaCorriente> ProveedorsCuentaCorrientes { get; set; }
+    public virtual DbSet<ProveedoresCuentaCorriente> ProveedoresCuentaCorrientes { get; set; }
 
-    public virtual DbSet<ProveedorsInsumosLista> ProveedorsInsumosListas { get; set; }
+    public virtual DbSet<ProveedoresInsumosLista> ProveedoresInsumosListas { get; set; }
 
-    public virtual DbSet<ProveedorsPago> ProveedorsPagos { get; set; }
+    public virtual DbSet<ProveedoresPago> ProveedoresPagos { get; set; }
 
     public virtual DbSet<Provincia> Provincias { get; set; }
 
@@ -222,7 +222,7 @@ public partial class SistemaKyoGroupContext : DbContext
 
         modelBuilder.Entity<Compra>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK_FacturasProveedors");
+            entity.HasKey(e => e.Id).HasName("PK_FacturasProveedores");
 
             entity.Property(e => e.Descuentos).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.Fecha).HasColumnType("datetime");
@@ -237,22 +237,22 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.HasOne(d => d.IdLocalNavigation).WithMany(p => p.Compras)
                 .HasForeignKey(d => d.IdLocal)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_FacturasProveedors_Locals");
+                .HasConstraintName("FK_FacturasProveedores_Locales");
 
             entity.HasOne(d => d.IdOrdenCompraNavigation).WithMany(p => p.Compras)
                 .HasForeignKey(d => d.IdOrdenCompra)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_FacturasProveedors_OrdenesCompras");
+                .HasConstraintName("FK_FacturasProveedores_OrdenesCompras");
 
             entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.Compras)
                 .HasForeignKey(d => d.IdProveedor)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_FacturasProveedors_Proveedors");
+                .HasConstraintName("FK_FacturasProveedores_Proveedores");
 
             entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany(p => p.Compras)
                 .HasForeignKey(d => d.IdUnidadNegocio)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_FacturasProveedors_Unidades_Negocio");
+                .HasConstraintName("FK_FacturasProveedores_Unidades_Negocio");
 
             entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.CompraIdUsuarioModificaNavigations)
                 .HasForeignKey(d => d.IdUsuarioModifica)
@@ -266,7 +266,7 @@ public partial class SistemaKyoGroupContext : DbContext
 
         modelBuilder.Entity<ComprasInsumo>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK_FacturasProveedorsInsumos");
+            entity.HasKey(e => e.Id).HasName("PK_FacturasProveedoresInsumos");
 
             entity.Property(e => e.Cantidad).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.DescuentoTotal).HasColumnType("decimal(20, 2)");
@@ -284,7 +284,7 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.HasOne(d => d.IdCompraNavigation).WithMany(p => p.ComprasInsumos)
                 .HasForeignKey(d => d.IdCompra)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_FacturasProveedorsInsumos_FacturasProveedors");
+                .HasConstraintName("FK_FacturasProveedoresInsumos_FacturasProveedores");
 
             entity.HasOne(d => d.IdInsumoNavigation).WithMany(p => p.ComprasInsumos)
                 .HasForeignKey(d => d.IdInsumo)
@@ -294,7 +294,7 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.HasOne(d => d.IdProveedorListaNavigation).WithMany(p => p.ComprasInsumos)
                 .HasForeignKey(d => d.IdProveedorLista)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_FacturasProveedorsInsumos_Proveedors_Insumos_Listas");
+                .HasConstraintName("FK_FacturasProveedoresInsumos_Proveedores_Insumos_Listas");
 
             entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ComprasInsumoIdUsuarioModificaNavigations)
                 .HasForeignKey(d => d.IdUsuarioModifica)
@@ -322,7 +322,7 @@ public partial class SistemaKyoGroupContext : DbContext
 
         modelBuilder.Entity<Importacion>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK_VentasImportacions");
+            entity.HasKey(e => e.Id).HasName("PK_VentasImportaciones");
 
             entity.Property(e => e.Fecha).HasColumnType("date");
             entity.Property(e => e.FechaModifica).HasColumnType("datetime");
@@ -331,36 +331,36 @@ public partial class SistemaKyoGroupContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
 
-            entity.HasOne(d => d.IdLocalNavigation).WithMany(p => p.Importacions)
+            entity.HasOne(d => d.IdLocalNavigation).WithMany(p => p.Importaciones)
                 .HasForeignKey(d => d.IdLocal)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Importacions_Locals");
+                .HasConstraintName("FK_Importaciones_Locales");
 
-            entity.HasOne(d => d.IdTipoNavigation).WithMany(p => p.Importacions)
+            entity.HasOne(d => d.IdTipoNavigation).WithMany(p => p.Importaciones)
                 .HasForeignKey(d => d.IdTipo)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Importacions_ImportacionsTipos");
+                .HasConstraintName("FK_Importaciones_ImportacionesTipos");
 
-            entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany(p => p.Importacions)
+            entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany(p => p.Importaciones)
                 .HasForeignKey(d => d.IdUnidadNegocio)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Importacions_Unidades_Negocio");
+                .HasConstraintName("FK_Importaciones_Unidades_Negocio");
 
-            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.ImportacionIdUsuarioNavigations)
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.ImportacioneIdUsuarioNavigations)
                 .HasForeignKey(d => d.IdUsuario)
-                .HasConstraintName("FK_Importacions_Usuarios");
+                .HasConstraintName("FK_Importaciones_Usuarios");
 
-            entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ImportacionIdUsuarioModificaNavigations)
+            entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ImportacioneIdUsuarioModificaNavigations)
                 .HasForeignKey(d => d.IdUsuarioModifica)
-                .HasConstraintName("FK_Importacions_UsuarioModifica");
+                .HasConstraintName("FK_Importaciones_UsuarioModifica");
 
-            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany(p => p.ImportacionIdUsuarioRegistraNavigations)
+            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany(p => p.ImportacioneIdUsuarioRegistraNavigations)
                 .HasForeignKey(d => d.IdUsuarioRegistra)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Importacions_UsuarioRegistra");
+                .HasConstraintName("FK_Importaciones_UsuarioRegistra");
         });
 
-        modelBuilder.Entity<ImportacionsInsumo>(entity =>
+        modelBuilder.Entity<ImportacionesInsumo>(entity =>
         {
             entity.Property(e => e.Cantidad).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.CostoUnitario).HasColumnType("decimal(18, 2)");
@@ -368,22 +368,22 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.Property(e => e.FechaRegistra).HasColumnType("datetime");
             entity.Property(e => e.Subtotal).HasColumnType("decimal(18, 2)");
 
-            entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ImportacionsInsumoIdUsuarioModificaNavigations)
+            entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ImportacionesInsumoIdUsuarioModificaNavigations)
                 .HasForeignKey(d => d.IdUsuarioModifica)
-                .HasConstraintName("FK_ImportacionsInsumos_UsuarioModifica");
+                .HasConstraintName("FK_ImportacionesInsumos_UsuarioModifica");
 
-            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany(p => p.ImportacionsInsumoIdUsuarioRegistraNavigations)
+            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany(p => p.ImportacionesInsumoIdUsuarioRegistraNavigations)
                 .HasForeignKey(d => d.IdUsuarioRegistra)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ImportacionsInsumos_UsuarioRegistra");
+                .HasConstraintName("FK_ImportacionesInsumos_UsuarioRegistra");
 
-            entity.HasOne(d => d.IdVentaRecetaNavigation).WithMany(p => p.ImportacionsInsumos)
+            entity.HasOne(d => d.IdVentaRecetaNavigation).WithMany(p => p.ImportacionesInsumos)
                 .HasForeignKey(d => d.IdVentaReceta)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ImportacionsInsumos_ImportacionsRecetas");
+                .HasConstraintName("FK_ImportacionesInsumos_ImportacionesRecetas");
         });
 
-        modelBuilder.Entity<ImportacionsReceta>(entity =>
+        modelBuilder.Entity<ImportacionesReceta>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_VentasRecetas");
 
@@ -401,22 +401,22 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.Property(e => e.Subtotal).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.SubtotalCosto).HasColumnType("decimal(18, 2)");
 
-            entity.HasOne(d => d.IdImportacionNavigation).WithMany(p => p.ImportacionsReceta)
+            entity.HasOne(d => d.IdImportacionNavigation).WithMany(p => p.ImportacionesReceta)
                 .HasForeignKey(d => d.IdImportacion)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_VentasRecetas_VentasImportacions");
+                .HasConstraintName("FK_VentasRecetas_VentasImportaciones");
 
-            entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ImportacionsRecetaIdUsuarioModificaNavigations)
+            entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ImportacionesRecetaIdUsuarioModificaNavigations)
                 .HasForeignKey(d => d.IdUsuarioModifica)
-                .HasConstraintName("FK_ImportacionsRecetas_UsuarioModifica");
+                .HasConstraintName("FK_ImportacionesRecetas_UsuarioModifica");
 
-            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany(p => p.ImportacionsRecetaIdUsuarioRegistraNavigations)
+            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany(p => p.ImportacionesRecetaIdUsuarioRegistraNavigations)
                 .HasForeignKey(d => d.IdUsuarioRegistra)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ImportacionsRecetas_UsuarioRegistra");
+                .HasConstraintName("FK_ImportacionesRecetas_UsuarioRegistra");
         });
 
-        modelBuilder.Entity<ImportacionsSubreceta>(entity =>
+        modelBuilder.Entity<ImportacionesSubreceta>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_VentasRecetasSubrecetas");
 
@@ -426,22 +426,22 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.Property(e => e.FechaRegistra).HasColumnType("datetime");
             entity.Property(e => e.Subtotal).HasColumnType("decimal(18, 2)");
 
-            entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ImportacionsSubrecetaIdUsuarioModificaNavigations)
+            entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ImportacionesSubrecetaIdUsuarioModificaNavigations)
                 .HasForeignKey(d => d.IdUsuarioModifica)
-                .HasConstraintName("FK_ImportacionsSubrecetas_UsuarioModifica");
+                .HasConstraintName("FK_ImportacionesSubrecetas_UsuarioModifica");
 
-            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany(p => p.ImportacionsSubrecetaIdUsuarioRegistraNavigations)
+            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany(p => p.ImportacionesSubrecetaIdUsuarioRegistraNavigations)
                 .HasForeignKey(d => d.IdUsuarioRegistra)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ImportacionsSubrecetas_UsuarioRegistra");
+                .HasConstraintName("FK_ImportacionesSubrecetas_UsuarioRegistra");
 
-            entity.HasOne(d => d.IdVentaRecetaNavigation).WithMany(p => p.ImportacionsSubreceta)
+            entity.HasOne(d => d.IdVentaRecetaNavigation).WithMany(p => p.ImportacionesSubreceta)
                 .HasForeignKey(d => d.IdVentaReceta)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_VentasRecetasSubrecetas_VentasRecetas");
         });
 
-        modelBuilder.Entity<ImportacionsTipo>(entity =>
+        modelBuilder.Entity<ImportacionesTipo>(entity =>
         {
             entity.Property(e => e.Nombre)
                 .HasMaxLength(70)
@@ -494,15 +494,15 @@ public partial class SistemaKyoGroupContext : DbContext
 
         modelBuilder.Entity<InsumosProveedor>(entity =>
         {
-            entity.ToTable("Insumos_Proveedors");
+            entity.ToTable("Insumos_Proveedores");
 
             entity.Property(e => e.IdInsumo)
                 .HasMaxLength(50)
                 .IsUnicode(false);
 
-            entity.HasOne(d => d.IdListaProveedorNavigation).WithMany(p => p.InsumosProveedors)
+            entity.HasOne(d => d.IdListaProveedorNavigation).WithMany(p => p.InsumosProveedores)
                 .HasForeignKey(d => d.IdListaProveedor)
-                .HasConstraintName("FK_Insumos_Proveedors_Proveedors_Insumos_Listas");
+                .HasConstraintName("FK_Insumos_Proveedores_Proveedores_Insumos_Listas");
         });
 
         modelBuilder.Entity<InsumosUnidadesNegocio>(entity =>
@@ -531,7 +531,7 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.HasOne(d => d.IdLocalNavigation).WithMany(p => p.Inventarios)
                 .HasForeignKey(d => d.IdLocal)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Inventario_Locals");
+                .HasConstraintName("FK_Inventario_Locales");
 
             entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany(p => p.Inventarios)
                 .HasForeignKey(d => d.IdUnidadNegocio)
@@ -564,7 +564,7 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.HasOne(d => d.IdLocalNavigation).WithMany(p => p.InventarioMovimientos)
                 .HasForeignKey(d => d.IdLocal)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Insumos_Stock_Locals");
+                .HasConstraintName("FK_Insumos_Stock_Locales");
 
             entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany(p => p.InventarioMovimientos)
                 .HasForeignKey(d => d.IdUnidadNegocio)
@@ -599,12 +599,12 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.HasOne(d => d.IdLocalDestinoNavigation).WithMany(p => p.InventarioTransferenciaIdLocalDestinoNavigations)
                 .HasForeignKey(d => d.IdLocalDestino)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_InventarioTransferencias_Locals1");
+                .HasConstraintName("FK_InventarioTransferencias_Locales1");
 
             entity.HasOne(d => d.IdLocalOrigenNavigation).WithMany(p => p.InventarioTransferenciaIdLocalOrigenNavigations)
                 .HasForeignKey(d => d.IdLocalOrigen)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_InventarioTransferencias_Locals");
+                .HasConstraintName("FK_InventarioTransferencias_Locales");
 
             entity.HasOne(d => d.IdMotivoNavigation).WithMany(p => p.InventarioTransferencia)
                 .HasForeignKey(d => d.IdMotivo)
@@ -670,7 +670,8 @@ public partial class SistemaKyoGroupContext : DbContext
 
             entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany(p => p.Local)
                 .HasForeignKey(d => d.IdUnidadNegocio)
-                .HasConstraintName("FK_Locals_Unidades_Negocio");
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Locales_Unidades_Negocio");
         });
 
         modelBuilder.Entity<OrdenesCompra>(entity =>
@@ -695,12 +696,12 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.HasOne(d => d.IdLocalNavigation).WithMany(p => p.OrdenesCompras)
                 .HasForeignKey(d => d.IdLocal)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_OrdenesCompras_Locals");
+                .HasConstraintName("FK_OrdenesCompras_Locales");
 
             entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.OrdenesCompras)
                 .HasForeignKey(d => d.IdProveedor)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_OrdenesCompras_Proveedors");
+                .HasConstraintName("FK_OrdenesCompras_Proveedores");
 
             entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany(p => p.OrdenesCompras)
                 .HasForeignKey(d => d.IdUnidadNegocio)
@@ -757,7 +758,7 @@ public partial class SistemaKyoGroupContext : DbContext
 
             entity.HasOne(d => d.IdProveedorListaNavigation).WithMany(p => p.OrdenesComprasInsumos)
                 .HasForeignKey(d => d.IdProveedorLista)
-                .HasConstraintName("FK_OrdenesComprasInsumos_Proveedors_Insumos_Listas");
+                .HasConstraintName("FK_OrdenesComprasInsumos_Proveedores_Insumos_Listas");
 
             entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.OrdenesComprasInsumoIdUsuarioModificaNavigations)
                 .HasForeignKey(d => d.IdUsuarioModifica)
@@ -804,19 +805,19 @@ public partial class SistemaKyoGroupContext : DbContext
                 .HasMaxLength(500)
                 .IsUnicode(false);
 
-            entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ProveedorIdUsuarioModificaNavigations)
+            entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ProveedoreIdUsuarioModificaNavigations)
                 .HasForeignKey(d => d.IdUsuarioModifica)
-                .HasConstraintName("FK_Proveedors_UsuarioModifica");
+                .HasConstraintName("FK_Proveedores_UsuarioModifica");
 
-            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany(p => p.ProveedorIdUsuarioRegistraNavigations)
+            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany(p => p.ProveedoreIdUsuarioRegistraNavigations)
                 .HasForeignKey(d => d.IdUsuarioRegistra)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Proveedors_UsuarioRegistra");
+                .HasConstraintName("FK_Proveedores_UsuarioRegistra");
         });
 
-        modelBuilder.Entity<ProveedorsCuentaCorriente>(entity =>
+        modelBuilder.Entity<ProveedoresCuentaCorriente>(entity =>
         {
-            entity.ToTable("Proveedors_CuentaCorriente");
+            entity.ToTable("Proveedores_CuentaCorriente");
 
             entity.Property(e => e.Concepto)
                 .HasMaxLength(200)
@@ -828,15 +829,15 @@ public partial class SistemaKyoGroupContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
 
-            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.ProveedorsCuentaCorrientes)
+            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.ProveedoresCuentaCorrientes)
                 .HasForeignKey(d => d.IdProveedor)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Proveedors_CuentaCorriente_Proveedors");
+                .HasConstraintName("FK_Proveedores_CuentaCorriente_Proveedores");
         });
 
-        modelBuilder.Entity<ProveedorsInsumosLista>(entity =>
+        modelBuilder.Entity<ProveedoresInsumosLista>(entity =>
         {
-            entity.ToTable("Proveedors_Insumos_Listas");
+            entity.ToTable("Proveedores_Insumos_Listas");
 
             entity.Property(e => e.Codigo)
                 .HasMaxLength(100)
@@ -852,21 +853,21 @@ public partial class SistemaKyoGroupContext : DbContext
                 .HasColumnType("datetime");
             entity.Property(e => e.IdUsuarioRegistra).HasDefaultValueSql("((1))");
 
-            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.ProveedorsInsumosLista)
+            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.ProveedoresInsumosLista)
                 .HasForeignKey(d => d.IdProveedor)
-                .HasConstraintName("FK_Proveedors_Insumos_Listas_Proveedors");
+                .HasConstraintName("FK_Proveedores_Insumos_Listas_Proveedores");
 
-            entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ProveedorsInsumosListaIdUsuarioModificaNavigations)
+            entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ProveedoresInsumosListaIdUsuarioModificaNavigations)
                 .HasForeignKey(d => d.IdUsuarioModifica)
-                .HasConstraintName("FK_Proveedors_Insumos_Listas_UsuarioModifica");
+                .HasConstraintName("FK_Proveedores_Insumos_Listas_UsuarioModifica");
 
-            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany(p => p.ProveedorsInsumosListaIdUsuarioRegistraNavigations)
+            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany(p => p.ProveedoresInsumosListaIdUsuarioRegistraNavigations)
                 .HasForeignKey(d => d.IdUsuarioRegistra)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Proveedors_Insumos_Listas_UsuarioRegistra");
+                .HasConstraintName("FK_Proveedores_Insumos_Listas_UsuarioRegistra");
         });
 
-        modelBuilder.Entity<ProveedorsPago>(entity =>
+        modelBuilder.Entity<ProveedoresPago>(entity =>
         {
             entity.Property(e => e.Concepto)
                 .HasMaxLength(200)
@@ -882,19 +883,19 @@ public partial class SistemaKyoGroupContext : DbContext
                 .HasMaxLength(200)
                 .IsUnicode(false);
 
-            entity.HasOne(d => d.IdCuentaNavigation).WithMany(p => p.ProveedorsPagos)
+            entity.HasOne(d => d.IdCuentaNavigation).WithMany(p => p.ProveedoresPagos)
                 .HasForeignKey(d => d.IdCuenta)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ComprasPagos_Cuentas");
 
-            entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ProveedorsPagoIdUsuarioModificaNavigations)
+            entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ProveedoresPagoIdUsuarioModificaNavigations)
                 .HasForeignKey(d => d.IdUsuarioModifica)
-                .HasConstraintName("FK_ProveedorsPagos_UsuarioModifica");
+                .HasConstraintName("FK_ProveedoresPagos_UsuarioModifica");
 
-            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany(p => p.ProveedorsPagoIdUsuarioRegistraNavigations)
+            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany(p => p.ProveedoresPagoIdUsuarioRegistraNavigations)
                 .HasForeignKey(d => d.IdUsuarioRegistra)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ProveedorsPagos_UsuarioRegistra");
+                .HasConstraintName("FK_ProveedoresPagos_UsuarioRegistra");
         });
 
         modelBuilder.Entity<Provincia>(entity =>
@@ -1247,11 +1248,15 @@ public partial class SistemaKyoGroupContext : DbContext
 
         modelBuilder.Entity<UsuariosLocal>(entity =>
         {
-            entity.ToTable("Usuarios_Locals");
+            entity.ToTable("Usuarios_Locales");
 
-            entity.HasOne(d => d.IdLocalNavigation).WithMany(p => p.UsuariosLocals)
+            entity.HasOne(d => d.IdLocalNavigation).WithMany(p => p.UsuariosLocales)
                 .HasForeignKey(d => d.IdLocal)
-                .HasConstraintName("FK_Usuarios_Locals_Locals");
+                .HasConstraintName("FK_Usuarios_Locales_Locales");
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.UsuariosLocales)
+                .HasForeignKey(d => d.IdUsuario)
+                .HasConstraintName("FK_Usuarios_Locales_Usuarios");
         });
 
         modelBuilder.Entity<UsuariosUnidadesNegocio>(entity =>
@@ -1260,8 +1265,11 @@ public partial class SistemaKyoGroupContext : DbContext
 
             entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany(p => p.UsuariosUnidadesNegocios)
                 .HasForeignKey(d => d.IdUnidadNegocio)
-                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_Usuarios_UnidadesNegocio_Unidades_Negocio");
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.UsuariosUnidadesNegocios)
+                .HasForeignKey(d => d.IdUsuario)
+                .HasConstraintName("FK_Usuarios_UnidadesNegocio_Usuarios");
         });
 
         OnModelCreatingPartial(modelBuilder);

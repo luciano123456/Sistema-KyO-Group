@@ -39,7 +39,7 @@ public partial class OrdenesComprasInsumo
 
     public virtual OrdenesCompra IdOrdenCompraNavigation { get; set; } = null!;
 
-    public virtual ProveedorsInsumosLista? IdProveedorListaNavigation { get; set; }
+    public virtual ProveedoresInsumosLista? IdProveedorListaNavigation { get; set; }
 
     public virtual User? IdUsuarioModificaNavigation { get; set; }
 
