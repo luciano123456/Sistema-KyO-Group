@@ -2,7 +2,7 @@
 
 namespace SistemaKyoGroup.Application.Models.ViewModels
 {
-    public class VMEstadosUsuarios
+    public class ClaimsPrincipalExtensions
     {
         public int Id { get; set; }
 

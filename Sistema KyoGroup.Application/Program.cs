@@ -43,6 +43,8 @@ builder.Services.AddScoped<ILocalesService, LocalesService>();
 builder.Services.AddScoped<IUnidadesNegocioRepository<UnidadesNegocio>, UnidadesNegocioRepository>();
 builder.Services.AddScoped<IUnidadesNegocioService, UnidadesNegociosService>();
 
+builder.Services.AddScoped<IProveedoresRepository<Proveedor>, ProveedoresRepository>();
+builder.Services.AddScoped<IProveedoresService, ProveedoresService>();
 
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o =>
