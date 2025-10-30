@@ -60,7 +60,7 @@ public partial class SistemaKyoGroupContext : DbContext
 
     public virtual DbSet<InvetarioTransferenciasDetalle> InvetarioTransferenciasDetalles { get; set; }
 
-    public virtual DbSet<Local> Locals { get; set; }
+    public virtual DbSet<Local> Locales { get; set; }
 
     public virtual DbSet<OrdenesCompra> OrdenesCompras { get; set; }
 
@@ -108,7 +108,7 @@ public partial class SistemaKyoGroupContext : DbContext
 
     public virtual DbSet<User> Usuarios { get; set; }
 
-    public virtual DbSet<UsuariosLocal> UsuariosLocals { get; set; }
+    public virtual DbSet<UsuariosLocal> UsuariosLocales { get; set; }
 
     public virtual DbSet<UsuariosUnidadesNegocio> UsuariosUnidadesNegocios { get; set; }
 
@@ -668,7 +668,7 @@ public partial class SistemaKyoGroupContext : DbContext
                 .HasMaxLength(150)
                 .IsUnicode(false);
 
-            entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany(p => p.Locals)
+            entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany(p => p.Local)
                 .HasForeignKey(d => d.IdUnidadNegocio)
                 .HasConstraintName("FK_Locals_Unidades_Negocio");
         });

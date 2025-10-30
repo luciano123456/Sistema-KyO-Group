@@ -21,7 +21,7 @@ public partial class UnidadesNegocio
 
     public virtual ICollection<Inventario> Inventarios { get; set; } = new List<Inventario>();
 
-    public virtual ICollection<Local> Locals { get; set; } = new List<Local>();
+    public virtual ICollection<Local> Local { get; set; } = new List<Local>();
 
     public virtual ICollection<OrdenesCompra> OrdenesCompras { get; set; } = new List<OrdenesCompra>();
 
