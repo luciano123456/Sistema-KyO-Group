@@ -1,6 +1,7 @@
 ﻿using KyoGroup.Application.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SistemaKyoGroup.Application.Extensions;
 using SistemaKyoGroup.Application.Models;
 using SistemaKyoGroup.Application.Models.ViewModels;
 using SistemaKyoGroup.BLL.Service;
@@ -42,8 +43,13 @@ namespace SistemaKyoGroup.Application.Controllers
                     Codigo = c.Codigo,
                     FechaActualizacion = c.FechaActualizacion,
                     IdProveedor = c.IdProveedor,
-                    Proveedor = c.IdProveedorNavigation != null ? c.IdProveedorNavigation.Nombre : ""
-
+                    Proveedor = c.IdProveedorNavigation != null ? c.IdProveedorNavigation.Nombre : "",
+                    IdUsuarioRegistra = c.IdUsuarioRegistra,
+                    FechaRegistra = c.FechaRegistra,
+                    IdUsuarioModifica = c.IdUsuarioModifica,
+                    FechaModifica = c.FechaModifica,
+                    UsuarioRegistra = c.IdUsuarioRegistraNavigation != null ? c.IdUsuarioRegistraNavigation.Usuario : null,
+                    UsuarioModifica = c.IdUsuarioModificaNavigation != null ? c.IdUsuarioModificaNavigation.Usuario : null
                 })
                 .ToList();
 
@@ -89,6 +95,9 @@ namespace SistemaKyoGroup.Application.Controllers
         [HttpPost]
         public async Task<IActionResult> Insertar([FromBody] VMProveedoresInsumos model)
         {
+
+            var userId = User.GetUserId();
+
             var ProveedoresInsumos = new ProveedoresInsumosLista
             {
                 Descripcion = model.Descripcion,
@@ -96,6 +105,8 @@ namespace SistemaKyoGroup.Application.Controllers
                 Codigo = model.Codigo,
                 FechaActualizacion = DateTime.Now,
                 IdProveedor = model.IdProveedor,
+                IdUsuarioRegistra = userId ?? model.IdUsuarioRegistra, // fallback si hicieras pruebas sin token
+                FechaRegistra = DateTime.Now
             };
 
             bool respuesta = await _ProveedoresInsumosService.Insertar(ProveedoresInsumos);
@@ -106,6 +117,10 @@ namespace SistemaKyoGroup.Application.Controllers
         [HttpPut]
         public async Task<IActionResult> Actualizar([FromBody] VMProveedoresInsumos model)
         {
+
+            // Id del usuario desde el JWT
+            var userId = User.GetUserId();
+
             var ProveedoresInsumos = new ProveedoresInsumosLista
             {
                 Id = model.Id,
@@ -114,6 +129,8 @@ namespace SistemaKyoGroup.Application.Controllers
                 Codigo = model.Codigo,
                 FechaActualizacion = DateTime.Now,
                 IdProveedor = model.IdProveedor,
+                IdUsuarioModifica = (int)userId, // fallback si hicieras pruebas sin token
+                FechaModifica = DateTime.Now
             };
 
             bool respuesta = await _ProveedoresInsumosService.Actualizar(ProveedoresInsumos);
@@ -127,13 +144,18 @@ namespace SistemaKyoGroup.Application.Controllers
             if (model == null || model.IdProveedor == 0 || model.Lista == null || !model.Lista.Any())
                 return BadRequest(new { valor = false, mensaje = "Datos inválidos" });
 
+            // Id del usuario desde el JWT
+            var userId = User.GetUserId();
+
             var listaProcesada = model.Lista.Select(x => new ProveedoresInsumosLista
             {
                 Codigo = x.Codigo,
                 Descripcion = x.Descripcion,
                 CostoUnitario = x.CostoUnitario,
                 IdProveedor = model.IdProveedor,
-                FechaActualizacion = DateTime.Now
+                FechaActualizacion = DateTime.Now,
+                IdUsuarioRegistra = (int)userId, // fallback si hicieras pruebas sin token
+                FechaRegistra = DateTime.Now
             }).ToList();
 
             var resultado = await _ProveedoresInsumosService.ImportarDesdeLista(model.IdProveedor, listaProcesada);
@@ -164,6 +186,12 @@ namespace SistemaKyoGroup.Application.Controllers
                 FechaActualizacion = ProveedoresInsumos.FechaActualizacion,
                 IdProveedor = ProveedoresInsumos.IdProveedor,
                 Codigo = ProveedoresInsumos.Codigo,
+                IdUsuarioRegistra = ProveedoresInsumos.IdUsuarioRegistra,
+                FechaRegistra = ProveedoresInsumos.FechaRegistra,
+                IdUsuarioModifica = ProveedoresInsumos.IdUsuarioModifica,
+                FechaModifica = ProveedoresInsumos.FechaModifica,
+                UsuarioRegistra = ProveedoresInsumos.IdUsuarioRegistraNavigation != null ? ProveedoresInsumos.IdUsuarioRegistraNavigation.Usuario : null,
+                UsuarioModifica = ProveedoresInsumos.IdUsuarioModificaNavigation != null ? ProveedoresInsumos.IdUsuarioModificaNavigation.Usuario : null
             };
 
             return Ok(vm);

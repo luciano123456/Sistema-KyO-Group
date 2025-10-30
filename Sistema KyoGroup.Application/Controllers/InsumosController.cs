@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SistemaKyoGroup.Application.Extensions;
 using SistemaKyoGroup.Application.Models;
 using SistemaKyoGroup.Application.Models.ViewModels;
 using SistemaKyoGroup.BLL.Service;
@@ -59,7 +60,13 @@ namespace SistemaKyoGroup.Application.Controllers
                             CostoUnitario = proveedorMasBarato?.IdListaProveedorNavigation?.CostoUnitario ?? 0,
                             PrecioLista = proveedorMasBarato?.IdListaProveedorNavigation?.CostoUnitario ?? 0,
                             CantidadProveedores = c.InsumosProveedores?.Count ?? 0,
-                            IdProveedorLista = proveedorMasBarato?.IdListaProveedorNavigation?.Id ?? 0
+                            IdProveedorLista = proveedorMasBarato?.IdListaProveedorNavigation?.Id ?? 0,
+                            IdUsuarioRegistra = c.IdUsuarioRegistra,
+                            FechaRegistra = c.FechaRegistra,
+                            IdUsuarioModifica = c.IdUsuarioModifica,
+                            FechaModifica = c.FechaModifica,
+                            UsuarioRegistra = c.IdUsuarioRegistraNavigation != null ? c.IdUsuarioRegistraNavigation.Usuario : null,
+                            UsuarioModifica = c.IdUsuarioModificaNavigation != null ? c.IdUsuarioModificaNavigation.Usuario : null
                         };
                     })
                     .ToList();
@@ -171,6 +178,10 @@ namespace SistemaKyoGroup.Application.Controllers
         [HttpPost]
         public async Task<IActionResult> Insertar([FromBody] VMInsumo model)
         {
+
+            // Id del usuario desde el JWT
+            var userId = User.GetUserId();
+
             var insumo = new Insumo
             {
                 Id = model.Id,
@@ -179,6 +190,8 @@ namespace SistemaKyoGroup.Application.Controllers
                 FechaActualizacion = DateTime.Now,
                 IdCategoria = model.IdCategoria,
                 Descripcion = model.Descripcion,
+                IdUsuarioRegistra = (int)userId, // fallback si hicieras pruebas sin token
+                FechaRegistra = DateTime.Now,
 
                 InsumosUnidadesNegocios = model.InsumosUnidadesNegocios?.Select(u => new InsumosUnidadesNegocio
                 {
@@ -191,7 +204,6 @@ namespace SistemaKyoGroup.Application.Controllers
                     {
                         IdProveedor = g.Key.IdProveedor,
                         IdListaProveedor = g.Key.IdListaProveedor
-                        // IdInsumo se asigna en el Insertar
                     }).ToList()
             };
 
@@ -208,6 +220,8 @@ namespace SistemaKyoGroup.Application.Controllers
         [HttpPut]
         public async Task<IActionResult> Actualizar([FromBody] VMInsumo model)
         {
+            var userId = User.GetUserId();
+
             var Insumos = new Insumo
             {
                 Id = model.Id,
@@ -217,7 +231,9 @@ namespace SistemaKyoGroup.Application.Controllers
                 IdCategoria = model.IdCategoria,
                 Descripcion = model.Descripcion,
                 InsumosProveedores = model.InsumosProveedores,
-                InsumosUnidadesNegocios = model.InsumosUnidadesNegocios
+                InsumosUnidadesNegocios = model.InsumosUnidadesNegocios,
+                  IdUsuarioModifica = (int)userId, // fallback si hicieras pruebas sin token
+                FechaModifica = DateTime.Now
             };
 
             bool respuesta = await _InsumosService.Actualizar(Insumos);
@@ -247,6 +263,12 @@ namespace SistemaKyoGroup.Application.Controllers
                 IdCategoria = insumo.IdCategoria,
                 IdUnidadMedida = insumo.IdUnidadMedida,
                 FechaActualizacion = insumo.FechaActualizacion,
+                IdUsuarioRegistra = insumo.IdUsuarioRegistra,
+                FechaRegistra = insumo.FechaRegistra,
+                IdUsuarioModifica = insumo.IdUsuarioModifica,
+                FechaModifica = insumo.FechaModifica,
+                UsuarioRegistra = insumo.IdUsuarioRegistraNavigation != null ? insumo.IdUsuarioRegistraNavigation.Usuario : null,
+                UsuarioModifica = insumo.IdUsuarioModificaNavigation != null ? insumo.IdUsuarioModificaNavigation.Usuario : null,
                 InsumosProveedores = insumo.InsumosProveedores.Select(p => new InsumosProveedor
                 {
                     Id = p.Id,

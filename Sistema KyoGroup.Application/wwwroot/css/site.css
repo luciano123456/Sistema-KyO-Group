@@ -1,3 +1,11 @@
+:root {
+    --dt-row-hover: #152037;
+    --dt-row-zebra: #363659;
+    --dt-row-zebra2: #525285;
+
+}
+
+
 html {
     font-size: 14px;
 }
@@ -106,7 +114,7 @@ table {
 }
 
 tbody tr:nth-child(odd) {
-    background-color: #097CF7;
+    background-color: var(--dt-row-zebra);
 }
 
 .divLogo {
@@ -129,18 +137,18 @@ tbody tr {
 
 .table-striped > tbody > tr:nth-child(odd) > td,
 .table-striped > tbody > tr:nth-child(odd) > th {
-    background-color: #2a303a;
+    background-color: var(--dt-row-zebra2);
     color: white;
 }
 
 .table-striped > tbody > tr:nth-child(even) > td,
 .table-striped > tbody > tr:nth-child(even) > th {
-    background-color: #353c48;
+    background-color: var(--dt-row-zebra);
     color: white;
 }
 
 .table-striped > thead > tr > th {
-    background-color: #323844;
+    background-color: var(--dt-row-zebra);
     color: white;
 }
 
