@@ -1,0 +1,2752 @@
+﻿/* ========= ULTRA SKIN (XL) ========= */
+:root {
+    --bg: #0a111f;
+    --panel: #141c2b;
+    --panel2: #101726;
+    --soft: rgba(255,255,255,.06);
+    --b1: rgba(255,255,255,.12);
+    --head: #1b2740;
+    --primary: #4c8dff;
+    --accent: #7b5cff;
+    --ok: #1ecf93;
+    --warn: #ffb200;
+    --danger: #ff5a6a;
+    --txt: #eaf1ff;
+    --muted: #9db1d2;
+    --dt-row-hover: #152037;
+    --dt-row-zebra: rgba(24, 28, 52, .9);
+    --dt-row-zebra2: rgba(17, 22, 44, .78);
+    --dt-row-zebra3: #0e1024;
+}
+
+html, body {
+    color: var(--txt);
+}
+
+/* Contenedor ancho XL */
+.cc-container-xxl {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 12px;
+}
+
+@media (min-width: 1600px) {
+    .cc-container-xxl {
+        max-width: 1560px;
+    }
+}
+
+/* Cards / secciones */
+.cc-card {
+    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+    border: 1px solid var(--b1);
+    border-radius: 18px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.45);
+}
+
+.cc-section {
+    padding: 22px 22px;
+    margin: 22px 0;
+}
+
+.cc-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(180deg, var(--head), rgba(27,39,64,.75));
+    border: 1px solid var(--b1);
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+    .cc-titlebar h3 {
+        margin: 0;
+        font-weight: 800;
+    }
+
+/* KPI */
+.cc-kpi {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 16px 18px;
+    margin: 18px auto 10px;
+}
+
+.cc-kpi-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
+    border: 1px solid var(--b1);
+    font-size: 22px;
+}
+
+.cc-kpi-title {
+    margin: 0;
+    font-weight: 900;
+    letter-spacing: .3px;
+}
+
+.cc-muted {
+    color: var(--muted) !important;
+}
+
+/* Grids */
+.cc-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.cc-grid-3xl {
+    grid-template-columns: repeat(1,minmax(0,1fr));
+}
+
+@media (min-width: 992px) {
+    .cc-grid-3xl {
+        grid-template-columns: 1fr 2fr 1fr;
+    }
+}
+
+.cc-grid-3wide {
+    grid-template-columns: repeat(1,minmax(0,1fr));
+}
+
+@media (min-width: 1200px) {
+    .cc-grid-3wide {
+        grid-template-columns: repeat(3,minmax(0,1fr));
+    }
+}
+
+/* Inputs */
+.form-control, .form-select {
+    background: var(--panel2) !important;
+    color: var(--txt) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 12px !important;
+    min-height: 48px;
+    font-size: 15px;
+}
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 3px rgba(76,141,255,.25) !important;
+    }
+
+label {
+    font-weight: 700;
+    font-size: 14px;
+    color: #dfeaff;
+}
+
+.cc-money {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Tabs */
+.cc-tabs {
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+    .cc-tabs .nav-link {
+        color: var(--muted);
+        border: 0;
+        padding: 1rem 1.2rem;
+        font-weight: 800;
+        font-size: 16px;
+    }
+
+        .cc-tabs .nav-link.active {
+            color: #fff;
+            border-bottom: 4px solid var(--primary);
+        }
+
+/* Tablas */
+.cc-table {
+    border: 1px solid var(--b1);
+    border-radius: 14px;
+    overflow: auto;
+    background: var(--panel2);
+}
+
+.table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--head);
+    color: #eaf2ff;
+    border-bottom: 0 !important;
+    font-weight: 800;
+}
+
+.table tbody tr {
+    background: rgba(255,255,255,.03);
+}
+
+    .table tbody tr:hover {
+        background: rgba(255,255,255,.07);
+    }
+
+/* Buttons */
+.btn {
+    border-radius: 12px;
+    font-weight: 800;
+}
+
+.btn-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-danger {
+    background: var(--danger);
+    border-color: var(--danger);
+}
+
+.btn-success {
+    background: var(--ok);
+    border-color: var(--ok);
+}
+
+.btn-dark {
+    background: #2b3448;
+    border-color: #2b3448;
+}
+
+/* Modales 3XL */
+.modal-3xl {
+    max-width: 1400px !important;
+}
+
+.cc-modal {
+    background: var(--panel);
+    color: var(--txt);
+    border: 1px solid var(--b1);
+    border-radius: 18px;
+}
+
+.cc-modal-header {
+    background: linear-gradient(180deg, var(--head), rgba(27,39,64,.6));
+    border-bottom: 1px solid var(--b1);
+    color: #eaf2ff;
+}
+
+.custom-close {
+    filter: invert(1) grayscale(1);
+}
+
+/* Select2 a tono */
+.select2-container {
+    width: 100% !important;
+}
+
+
+    .select2-container .select2-selection__rendered {
+        color: var(--txt) !important;
+        padding: 0 12px !important;
+    }
+
+    .select2-container .select2-selection__arrow {
+        height: 48px !important;
+    }
+
+.select2-dropdown {
+    background: var(--panel2) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 12px;
+}
+
+.select2-results__option {
+    color: var(--txt);
+}
+
+.select2-results__option--highlighted[aria-selected] {
+    background: var(--primary) !important;
+    color: #fff !important;
+}
+
+/* DataTables */
+.dataTables_wrapper .dataTables_paginate {
+    padding: .6rem;
+    background: var(--soft);
+    border-radius: 12px;
+    border: 1px solid var(--b1);
+}
+
+.dataTables_wrapper .dataTables_info {
+    color: var(--muted);
+}
+
+/* Utilidades */
+.gap-2 {
+    gap: .5rem;
+}
+
+.gap-4 {
+    gap: 1rem;
+}
+
+
+
+/* Tabs — look oscuro acorde al rediseño */
+.nav-tabs {
+    border-bottom: 1px solid var(--cc-border, rgba(255,255,255,.12));
+    gap: 10px;
+}
+
+    /* Base de las pestañas */
+    .nav-tabs .nav-link {
+        color: #cfe3ff;
+        background: #0f1625;
+        border: 1px solid var(--cc-border, rgba(255,255,255,.12));
+        border-radius: 12px;
+        margin-bottom: -1px; /* evita salto visual en el borde inferior */
+        padding: .55rem 1rem;
+        font-weight: 700;
+    }
+
+        /* Hover/focus */
+        .nav-tabs .nav-link:hover,
+        .nav-tabs .nav-link:focus {
+            color: #ffffff;
+            border-color: #2c3d5a;
+            background: #142036;
+            outline: none;
+            box-shadow: 0 0 0 .15rem rgba(78,160,255,.25);
+        }
+
+        /* Activo (y .show) — sin fondo blanco */
+        .nav-tabs .nav-item.show .nav-link,
+        .nav-tabs .nav-link.active {
+            color: #fff;
+            background: linear-gradient(180deg,#2b3c65,#243556);
+            border-color: #31405a;
+            box-shadow: 0 4px 16px rgba(0,0,0,.25);
+        }
+
+        /* Quita cualquier pseudo que deje “cuadrito” u ornamento */
+        .nav-tabs .nav-link::before,
+        .nav-tabs .nav-link::after {
+            content: none !important;
+        }
+
+
+/* =========================================================
+   RESPONSIVE ONLY — sin alterar el look de escritorio
+   ========================================================= */
+
+/* ====== 1200px↓: contenedor y paddings un poco más fluidos ====== */
+@media (max-width: 1200px) {
+    .cc-container-xxl {
+        max-width: 100%;
+        padding: 10px;
+    }
+
+    .cc-section {
+        padding: 18px;
+    }
+
+    .cc-titlebar {
+        flex-wrap: wrap;
+        row-gap: 8px;
+    }
+}
+
+/* ====== 992px↓: formularios apilados, tipografías y paddings ====== */
+@media (max-width: 992px) {
+    /* Grids a 1 columna (evita columnas estrechas) */
+    .cc-grid, .cc-grid-3xl, .cc-grid-3wide {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Inputs un poco más compactos */
+    .form-control, .form-select {
+        min-height: 44px;
+        font-size: 14px;
+    }
+
+    label {
+        font-size: 13px;
+    }
+
+    /* KPI más compacto */
+    .cc-kpi {
+        padding: 12px 14px;
+    }
+
+    .cc-kpi-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+        border-radius: 12px;
+    }
+
+    /* Botones: por defecto full width en móviles */
+    .btn {
+        width: 100%;
+    }
+
+    .dt-buttons .btn, .dataTables_wrapper .btn {
+        width: auto;
+    }
+    /* pero respetá botones DT juntos */
+
+    /* “Acciones” al pie: pileta vertical con espacio */
+    .cc-actions-stack, .btn-toolbar {
+        display: grid;
+        gap: 10px;
+    }
+
+    /* DataTables: filtros/length alineados en pila */
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        float: none !important;
+        text-align: left !important;
+        width: 100% !important;
+        margin: 6px 0 !important;
+    }
+}
+
+/* ====== 768px↓: tabs desplazables, tablas con scroll, modales 100vw ====== */
+@media (max-width: 768px) {
+
+
+    /* --- TABS: scroll horizontal estilo “chips” --- */
+    .nav-tabs {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px;
+        border-bottom: 1px solid var(--b1);
+        padding-bottom: 6px;
+    }
+
+        .nav-tabs .nav-item {
+            flex: 0 0 auto;
+        }
+
+        .nav-tabs .nav-link {
+            white-space: nowrap;
+            padding: .55rem .9rem;
+            border-radius: 10px;
+        }
+        /* Scrollbar discreto */
+        .nav-tabs::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .nav-tabs::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,.12);
+            border-radius: 999px;
+        }
+
+    /* --- TABLAS / DataTables: scroll horizontal sin romper layout --- */
+    .cc-table,
+    .dataTables_wrapper .dataTables_scroll,
+    .dataTables_wrapper .dataTables_scrollBody,
+    .dataTables_wrapper .dataTables_scrollHead {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    /* Evita “saltitos” de ancho en tablas anchas */
+    table.dataTable,
+    table.dataTable tbody,
+    table.dataTable thead {
+        width: 100% !important;
+    }
+
+    /* Paginación y botones pegados al 100% */
+    .dataTables_wrapper .dataTables_paginate {
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+    }
+
+    /* Modales a todo el ancho del dispositivo */
+    .modal-dialog,
+    .modal-xl,
+    .modal-3xl {
+        max-width: 100% !important;
+        width: calc(100vw - 24px) !important;
+        margin: 12px auto !important;
+    }
+
+    .cc-modal {
+        border-radius: 14px;
+    }
+
+    .modal-body {
+        max-height: 72vh;
+        overflow: auto;
+    }
+
+    /* Select2: dropdown dentro del viewport en móviles */
+    .select2-dropdown {
+        max-width: calc(100vw - 32px);
+        width: calc(100vw - 32px);
+    }
+
+    .select2-container {
+        max-width: 100%;
+    }
+}
+
+/* ====== 576px↓: tipografías y espacios aún más contenidos ====== */
+@media (max-width: 576px) {
+    .cc-section {
+        padding: 14px;
+    }
+
+    .cc-titlebar {
+        padding: 10px 12px;
+        border-radius: 10px;
+    }
+
+        .cc-titlebar h3 {
+            font-size: 1.05rem;
+        }
+
+    .form-control, .form-select {
+        min-height: 42px;
+        font-size: 13.5px;
+    }
+
+    label {
+        font-size: 12.5px;
+    }
+
+    .btn {
+        padding: .55rem .75rem;
+        font-size: .95rem;
+        border-radius: 10px;
+    }
+}
+
+/* ====== Helpers para apilar grupos de botones o toolbars ====== */
+.cc-stack-sm {
+    display: grid;
+    gap: 8px;
+}
+
+.cc-stack-md {
+    display: grid;
+    gap: 12px;
+}
+
+.cc-stack-lg {
+    display: grid;
+    gap: 16px;
+}
+
+/* ====== Seguridad extra: ningún tab “cuadrado” blanco perdido ====== */
+.nav-tabs .nav-item,
+.nav-tabs .nav-link {
+    background-clip: padding-box;
+}
+
+
+/* ====== Fix universal para Select2 en formularios ====== */
+.select2-container {
+    width: 100% !important; /* que siempre tome el 100% del contenedor */
+    flex: 1 1 auto; /* si está dentro de .d-flex, que pueda crecer/encoger */
+    min-width: 0; /* CLAVE: evita el “corte” y el corrimiento hacia la izquierda */
+}
+
+
+
+    .select2-container .select2-selection__rendered {
+        color: var(--txt, #eaf1ff) !important;
+        padding: 0 12px !important; /* padding uniforme */
+        line-height: 1.2 !important;
+    }
+
+    .select2-container .select2-selection__arrow {
+        height: 48px !important;
+    }
+
+/* Dropdown a tono y con bordes redondeados */
+.select2-dropdown {
+    background: var(--panel2, #0f1625) !important;
+    border: 1px solid var(--b1, rgba(255,255,255,.12)) !important;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* ====== Ajustes específicos de tus campos ====== */
+/* Cliente y botón “+” en la misma línea pero responsivo */
+.form-group .d-flex {
+    gap: 8px; /* respirito entre el select y el botón */
+}
+
+/* En móviles, que esa fila sea una grilla estable y el select se mantenga pleno */
+@media (max-width: 576px) {
+    .form-group .d-flex {
+        display: grid;
+        grid-template-columns: 1fr 48px; /* select ocupa todo, el botón 48px */
+        align-items: stretch;
+    }
+
+        .form-group .d-flex > button {
+            height: 48px;
+            border-radius: 12px;
+        }
+}
+
+/* Asegurar el 100% en tus selects “clave” */
+#Clientes + .select2,
+#Formasdepago + .select2 {
+    width: 100% !important;
+}
+
+/* Por si el contenedor padre usa grid/flex y “achica” de más */
+#Clientes, #Formasdepago {
+    min-width: 0; /* permite que el select2 no empuje el layout */
+}
+
+/* ====== Tabs — el look ya oscuro y limpio que pediste ====== */
+.nav-tabs {
+    border-bottom: 1px solid var(--cc-border, rgba(255,255,255,.12));
+    gap: 10px;
+}
+
+    .nav-tabs .nav-link {
+        color: #cfe3ff;
+        background: #0f1625;
+        border: 1px solid var(--cc-border, rgba(255,255,255,.12));
+        border-radius: 12px;
+        margin-bottom: -1px;
+        padding: .55rem 1rem;
+        font-weight: 700;
+    }
+
+        .nav-tabs .nav-link:hover,
+        .nav-tabs .nav-link:focus {
+            color: #fff;
+            border-color: #2c3d5a;
+            background: #142036;
+            outline: none;
+            box-shadow: 0 0 0 .15rem rgba(78,160,255,.25);
+        }
+
+        .nav-tabs .nav-item.show .nav-link,
+        .nav-tabs .nav-link.active {
+            color: #fff;
+            background: linear-gradient(180deg,#2b3c65,#243556);
+            border-color: #31405a;
+            box-shadow: 0 4px 16px rgba(0,0,0,.25);
+        }
+
+        .nav-tabs .nav-link::before,
+        .nav-tabs .nav-link::after {
+            content: none !important;
+        }
+
+
+/* ====== Fix universal para Select2 en formularios ====== */
+.select2-container {
+    width: 100% !important; /* que siempre tome el 100% del contenedor */
+    flex: 1 1 auto; /* si está dentro de .d-flex, que pueda crecer/encoger */
+    min-width: 0; /* CLAVE: evita el “corte” y el corrimiento hacia la izquierda */
+}
+
+
+    .select2-container .select2-selection__rendered {
+        color: var(--txt, #eaf1ff) !important;
+        padding: 0 12px !important; /* padding uniforme */
+        line-height: 1.2 !important;
+    }
+
+    .select2-container .select2-selection__arrow {
+        height: 48px !important;
+    }
+
+/* Dropdown a tono y con bordes redondeados */
+.select2-dropdown {
+    background: var(--panel2, #0f1625) !important;
+    border: 1px solid var(--b1, rgba(255,255,255,.12)) !important;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* ====== Ajustes específicos de tus campos ====== */
+/* Cliente y botón “+” en la misma línea pero responsivo */
+.form-group .d-flex {
+    gap: 8px; /* respirito entre el select y el botón */
+}
+
+/* En móviles, que esa fila sea una grilla estable y el select se mantenga pleno */
+@media (max-width: 576px) {
+    .form-group .d-flex {
+        display: grid;
+        grid-template-columns: 1fr 48px; /* select ocupa todo, el botón 48px */
+        align-items: stretch;
+    }
+
+        .form-group .d-flex > button {
+            height: 48px;
+            border-radius: 12px;
+        }
+}
+
+/* Asegurar el 100% en tus selects “clave” */
+#Clientes + .select2,
+#Formasdepago + .select2 {
+    width: 100% !important;
+}
+
+/* Por si el contenedor padre usa grid/flex y “achica” de más */
+#Clientes, #Formasdepago {
+    min-width: 0; /* permite que el select2 no empuje el layout */
+}
+
+/* ====== Tabs — el look ya oscuro y limpio que pediste ====== */
+.nav-tabs {
+    border-bottom: 1px solid var(--cc-border, rgba(255,255,255,.12));
+    gap: 10px;
+}
+
+    .nav-tabs .nav-link {
+        color: #cfe3ff;
+        background: var(--dt-row-zebra2);
+        border: 1px solid var(--cc-border, rgba(255,255,255,.12));
+        border-radius: 12px;
+        margin-bottom: -1px;
+        padding: .55rem 1rem;
+        font-weight: 700;
+    }
+
+        .nav-tabs .nav-link:hover,
+        .nav-tabs .nav-link:focus {
+            color: #fff;
+            border-color: #2c3d5a;
+            background: #142036;
+            outline: none;
+            box-shadow: 0 0 0 .15rem rgba(78,160,255,.25);
+        }
+
+        .nav-tabs .nav-item.show .nav-link,
+        .nav-tabs .nav-link.active {
+            color: #fff;
+            background: linear-gradient(180deg,#2b3c65,#243556);
+            border-color: #31405a;
+            box-shadow: 0 4px 16px rgba(0,0,0,.25);
+        }
+
+        .nav-tabs .nav-link::before,
+        .nav-tabs .nav-link::after {
+            content: none !important;
+        }
+
+
+/* ——— Modal 3XL, más ancho que el XL ——— */
+.modal-3xl {
+    max-width: 1400px; /* base */
+}
+
+@media (min-width: 1600px) {
+    .modal-3xl {
+        max-width: 1520px;
+    }
+}
+
+/* ——— Look del modal (consistente con tu skin) ——— */
+.cc-modal {
+    background: var(--panel, #141c2b);
+    color: var(--txt, #eaf1ff);
+    border: 1px solid var(--b1, rgba(255,255,255,.12));
+    border-radius: 18px;
+}
+
+.cc-modal-header {
+    background: linear-gradient(180deg, var(--head, #1b2740), rgba(27,39,64,.6));
+    border-bottom: 1px solid var(--b1, rgba(255,255,255,.12));
+}
+
+.custom-close {
+    filter: invert(1) grayscale(1);
+}
+
+/* ——— Titlebar y toolbar ——— */
+.cc-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(180deg, var(--head,#1b2740), rgba(27,39,64,.75));
+    border: 1px solid var(--b1, rgba(255,255,255,.12));
+    padding: 10px 14px;
+    border-radius: 12px;
+}
+
+.cc-toolbar .form-control,
+.cc-toolbar .form-select {
+    min-height: 48px;
+}
+
+/* ——— Tablas con panel y bordes ——— */
+.cc-table {
+    border: 1px solid var(--b1, rgba(255,255,255,.12));
+    border-radius: 14px;
+    overflow: auto;
+    background: var(--panel2, #101726);
+}
+
+/* ——— Alturas “ricas” (ajustan en móvil) ——— */
+.productos-altura {
+    max-height: 440px;
+}
+
+.insumos-altura {
+    max-height: 260px;
+}
+
+@media (max-width: 1199.98px) {
+    .productos-altura {
+        max-height: 360px;
+    }
+
+    .insumos-altura {
+        max-height: 220px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .productos-altura {
+        max-height: 300px;
+    }
+
+    .insumos-altura {
+        max-height: 200px;
+    }
+}
+
+/* ——— Inputs/Selects consistentes ——— */
+
+/* ——— Botones más “tochos” ——— */
+#productoModal .btn {
+    border-radius: 12px;
+    font-weight: 800;
+}
+
+#productoModal .btn-success {
+    background: var(--ok,#1ecf93);
+    border-color: var(--ok,#1ecf93);
+}
+
+#productoModal .btn-dark {
+    background: #2b3448;
+    border-color: #2b3448;
+}
+
+#productoModal .btn-danger {
+    background: var(--danger,#ff5a6a);
+    border-color: var(--danger,#ff5a6a);
+}
+
+/* ——— Select2 dentro del modal (si lo usás aquí) ——— */
+#productoModal .select2-container {
+    width: 100% !important;
+    min-width: 0;
+}
+
+    #productoModal .select2-container .select2-selection--single {
+        height: 48px !important;
+        border-radius: 12px !important;
+        display: flex;
+        align-items: center;
+        background: var(--dt-row-zebra,#101726) !important;
+        border: 1px solid var(--b1, rgba(255,255,255,.12)) !important;
+    }
+
+    #productoModal .select2-container .select2-selection__rendered {
+        padding: 0 12px !important;
+    }
+
+    #productoModal .select2-container .select2-selection__arrow {
+        height: 48px !important;
+    }
+
+#productoModal .select2-dropdown {
+    background: var(--panel2,#101726) !important;
+    border: 1px solid var(--b1, rgba(255,255,255,.12)) !important;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+
+/* === Modal 3XL (más ancho que el XL) === */
+.modal-3xl {
+    max-width: 96vw;
+}
+
+@media (min-width: 1600px) {
+    .modal-3xl {
+        max-width: 1500px;
+    }
+}
+
+/* === Modal skin (respeta tus variables si ya existen) === */
+.cc-modal {
+    background: #161e2f;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px;
+}
+
+.cc-modal-header {
+    background: linear-gradient(180deg,var(--dt-row-zebra),var(--dt-row-zebra2));
+    color: #eaf1ff;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+}
+
+.cc-modal-body {
+    padding: 18px;
+}
+
+.custom-close {
+    filter: invert(1) grayscale(1);
+}
+
+/* === Titlebar del bloque de búsqueda (estilo original “virgen”) === */
+.cc-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));
+    border: 1px solid rgba(255,255,255,.12);
+    padding: 10px 12px;
+    border-radius: 12px;
+}
+
+/* Campos */
+.form-control, .form-select {
+    background: var(--dt-row-zebra2) !important;
+    color: #eaf1ff !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+    border-radius: 12px !important;
+    min-height: 46px;
+}
+
+    .form-control:focus, .form-select:focus {
+        border-color: #4c8dff !important;
+        box-shadow: 0 0 0 .2rem rgba(76,141,255,.25) !important;
+    }
+
+label {
+    color: #dfeaff;
+    font-weight: 700;
+}
+
+/* === TABLAS (todas) – tono azul consistente === */
+.cc-table {
+    background: var(--dt-row-zebra2);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 14px;
+    overflow: auto;
+}
+
+.table {
+    color: #eaf1ff;
+}
+
+    .table thead th {
+        background: #1b2a4a;
+        color: #eaf2ff;
+        border-bottom: 0 !important;
+        font-weight: 800;
+    }
+
+    .table tbody tr {
+        background: rgba(255,255,255,.04);
+    }
+
+        .table tbody tr:hover {
+            background: rgba(255,255,255,.08);
+        }
+
+    .table > :not(caption) > * > * {
+        border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+/* DataTables paginación/info con el mismo tono */
+.dataTables_wrapper .dataTables_paginate {
+    padding: .4rem .6rem;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px;
+}
+
+.dataTables_wrapper .dataTables_info {
+    color: #9db1d2;
+}
+
+/* Botones */
+.btn {
+    border-radius: 12px;
+    font-weight: 800;
+}
+
+.btn-success {
+    background: #1ecf93;
+    border-color: #1ecf93;
+}
+
+.btn-secondary {
+    background: #2b3448;
+    border-color: #2b3448;
+}
+
+.btn-danger {
+    background: #ff5a6a;
+    border-color: #ff5a6a;
+}
+
+/* Alturas cómodas para el listado de productos dentro del modal */
+#grd_Productos_Modal {
+    width: 100% !important;
+}
+
+@media (min-height:700px) {
+    #grd_Productos_Modal_wrapper .dataTables_scrollBody,
+    #grd_Productos_Modal {
+        max-height: 48vh;
+    }
+}
+
+/* Ajustes para que Select2 no se rompa en móvil (si lo usás en modal) */
+.select2-container {
+    width: 100% !important;
+}
+
+    .select2-container .select2-selection__rendered {
+        color: #eaf1ff !important;
+        padding: 0 12px !important;
+    }
+
+    .select2-container .select2-selection__arrow {
+        height: 46px !important;
+    }
+
+.select2-dropdown {
+    background: #0f182c !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+    border-radius: 12px;
+}
+
+.select2-results__option {
+    color: #eaf1ff;
+}
+
+.select2-results__option--highlighted[aria-selected] {
+    background: #4c8dff !important;
+    color: #fff !important;
+}
+
+/* Micro-ajuste: en móvil, que los select “se centren” bien */
+@media (max-width: 576px) {
+    .select2-container .select2-selection__rendered {
+        padding-left: 10px !important;
+    }
+}
+
+
+/* === Modal XXL pero MÁS BAJO y con scroll interno === */
+.modal-xxl {
+    max-width: 1400px;
+}
+
+.modal-dialog.modal-xxl.modal-dialog-scrollable .modal-content {
+    max-height: 86vh; /* <- menos alto */
+    border-radius: 18px;
+}
+
+.modal-dialog.modal-xxl {
+    margin: 1rem auto;
+}
+
+/* Cuerpo del modal en 2 columnas con la misma altura */
+.cc-modal-body {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr; /* izquierda más ancha */
+    gap: 18px;
+    height: calc(86vh - 140px); /* descuenta header/footer */
+}
+
+/* Columna izquierda: que el contenido ocupe todo y la tabla llegue al fondo */
+.cc-left, .cc-right {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.cc-tablewrap {
+    flex: 1;
+    min-height: 0;
+    background: var(--panel2);
+    border: 1px solid var(--b1);
+    border-radius: 12px;
+    overflow: hidden; /* bordes redondeados */
+    display: flex;
+    flex-direction: column;
+}
+
+    .cc-tablewrap .dataTables_wrapper,
+    .cc-tablewrap .table {
+        flex: 1;
+        min-height: 0;
+    }
+
+        .cc-tablewrap .dataTables_wrapper .dataTables_scrollBody { /* si usás DT con scroll */
+            max-height: none !important;
+        }
+
+.cc-table-footer-spacer {
+    height: 0;
+}
+
+/* Colores de tablas (combina con el azul del tema) */
+.table thead th {
+    background: linear-gradient(180deg,#24304a,#1e2a43);
+    color: #dfe8ff;
+    border-bottom: 0 !important;
+}
+
+.table tbody tr {
+    background: rgba(255,255,255,.03);
+}
+
+    .table tbody tr:hover {
+        background: rgba(76,141,255,.10);
+    }
+
+/* Paneles / títulos dentro del modal */
+.cc-titlebar {
+    background: linear-gradient(180deg, var(--head), rgba(27,39,64,.75));
+    border: 1px solid var(--b1);
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+
+/* Grid de campos (derecha) perfectamente alineado */
+.cc-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 14px;
+}
+
+    .cc-form-grid .full {
+        grid-column: 1 / -1;
+    }
+
+.cc-field .form-control,
+.cc-field .form-select {
+    min-height: 48px;
+    border-radius: 12px;
+}
+
+/* Botones */
+.btn {
+    border-radius: 12px;
+    font-weight: 800;
+}
+
+/* Select2: 100% de ancho y bien centrado también en móvil */
+.select2-container {
+    width: 100% !important;
+    min-width: 0;
+    display: block;
+}
+
+
+    .select2-container .select2-selection__arrow {
+        height: 48px !important;
+    }
+
+/* RESPONSIVE: en viewport angosto, apilar columnas */
+@media (max-width: 1199px) {
+    .cc-modal-body {
+        grid-template-columns: 1fr;
+        height: calc(86vh - 140px);
+    }
+
+    .cc-left, .cc-right {
+        min-height: auto;
+    }
+}
+
+/* Afinado: info/paginación DT más prolija dentro del wrapper */
+.dataTables_wrapper .dataTables_info {
+    color: var(--muted);
+    padding: .25rem .5rem;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    padding: .4rem .5rem;
+    background: var(--soft);
+    border: 1px solid var(--b1);
+    border-radius: 10px;
+}
+
+
+/* Ancho + alto controlado */
+.modal-xxl {
+    max-width: 1400px;
+}
+
+.modal-dialog.modal-xxl.modal-dialog-scrollable .modal-content {
+    max-height: 86vh; /* menos alto */
+    border-radius: 18px;
+}
+
+/* Cuerpo en columna: TOP (2 cols) + INSUMOS abajo */
+.cc-modal-body-col {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* Top: dos columnas con igual altura */
+.cc-modal-top {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 18px;
+    min-height: 0; /* permite scroll interno */
+}
+
+/* Columnas */
+.cc-left, .cc-right {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Wrapper tabla con borde y scroll */
+.cc-tablewrap {
+    flex: 1;
+    min-height: 0;
+    background: var(--panel2);
+    border: 1px solid var(--b1);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+    .cc-tablewrap .dataTables_wrapper,
+    .cc-tablewrap .table {
+        flex: 1;
+        min-height: 0;
+    }
+
+.cc-table-footer-spacer {
+    height: 0;
+}
+
+/* Form de la derecha: grilla 2×N */
+.cc-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 14px;
+}
+
+    .cc-form-grid .full {
+        grid-column: 1 / -1;
+    }
+
+.cc-field .form-control, .cc-field .form-select {
+    min-height: 48px;
+    border-radius: 12px;
+}
+
+/* Insumos (abajo) ocupa ancho completo */
+.cc-insumos {
+    display: flex;
+    flex-direction: column;
+    min-height: 220px;
+    gap: 10px;
+}
+
+/* Título interno */
+.cc-titlebar {
+    background: linear-gradient(180deg, var(--dt-row-zebra), var(--dt-row-zebra2));
+    border: 1px solid var(--b1);
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+
+/* Tablas: azul a tono */
+.table thead th {
+    background: linear-gradient(180deg,#24304a,#1e2a43);
+    color: #dfe8ff;
+    border-bottom: 0 !important;
+}
+
+.table tbody tr {
+    background: rgba(255,255,255,.03);
+}
+
+    .table tbody tr:hover {
+        background: rgba(76,141,255,.10);
+    }
+
+/* Botones y selects */
+.btn {
+    border-radius: 12px;
+    font-weight: 800;
+}
+
+#productos .cc-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(180deg, var(--head), rgba(27,39,64,.75));
+    border: 1px solid var(--b1);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+}
+
+    /* Botonera (Config/Añadir) con el mismo peso visual */
+    #productos .cc-titlebar .btn {
+        min-height: 40px;
+        padding: .55rem .9rem;
+        font-weight: 800;
+    }
+
+    #productos .cc-titlebar .dropdown-menu {
+        background: var(--panel2);
+        border: 1px solid var(--b1);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    #productos .cc-titlebar .dropdown-item {
+        color: var(--txt);
+    }
+
+        #productos .cc-titlebar .dropdown-item:hover {
+            background: rgba(76,141,255,.18);
+            color: #fff;
+        }
+
+/* Wrapper de tabla idéntico al modal */
+#productos .cc-table {
+    border: 1px solid var(--b1);
+    border-radius: 14px;
+    overflow: auto;
+    background: var(--panel2);
+    display: flex;
+    flex-direction: column;
+}
+
+    #productos .cc-table .dataTables_wrapper,
+    #productos .cc-table .table {
+        flex: 1;
+        min-height: 0;
+    }
+
+/* Encabezado y filas = mismos colores que el modal */
+#productos .table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: linear-gradient(180deg,#24304a,#1e2a43);
+    color: #dfe8ff;
+    border-bottom: 0 !important;
+    font-weight: 800;
+    padding-right: 12px !important; /* quita hueco de DT para ícono */
+}
+
+#productos .table tbody tr {
+    background: rgba(255,255,255,.03);
+}
+
+    #productos .table tbody tr:hover {
+        background: rgba(76,141,255,.10);
+    }
+
+#productos .table > :not(caption) > * > * {
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+/* DataTables: limpiar “triangulitos” y cualquier ícono de orden */
+#productos table.dataTable thead th,
+#productos table.dataTable thead td {
+    background-image: none !important;
+    background-repeat: no-repeat !important;
+    background-position: initial !important;
+}
+
+#productos table.dataTable thead .sorting,
+#productos table.dataTable thead .sorting_asc,
+#productos table.dataTable thead .sorting_desc,
+#productos table.dataTable thead .sorting_asc_disabled,
+#productos table.dataTable thead .sorting_desc_disabled {
+    background-image: none !important;
+}
+
+    #productos table.dataTable thead .sorting:before,
+    #productos table.dataTable thead .sorting:after,
+    #productos table.dataTable thead .sorting_asc:before,
+    #productos table.dataTable thead .sorting_asc:after,
+    #productos table.dataTable thead .sorting_desc:before,
+    #productos table.dataTable thead .sorting_desc:after {
+        content: "" !important;
+    }
+
+/* Paginación / info con el mismo tono del modal */
+#productos .dataTables_wrapper .dataTables_paginate {
+    padding: .4rem .6rem;
+    background: var(--soft);
+    border: 1px solid var(--b1);
+    border-radius: 10px;
+}
+
+#productos .dataTables_wrapper .dataTables_info {
+    color: var(--muted);
+}
+
+/* Scrollbar sutil (igual) */
+#productos .cc-table {
+    scrollbar-width: thin;
+    scrollbar-color: #4c8dff22 transparent;
+}
+
+    #productos .cc-table::-webkit-scrollbar {
+        height: 10px;
+        width: 10px;
+    }
+
+    #productos .cc-table::-webkit-scrollbar-thumb {
+        background: rgba(76,141,255,.35);
+        border-radius: 8px;
+    }
+
+/* Responsive: controles de DT en pila y botones no full-width */
+@media (max-width: 992px) {
+    #productos .dataTables_wrapper .dataTables_length,
+    #productos .dataTables_wrapper .dataTables_filter,
+    #productos .dataTables_wrapper .dataTables_info,
+    #productos .dataTables_wrapper .dataTables_paginate {
+        float: none !important;
+        text-align: left !important;
+        width: 100% !important;
+        margin: 6px 0 !important;
+    }
+
+    #productos .cc-titlebar .btn {
+        width: auto;
+    }
+}
+
+
+
+.select2-container {
+    width: 100% !important;
+    min-width: 0;
+    display: block;
+}
+
+
+    .select2-container .select2-selection__arrow {
+        height: 48px !important;
+    }
+
+/* Responsive: top apila columnas */
+@media (max-width: 1199px) {
+    .cc-modal-top {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+table.dataTable tbody tr {
+    background-color: transparent;
+}
+
+/* ===== Altura total del modal con scroll visible ===== */
+.modal-dialog.modal-xxl.modal-dialog-scrollable .modal-content {
+    max-height: 86vh; /* menos alto que pantalla */
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-dialog.modal-xxl.modal-dialog-scrollable .modal-body {
+    overflow: auto; /* scroll general visible */
+}
+
+/* ===== Columnas del top con scroll interno correcto ===== */
+.cc-modal-top { /* contenedor de las dos columnas */
+    min-height: 0; /* habilita scroll interno */
+}
+
+.cc-left, .cc-right {
+    min-height: 0; /* habilita scroll interno */
+}
+
+.cc-tablewrap {
+    flex: 1;
+    min-height: 0;
+    overflow: auto; /* scroll en la tabla izquierda */
+}
+
+/* ===== Botonera derecha sticky para que no tape el contenido ===== */
+.cc-actions-right {
+    position: sticky;
+    bottom: 0; /* se queda pegada abajo al scrollear */
+    padding: 10px 0 2px;
+    margin-top: 10px;
+    background: linear-gradient(180deg, rgba(10,17,31,0), rgba(10,17,31,.9));
+    border-top: 1px solid var(--b1);
+    z-index: 5;
+}
+/* Dejamos aire por si hay selects abiertos justo encima */
+.cc-right {
+    padding-bottom: 8px;
+}
+
+/* ===== Scrollbar visible y discreto (opcional) ===== */
+.cc-tablewrap,
+.modal-dialog.modal-xxl.modal-dialog-scrollable .modal-body {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #4c8dff22 #0000;
+}
+
+    .cc-tablewrap::-webkit-scrollbar,
+    .modal-dialog.modal-xxl.modal-dialog-scrollable .modal-body::-webkit-scrollbar {
+        height: 10px;
+        width: 10px;
+    }
+
+    .cc-tablewrap::-webkit-scrollbar-thumb,
+    .modal-dialog.modal-xxl.modal-dialog-scrollable .modal-body::-webkit-scrollbar-thumb {
+        background: rgba(76,141,255,.35);
+        border-radius: 8px;
+    }
+
+    .cc-tablewrap::-webkit-scrollbar-track,
+    .modal-dialog.modal-xxl.modal-dialog-scrollable .modal-body::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+/* ===== La tabla de insumos de abajo también con scroll si crece ===== */
+.cc-insumos .cc-tablewrap {
+    max-height: 260px; /* ajustable: tabla de insumos más baja */
+    overflow: auto;
+}
+
+
+/* ===== MODAL PRODUCTO (versión prolija y responsive) =================== */
+
+/* Tamaño general del modal */
+.modal-xxl {
+    max-width: 1400px;
+}
+
+.modal-dialog.modal-xxl.modal-dialog-scrollable .modal-content {
+    max-height: 86vh; /* menos alto que la pantalla */
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-dialog.modal-xxl {
+    margin: 1rem auto;
+}
+
+/* Look general coherente con tu skin */
+#productoModal .cc-modal {
+    background: var(--panel);
+    color: var(--txt);
+    border: 1px solid var(--b1);
+    border-radius: 18px;
+}
+
+#productoModal .cc-modal-header {
+    background: linear-gradient(180deg, var(--dt-row-zebra), var(--dt-row-zebra2));
+    color: #eaf1ff;
+    border-bottom: 1px solid var(--b1);
+}
+
+#productoModal .custom-close {
+    filter: invert(1) grayscale(1);
+}
+
+#productoModal .modal-body {
+    padding: 16px;
+}
+
+/* TOP: dos columnas */
+#productoModal .cc-modal-top {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 16px;
+    min-height: 0;
+}
+
+/* Columnas */
+#productoModal .cc-left,
+#productoModal .cc-right {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Titlebars internos */
+#productoModal .cc-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--dt-row-zebra);
+    border: 1px solid var(--b1);
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+
+/* ===== Tablas: wrapper con scroll y cabezales sticky */
+#productoModal .cc-tablewrap {
+    flex: 1;
+    min-height: 0;
+    background: var(--dt-row-zebra2);
+    border: 1px solid var(--b1);
+    border-radius: 12px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+    #productoModal .cc-tablewrap .dataTables_wrapper,
+    #productoModal .cc-tablewrap .table {
+        flex: 1;
+        min-height: 0;
+    }
+
+#productoModal .table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--dt-row-zebra);
+    color: #eaf2ff;
+    border-bottom: 0 !important;
+    font-weight: 800;
+}
+
+
+
+#productoModal .table tbody tr:hover {
+    background: rgba(255,255,255,.07);
+}
+
+/* ===== Alturas: productos más bajo, insumos más alto */
+#productoModal .lista-productos-height {
+    max-height: 38vh;
+}
+/* ↓ un poco */
+#productoModal .lista-insumos-height {
+    max-height: 34vh;
+}
+/* ↑ un poco */
+
+@media (min-height: 900px) {
+    #productoModal .lista-productos-height {
+        max-height: 40vh;
+    }
+
+    #productoModal .lista-insumos-height {
+        max-height: 36vh;
+    }
+}
+
+@media (max-width: 1199px) {
+    #productoModal .cc-modal-top {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===== Grid del formulario derecho */
+#productoModal .cc-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 14px;
+    flex: 1;
+    min-height: 0;
+}
+
+    #productoModal .cc-form-grid .full {
+        grid-column: 1 / -1;
+    }
+
+/* ===== Botonera derecha sticky (Añadir / Volver) */
+#productoModal .cc-actions-right {
+    position: sticky;
+    bottom: 0;
+    z-index: 6;
+    padding: 10px 0 2px;
+    margin-top: 10px;
+    background: linear-gradient(180deg, rgba(10,17,31,0), rgba(10,17,31,.92));
+    border-top: 1px solid var(--b1);
+}
+
+    #productoModal .cc-actions-right .btn {
+        min-height: 46px;
+        padding: .65rem 1rem;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+@media (max-width: 992px) {
+    #productoModal .cc-actions-right .btn {
+        width: auto;
+    }
+    /* evita 100% en mobile solo aquí */
+}
+
+/* ===== BLOQUE INSUMOS (abajo) */
+#productoModal .cc-insumos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 200px;
+}
+
+    #productoModal .cc-insumos .cc-titlebar {
+        margin-top: 8px;
+    }
+
+/* Eliminar botón alineado */
+#productoModal #btnEliminarInsumo {
+    min-height: 42px;
+}
+
+/* Scrollbars sutiles */
+#productoModal .cc-tablewrap,
+#productoModal .modal-body {
+    scrollbar-width: thin;
+    scrollbar-color: #4c8dff22 transparent;
+}
+
+    #productoModal .cc-tablewrap::-webkit-scrollbar,
+    #productoModal .modal-body::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    #productoModal .cc-tablewrap::-webkit-scrollbar-thumb,
+    #productoModal .modal-body::-webkit-scrollbar-thumb {
+        background: rgba(76,141,255,.35);
+        border-radius: 8px;
+    }
+
+/* Select2 por si lo usás dentro */
+.select2-container--open {
+    z-index: 2050 !important;
+}
+/* sobre la barra sticky */
+#productoModal .select2-container {
+    width: 100% !important;
+    min-width: 0;
+    display: block;
+}
+
+
+    #productoModal .select2-container .select2-selection__arrow {
+        height: 46px !important;
+    }
+
+
+/* ===== Producto seleccionado: layout por filas con grid-areas ===== */
+#productoModal .cc-form-producto {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas:
+        "nombre   nombre   nombre"
+        "categoria categoria categoria"
+        "costo    porcgan   ganancia"
+        "iva      totaliva  precio"
+        "cantidad color     color";
+    gap: 10px 12px;
+    flex: 1; /* empuja la botonera hacia abajo */
+    min-height: 0;
+}
+
+/* asignación de áreas */
+#productoModal .field-nombre {
+    grid-area: nombre;
+}
+
+#productoModal .field-categoria {
+    grid-area: categoria;
+}
+
+#productoModal .field-costo {
+    grid-area: costo;
+}
+
+#productoModal .field-porcgan {
+    grid-area: porcgan;
+}
+
+#productoModal .field-ganancia {
+    grid-area: ganancia;
+}
+
+#productoModal .field-iva {
+    grid-area: iva;
+}
+
+#productoModal .field-totaliva {
+    grid-area: totaliva;
+}
+
+#productoModal .field-precio {
+    grid-area: precio;
+}
+
+#productoModal .field-cantidad {
+    grid-area: cantidad;
+}
+
+#productoModal .field-color {
+    grid-area: color;
+}
+
+/* inputs un toque más compactos para que entren 3 por fila cómodos */
+#productoModal .cc-form-producto .form-control,
+#productoModal .cc-form-producto .form-select {
+    min-height: 40px;
+    font-size: 13.8px;
+}
+
+/* ===== Breakpoints: 2 por fila (≤1200), 1 por fila (≤768) ===== */
+@media (max-width: 1199.98px) {
+    #productoModal .cc-form-producto {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-areas:
+            "nombre    nombre"
+            "categoria categoria"
+            "costo     porcgan"
+            "ganancia  iva"
+            "totaliva  precio"
+            "cantidad  color";
+    }
+}
+
+@media (max-width: 767.98px) {
+    #productoModal .cc-form-producto {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "nombre"
+            "categoria"
+            "costo"
+            "porcgan"
+            "ganancia"
+            "iva"
+            "totaliva"
+            "precio"
+            "cantidad"
+            "color";
+    }
+}
+
+/* ===== Ajuste proporciones: productos ↓, insumos ↑ y más arriba ===== */
+#productoModal .lista-productos-height {
+    max-height: 28vh;
+}
+/* un poco más baja */
+#productoModal .lista-insumos-height {
+    max-height: 46vh;
+}
+/* más alta */
+#productoModal .cc-insumos {
+    margin-top: 8px;
+}
+/* subimos el bloque */
+
+/* ===== Botonera derecha: sticky y sin interponer nada ===== */
+#productoModal .cc-right {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#productoModal .cc-actions-right {
+    position: sticky;
+    bottom: 0;
+    z-index: 6;
+    padding: 10px 0 2px;
+    margin-top: 8px;
+    background: linear-gradient(180deg, rgba(10,17,31,0), rgba(10,17,31,.92));
+    border-top: 1px solid var(--b1);
+}
+
+    #productoModal .cc-actions-right .btn {
+        min-height: 40px;
+        padding: .55rem .9rem;
+        font-weight: 800;
+    }
+/* si tu tema pone .btn{width:100%} en mobile, acá lo neutralizamos */
+@media (max-width: 992px) {
+    #productoModal .cc-actions-right .btn {
+        width: auto;
+    }
+}
+
+/* ===== DT: limpiar “triangulitos” de orden en thead ===== */
+table.dataTable thead .sorting:before,
+table.dataTable thead .sorting:after,
+table.dataTable thead .sorting_asc:before,
+table.dataTable thead .sorting_asc:after,
+table.dataTable thead .sorting_desc:before,
+table.dataTable thead .sorting_desc:after {
+    content: "" !important;
+}
+
+/* ===== Select2 siempre por arriba de la barra sticky ===== */
+.select2-container--open {
+    z-index: 2050 !important;
+}
+
+
+/* ===== Botonera debajo de la lista de productos ===== */
+#productoModal .cc-actions-below-list {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+    #productoModal .cc-actions-below-list .btn {
+        min-height: 40px;
+        padding: .55rem .9rem;
+        font-weight: 800;
+    }
+
+@media (max-width: 992px) {
+    /* por si tu tema pone .btn {width:100%} en móvil, lo neutralizamos aquí */
+    #productoModal .cc-actions-below-list .btn {
+        width: auto;
+    }
+}
+
+/* ===== Proporciones: productos ↓ e insumos ↑ ===== */
+/* bajamos un poco el alto del listado de productos... */
+#productoModal .lista-productos-height {
+    max-height: 24vh;
+}
+/* ...y subimos bastante el alto de insumos */
+#productoModal .lista-insumos-height {
+    max-height: 52vh;
+}
+
+@media (min-height: 900px) {
+    #productoModal .lista-productos-height {
+        max-height: 26vh;
+    }
+
+    #productoModal .lista-insumos-height {
+        max-height: 56vh;
+    }
+}
+
+/* opcional: separador visual mínimo entre el grid derecho y la botonera izquierda */
+#productoModal .cc-left .cc-titlebar + .row + .cc-tablewrap {
+    margin-bottom: 2px;
+}
+
+
+/* Quitar las flechitas/fondo de DataTables en los encabezados */
+table.dataTable thead th,
+table.dataTable thead td {
+    background-image: none !important; /* <- esto mata el patrón de triángulos */
+    background-repeat: no-repeat !important;
+    background-position: initial !important;
+}
+
+/* Y anulamos todos los estados de orden para que no vuelvan */
+table.dataTable thead .sorting,
+table.dataTable thead .sorting_asc,
+table.dataTable thead .sorting_desc,
+table.dataTable thead .sorting_asc_disabled,
+table.dataTable thead .sorting_desc_disabled {
+    background-image: none !important;
+}
+
+    /* Si usabas pseudo flechas, también las apagamos por si acaso */
+    table.dataTable thead .sorting:before,
+    table.dataTable thead .sorting:after,
+    table.dataTable thead .sorting_asc:before,
+    table.dataTable thead .sorting_asc:after,
+    table.dataTable thead .sorting_desc:before,
+    table.dataTable thead .sorting_desc:after {
+        content: "" !important;
+    }
+
+/* Ajuste de padding (DataTables suele reservar espacio para el icono) */
+table.dataTable thead th {
+    padding-right: 12px !important; /* evita “huecos” a la derecha del título */
+}
+
+/* Mantener tu look del header sticky encima del scroll */
+#productoModal .table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--dt-row-zebra); /* o tu gradient preferido */
+    color: #eaf2ff;
+    border-bottom: 0 !important;
+    font-weight: 800;
+}
+
+
+
+/* =========================================================
+   SECCIÓN PRODUCTOS (fuera del modal) = MISMO LOOK DEL MODAL
+   ========================================================= */
+
+/* Titlebar y panel */
+#productos .cc-section.cc-card {
+    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+    border: 1px solid var(--b1);
+    border-radius: 18px;
+}
+
+#productos .cc-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(180deg, var(--head), rgba(27,39,64,.75));
+    border: 1px solid var(--b1);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+}
+
+    /* Botonera (Config/Añadir) con el mismo peso visual */
+    #productos .cc-titlebar .btn {
+        min-height: 40px;
+        padding: .55rem .9rem;
+        font-weight: 800;
+    }
+
+    #productos .cc-titlebar .dropdown-menu {
+        background: var(--panel2);
+        border: 1px solid var(--b1);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    #productos .cc-titlebar .dropdown-item {
+        color: var(--txt);
+    }
+
+        #productos .cc-titlebar .dropdown-item:hover {
+            background: rgba(76,141,255,.18);
+            color: #fff;
+        }
+
+/* Wrapper de tabla idéntico al modal */
+#productos .cc-table {
+    border: 1px solid var(--b1);
+    border-radius: 14px;
+    overflow: auto;
+    background: var(--panel2);
+    display: flex;
+    flex-direction: column;
+}
+
+    #productos .cc-table .dataTables_wrapper,
+    #productos .cc-table .table {
+        flex: 1;
+        min-height: 0;
+    }
+
+/* Encabezado y filas = mismos colores que el modal */
+#productos .table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: linear-gradient(180deg,#24304a,#1e2a43);
+    color: #dfe8ff;
+    border-bottom: 0 !important;
+    font-weight: 800;
+    padding-right: 12px !important; /* quita hueco de DT para ícono */
+}
+
+#productos .table tbody tr {
+    background: rgba(255,255,255,.03);
+}
+
+    #productos .table tbody tr:hover {
+        background: rgba(76,141,255,.10);
+    }
+
+#productos .table > :not(caption) > * > * {
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+/* DataTables: limpiar “triangulitos” y cualquier ícono de orden */
+#productos table.dataTable thead th,
+#productos table.dataTable thead td {
+    background-image: none !important;
+    background-repeat: no-repeat !important;
+    background-position: initial !important;
+}
+
+#productos table.dataTable thead .sorting,
+#productos table.dataTable thead .sorting_asc,
+#productos table.dataTable thead .sorting_desc,
+#productos table.dataTable thead .sorting_asc_disabled,
+#productos table.dataTable thead .sorting_desc_disabled {
+    background-image: none !important;
+}
+
+    #productos table.dataTable thead .sorting:before,
+    #productos table.dataTable thead .sorting:after,
+    #productos table.dataTable thead .sorting_asc:before,
+    #productos table.dataTable thead .sorting_asc:after,
+    #productos table.dataTable thead .sorting_desc:before,
+    #productos table.dataTable thead .sorting_desc:after {
+        content: "" !important;
+    }
+
+/* Paginación / info con el mismo tono del modal */
+#productos .dataTables_wrapper .dataTables_paginate {
+    padding: .4rem .6rem;
+    background: var(--soft);
+    border: 1px solid var(--b1);
+    border-radius: 10px;
+}
+
+#productos .dataTables_wrapper .dataTables_info {
+    color: var(--muted);
+}
+
+/* Scrollbar sutil (igual) */
+#productos .cc-table {
+    scrollbar-width: thin;
+    scrollbar-color: #4c8dff22 transparent;
+}
+
+    #productos .cc-table::-webkit-scrollbar {
+        height: 10px;
+        width: 10px;
+    }
+
+    #productos .cc-table::-webkit-scrollbar-thumb {
+        background: rgba(76,141,255,.35);
+        border-radius: 8px;
+    }
+
+/* Responsive: controles de DT en pila y botones no full-width */
+@media (max-width: 992px) {
+    #productos .dataTables_wrapper .dataTables_length,
+    #productos .dataTables_wrapper .dataTables_filter,
+    #productos .dataTables_wrapper .dataTables_info,
+    #productos .dataTables_wrapper .dataTables_paginate {
+        float: none !important;
+        text-align: left !important;
+        width: 100% !important;
+        margin: 6px 0 !important;
+    }
+
+    #productos .cc-titlebar .btn {
+        width: auto;
+    }
+}
+
+/* ============================
+   Productos (fuera del modal)
+   Igual que el skin del modal
+   ============================ */
+
+/* Panel y titlebar */
+#productos .cc-section.cc-card {
+    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+    border: 1px solid var(--b1);
+    border-radius: 18px;
+}
+
+#productos .cc-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(180deg, var(--dt-row-zebra), var(--dt-row-zebra2));
+    border: 1px solid var(--b1);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+}
+
+/* Wrapper de tabla como en el modal */
+#productos .cc-table {
+    background: var(--dt-row-zebra);
+    border: 1px solid var(--b1);
+    border-radius: 14px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+
+    #productos .cc-table .dataTables_wrapper,
+    #productos .cc-table .table {
+        flex: 1;
+        min-height: 0;
+    }
+
+/* Thead y filas (mismo gradient/hover) */
+#productos .table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: linear-gradient(180deg,#24304a,#1e2a43);
+    color: #dfe8ff;
+    border-bottom: 0 !important;
+    font-weight: 800;
+    padding-right: 12px !important; /* quita hueco del ícono de orden DT */
+}
+
+#productos .table tbody tr {
+    background: rgba(255,255,255,.03);
+}
+
+    #productos .table tbody tr:hover {
+        background: rgba(76,141,255,.10);
+    }
+
+#productos .table > :not(caption) > * > * {
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+/* DataTables — limpiar triangulitos/íconos de orden */
+#productos table.dataTable thead th,
+#productos table.dataTable thead td {
+    background-image: none !important;
+    background-repeat: no-repeat !important;
+    background-position: initial !important;
+}
+
+#productos table.dataTable thead .sorting,
+#productos table.dataTable thead .sorting_asc,
+#productos table.dataTable thead .sorting_desc,
+#productos table.dataTable thead .sorting_asc_disabled,
+#productos table.dataTable thead .sorting_desc_disabled {
+    background-image: none !important;
+}
+
+    #productos table.dataTable thead .sorting:before,
+    #productos table.dataTable thead .sorting:after,
+    #productos table.dataTable thead .sorting_asc:before,
+    #productos table.dataTable thead .sorting_asc:after,
+    #productos table.dataTable thead .sorting_desc:before,
+    #productos table.dataTable thead .sorting_desc:after {
+        content: "" !important;
+    }
+
+/* Controles de DT con el mismo look del modal */
+#productos .dataTables_wrapper .dataTables_length select,
+#productos .dataTables_wrapper .dataTables_filter input {
+    background: var(--panel2) !important;
+    color: var(--txt) !important;
+    border: 1px solid var(--b1) !important;
+    border-radius: 12px !important;
+    min-height: 40px;
+    padding: .35rem .6rem;
+}
+
+/* Paginación: pill como en el modal */
+#productos .dataTables_wrapper .dataTables_paginate {
+    padding: .45rem .55rem;
+    background: var(--dt-row-zebra2);
+    border: 1px solid var(--b1);
+    border-radius: 10px;
+    display: inline-flex;
+    gap: 6px;
+}
+
+#productos .dataTables_wrapper .dataTables_info {
+    color: var(--muted);
+}
+
+#productos .dataTables_wrapper .dataTables_paginate .paginate_button {
+    background: var(--panel2);
+    border: 1px solid var(--b1);
+    border-radius: 10px;
+    padding: .35rem .6rem;
+    color: var(--txt) !important;
+    margin: 0;
+}
+
+    #productos .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: #142036;
+        border-color: #2c3d5a;
+    }
+
+    #productos .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: var(--primary) !important;
+        border-color: var(--primary) !important;
+        color: #fff !important;
+        box-shadow: 0 0 0 .15rem rgba(76,141,255,.25);
+    }
+
+    #productos .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+        opacity: .45;
+        pointer-events: none;
+    }
+
+/* Scrollbar sutil como en el modal */
+#productos .cc-table {
+    scrollbar-width: thin;
+    scrollbar-color: #4c8dff22 transparent;
+}
+
+    #productos .cc-table::-webkit-scrollbar {
+        height: 10px;
+        width: 10px;
+    }
+
+    #productos .cc-table::-webkit-scrollbar-thumb {
+        background: rgba(76,141,255,.35);
+        border-radius: 8px;
+    }
+
+/* Botones de la titlebar (Config/Añadir) mantienen el ancho auto en móvil */
+@media (max-width: 992px) {
+    #productos .cc-titlebar .btn {
+        width: auto;
+    }
+
+    #productos .dataTables_wrapper .dataTables_length,
+    #productos .dataTables_wrapper .dataTables_filter,
+    #productos .dataTables_wrapper .dataTables_info,
+    #productos .dataTables_wrapper .dataTables_paginate {
+        float: none !important;
+        text-align: left !important;
+        width: 100% !important;
+        margin: 6px 0 !important;
+    }
+}
+
+
+/* Panel y titlebar */
+#insumos .cc-section.cc-card {
+    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+    border: 1px solid var(--b1);
+    border-radius: 18px;
+}
+
+#insumos .cc-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(180deg, var(--dt-row-zebra), var(--dt-row-zebra2));
+    border: 1px solid var(--b1);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+}
+
+
+/* Botones de la titlebar (Config/Añadir) mantienen el ancho auto en móvil */
+@media (max-width: 992px) {
+    #insumos .cc-titlebar .btn {
+        width: auto;
+    }
+
+    #insumos .dataTables_wrapper .dataTables_length,
+    #insumos .dataTables_wrapper .dataTables_filter,
+    #insumos .dataTables_wrapper .dataTables_info,
+    #insumos .dataTables_wrapper .dataTables_paginate {
+        float: none !important;
+        text-align: left !important;
+        width: 100% !important;
+        margin: 6px 0 !important;
+    }
+}
+
+
+
+table.dataTable.display tbody tr:nth-child(odd) td {
+    background-color: var(--dt-row-zebra) !important;
+}
+
+table.dataTable.display tbody tr:nth-child(even) td {
+    background-color: var(--dt-row-zebra2) !important;
+}
+
+table.dataTable tbody tr.selected {
+    background-color: var(--dt-row-hover) !important;
+}
+
+
+table.dataTable tbody tr.selected {
+    background-color: antiquewhite !important;
+}
+
+
+/* =======================
+   MODALES XL – SKIN PRO
+   ======================= */
+
+/* Caja modal con “glass” y sombra */
+.cc-modal {
+    background: linear-gradient(180deg, rgba(18,22,42,.95), rgba(12,16,30,.96));
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 18px;
+    color: #e7e9fb;
+}
+
+.cc-modal--elevated {
+    box-shadow: 0 20px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+/* Header con gradiente y badge */
+.cc-modal-header {
+    background: linear-gradient(90deg, rgba(71,97,210,.18), rgba(120,84,255,.18));
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    padding: 16px 18px;
+}
+
+.cc-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.12);
+}
+
+/* Footer */
+.cc-modal-footer {
+    background: rgba(255,255,255,.04);
+    border-top: 1px solid rgba(255,255,255,.08);
+    padding: 14px 16px;
+}
+
+/* Grid de dos paneles (lista izquierda / detalle derecha) */
+.cc-modal-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 16px;
+    padding: 16px;
+}
+
+@media (max-width: 992px) {
+    .cc-modal-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Paneles */
+.cc-pane {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    min-height: 360px;
+}
+
+.cc-pane-fill {
+    flex: 1;
+}
+
+.cc-pane-title {
+    font-weight: 800;
+    letter-spacing: .2px;
+    color: #eaf1ff;
+    margin-bottom: 10px;
+}
+
+/* Envoltura tabla con altura */
+.cc-tablewrap {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(11,18,32,.65);
+    max-height: 48vh;
+}
+
+    .cc-tablewrap table thead th {
+        background: rgba(255,255,255,.06);
+        color: #cfe3ff;
+        border-bottom: 1px solid rgba(255,255,255,.10);
+    }
+
+    .cc-tablewrap table tbody tr:hover {
+        background: rgba(255,255,255,.06);
+    }
+
+/* Formularios dentro del modal */
+.cc-form-grid {
+    display: grid;
+    gap: 12px;
+}
+
+    .cc-form-grid .full {
+        grid-column: 1 / -1;
+    }
+
+/* 2 columnas responsive para pagos */
+.cc-form-2col {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    padding: 6px 16px 2px;
+}
+
+@media (max-width: 768px) {
+    .cc-form-2col {
+        grid-template-columns: 1fr;
+    }
+}
+
+.cc-field .form-label {
+    font-weight: 800;
+    color: #cfd7e6;
+    margin-bottom: .3rem;
+}
+
+.cc-field .form-control,
+.cc-field .form-select {
+    background: #0f1625;
+    border: 1px solid #2b3647;
+    color: #e6eef7;
+    border-radius: 10px;
+}
+
+    .cc-field .form-control:focus,
+    .cc-field .form-select:focus {
+        border-color: #4ea0ff !important;
+        box-shadow: 0 0 0 .2rem rgba(78,160,255,.18) !important;
+    }
+
+/* Panel de stats (IVA/Ganancia) */
+.cc-stats {
+    margin-top: 14px;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 12px;
+    padding: 12px;
+    background: rgba(15,22,37,.7);
+}
+
+.cc-stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.cc-stat {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 10px;
+    padding: 8px 10px;
+}
+
+.cc-stat-label {
+    display: block;
+    font-size: .78rem;
+    color: #9db1d2;
+    font-weight: 700;
+}
+
+.cc-stat-value {
+    font-weight: 800;
+    font-size: 1rem;
+    color: #eaf1ff;
+}
+
+/* Callout (saldo a favor) */
+.cc-callout {
+    background: linear-gradient(180deg, rgba(24,195,126,.12), rgba(24,195,126,.06));
+    border: 1px solid rgba(24,195,126,.35);
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+
+/* Cierre custom visible en dark */
+.custom-close {
+    filter: invert(1) grayscale(100%);
+    opacity: .85;
+}
+
+/* TAMAÑOS más grandes consistentes */
+.modal-dialog.modal-xxl {
+    max-width: 1140px;
+}
+
+.modal-dialog.modal-3xl {
+    max-width: 1280px;
+}
+/* por si lo usás en otros */
+.modal-dialog.modal-xl {
+    max-width: 980px;
+}
+
+
+/* Modal más ancho */
+.modal-dialog.modal-xxl {
+    max-width: 1280px;
+}
+
+/* Padding interno del cuerpo del modal (aunque uses p-0 en HTML) */
+.cc-modal .modal-body {
+    padding: 16px;
+}
+
+@media (min-width: 992px) {
+    .cc-modal .modal-body {
+        padding: 20px;
+    }
+}
+
+/* ===== Grid del modal ===== */
+/* Modo normal (2 columnas) lo dejás como ya lo tenías */
+.cc-modal-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 16px;
+}
+
+/* Modo “solo una columna” */
+.cc-modal-grid--single {
+    grid-template-columns: 1fr !important;
+}
+
+    .cc-modal-grid--single > .cc-pane {
+        grid-column: 1 / -1;
+    }
+
+/* Resguardo extra: si por cualquier motivo queda una sola .cc-pane */
+.cc-modal-grid > .cc-pane:only-child {
+    grid-column: 1 / -1;
+}
+
+/* Panel visual */
+.cc-pane {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.cc-pane-title {
+    font-weight: 800;
+    letter-spacing: .2px;
+    color: #eaf1ff;
+    margin-bottom: 10px;
+}
+
+/* Inputs dentro del modal (mismo skin dark) */
+.cc-form-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+}
+
+    .cc-form-grid .full {
+        grid-column: 1 / -1;
+    }
+
+.cc-field .form-label {
+    font-weight: 800;
+    color: #cfd7e6;
+    margin-bottom: .3rem;
+}
+
+.cc-field .form-control,
+.cc-field .form-select {
+    background: #0f1625;
+    border: 1px solid #2b3647;
+    color: #e6eef7;
+    border-radius: 10px;
+}
+
+    .cc-field .form-control:focus,
+    .cc-field .form-select:focus {
+        border-color: #4ea0ff !important;
+        box-shadow: 0 0 0 .2rem rgba(78,160,255,.18) !important;
+    }
+
+/* Stats block (IVA / Ganancia) */
+.cc-stats {
+    margin-top: 14px;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 12px;
+    padding: 12px;
+    background: rgba(15,22,37,.7);
+}
+
+.cc-stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.cc-stat {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 10px;
+    padding: 8px 10px;
+}
+
+.cc-stat-label {
+    display: block;
+    font-size: .78rem;
+    color: #9db1d2;
+    font-weight: 700;
+}
+
+.cc-stat-value {
+    font-weight: 800;
+    font-size: 1rem;
+    color: #eaf1ff;
+}
+
+/* Cierre visible en dark */
+.custom-close {
+    filter: invert(1) grayscale(100%);
+    opacity: .85;
+}
+
+
+/* ===== Date input – icono SIEMPRE blanco ===== */
+
+/* 1) WebKit (Chrome / Edge / Opera) */
+#fechaReceta::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(1.25) contrast(1.1); /* vuelve el ícono blanco */
+    opacity: 1;
+}
+
+/* 2) Fallback universal (incluye Firefox):
+      - ocultamos la “pinta” nativa del icono y ponemos uno SVG blanco como fondo.
+      - el picker sigue funcionando al hacer click en el campo.
+*/
+#fechaReceta {
+    -webkit-appearance: none;
+    appearance: none; /* reduce interferencias del icono nativo */
+    background-repeat: no-repeat;
+    background-position: right .8rem center;
+    background-size: 1.05rem 1.05rem;
+    /* SVG blanco como icono (compacto y sin dependencias) */
+    background-image: url("data:image/svg+xml;utf8,\
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'>\
+    <path d='M7 2a1 1 0 0 0-1 1v1H5a3 3 0 0 0-3 3v11a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3h-1V3a1 1 0 1 0-2 0v1H8V3a1 1 0 0 0-1-1Zm12 8H5v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8ZM19 7a1 1 0 0 1 1 1v1H4V8a1 1 0 0 1 1-1h1v1a1 1 0 1 0 2 0V7h8v1a1 1 0 1 0 2 0V7h1Z'/>\
+  </svg>");
+}
+
+/* Si usás inputs de fecha en más lados, podés generalizar:
+input[type="date"]{ ... mismas reglas ... }
+input[type="date"]::-webkit-calendar-picker-indicator{ filter: invert(1) ... }
+*/
+
+/* (Opcional) Forzar esquema oscuro para que el control combine mejor */
+#fechaReceta {
+    color-scheme: white;
+}

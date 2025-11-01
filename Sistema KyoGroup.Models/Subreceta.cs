@@ -19,7 +19,7 @@ public partial class Subreceta
 
     public decimal CostoPorcion { get; set; }
 
-    public decimal? CostoSubRecetas { get; set; }
+    public decimal? CostoSubrecetas { get; set; }
 
     public decimal? CostoInsumos { get; set; }
 
@@ -51,9 +51,9 @@ public partial class Subreceta
 
     public virtual ICollection<SubrecetasInsumo> SubrecetasInsumos { get; set; } = new List<SubrecetasInsumo>();
 
-    public virtual ICollection<SubrecetasSubreceta> SubrecetasSubrecetaIdSubRecetaHijaNavigations { get; set; } = new List<SubrecetasSubreceta>();
+    public virtual ICollection<SubrecetasSubreceta> SubrecetasSubrecetaIdSubrecetaHijaNavigations { get; set; } = new List<SubrecetasSubreceta>();
 
-    public virtual ICollection<SubrecetasSubreceta> SubrecetasSubrecetaIdSubRecetaPadreNavigations { get; set; } = new List<SubrecetasSubreceta>();
+    public virtual ICollection<SubrecetasSubreceta> SubrecetasSubrecetaIdSubrecetaPadreNavigations { get; set; } = new List<SubrecetasSubreceta>();
 
     public virtual ICollection<SubrecetasUnidadesNegocio> SubrecetasUnidadesNegocios { get; set; } = new List<SubrecetasUnidadesNegocio>();
 }

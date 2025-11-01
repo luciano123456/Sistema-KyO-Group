@@ -923,7 +923,7 @@ public partial class SistemaKyoGroupContext : DbContext
 
             entity.Property(e => e.CostoInsumos).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.CostoPorcion).HasColumnType("decimal(20, 2)");
-            entity.Property(e => e.CostoSubRecetas).HasColumnType("decimal(20, 2)");
+            entity.Property(e => e.CostoSubrecetas).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.CostoUnitario).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(255)
@@ -1028,8 +1028,8 @@ public partial class SistemaKyoGroupContext : DbContext
                 .HasForeignKey(d => d.IdReceta)
                 .HasConstraintName("FK_Recetas_Prefabricados_Recetas");
 
-            entity.HasOne(d => d.IdSubRecetaNavigation).WithMany(p => p.RecetasSubreceta)
-                .HasForeignKey(d => d.IdSubReceta)
+            entity.HasOne(d => d.IdSubrecetaNavigation).WithMany(p => p.RecetasSubreceta)
+                .HasForeignKey(d => d.IdSubreceta)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Recetas_Subrecetas_Subrecetas");
 
@@ -1071,7 +1071,7 @@ public partial class SistemaKyoGroupContext : DbContext
 
             entity.Property(e => e.CostoInsumos).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.CostoPorcion).HasColumnType("decimal(20, 2)");
-            entity.Property(e => e.CostoSubRecetas).HasColumnType("decimal(20, 2)");
+            entity.Property(e => e.CostoSubrecetas).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.CostoUnitario).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(150)
@@ -1170,13 +1170,13 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.Property(e => e.IdUsuarioRegistra).HasDefaultValueSql("((1))");
             entity.Property(e => e.Subtotal).HasColumnType("decimal(20, 2)");
 
-            entity.HasOne(d => d.IdSubRecetaHijaNavigation).WithMany(p => p.SubrecetasSubrecetaIdSubRecetaHijaNavigations)
-                .HasForeignKey(d => d.IdSubRecetaHija)
+            entity.HasOne(d => d.IdSubrecetaHijaNavigation).WithMany(p => p.SubrecetasSubrecetaIdSubrecetaHijaNavigations)
+                .HasForeignKey(d => d.IdSubrecetaHija)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Subrecetas_Subrecetas_Subrecetas");
 
-            entity.HasOne(d => d.IdSubRecetaPadreNavigation).WithMany(p => p.SubrecetasSubrecetaIdSubRecetaPadreNavigations)
-                .HasForeignKey(d => d.IdSubRecetaPadre)
+            entity.HasOne(d => d.IdSubrecetaPadreNavigation).WithMany(p => p.SubrecetasSubrecetaIdSubrecetaPadreNavigations)
+                .HasForeignKey(d => d.IdSubrecetaPadre)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Subrecetas_Subrecetas_Subrecetas1");
 

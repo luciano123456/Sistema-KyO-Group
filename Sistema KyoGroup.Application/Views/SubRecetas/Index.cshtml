@@ -1,0 +1,182 @@
+﻿@{
+    ViewData["Title"] = "Subrecetas";
+}
+
+@section Estilos {
+    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+
+    <!-- Tus estilos -->
+    <link href="~/css/ProveedoresInsumos.css" rel="stylesheet" />
+    <link href="~/css/disenopantallas.css?v=1.0" rel="stylesheet" />
+}
+
+<div class="container page-99">
+    <!-- Header tipo KPI -->
+    <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="d-flex align-items-center gap-3">
+                <span class="cc-badge"><i class="fa fa-cutlery"></i></span>
+                <div>
+                    <h2 class="m-0 fw-800">Subrecetas</h2>
+                    <small class="text-muted-cc">Gestión y análisis</small>
+                </div>
+            </div>
+
+            <!-- KPIs -->
+            <div class="ms-auto d-flex gap-3 flex-wrap">
+                <div class="cc-stat">
+                    <div class="label">Cantidad</div>
+                    <div class="value" id="kpiCantidad">0</div>
+                </div>
+                <div class="cc-stat">
+                    <div class="label">Costo Subrecetas</div>
+                    <div class="value" id="kpiCostoSubrecetas">—</div>
+                </div>
+                <div class="cc-stat">
+                    <div class="label">Costo Insumos</div>
+                    <div class="value" id="kpiCostoInsumos">—</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla + Filtros -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card-glass p-3">
+                <div class="tabla-wrap position-relative">
+                    <!-- Controles top -->
+                    <div class="tabla-controls-top d-flex gap-2 flex-wrap align-items-center">
+                        <button class="btn btn-new d-flex align-items-center px-3 py-2" onclick="nuevoSubreceta()">
+                            <i class="fa fa-plus-square me-2"></i> Nuevo
+                        </button>
+
+                        <!-- Toggle de filtros -->
+                        <button class="btn btn-outline-primary d-flex align-items-center ms-auto" type="button" id="btnToggleFiltrosI">
+                            <i class="fa fa-arrow-down me-2" id="iconFiltrosI"></i> Filtros
+                        </button>
+
+                        <!-- Dropdown columnas -->
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button"
+                                    id="dropdownColumnas" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa fa-cog me-2"></i> Config. Columnas
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Panel filtros -->
+                    <form id="formFiltrosSubRec" class="filter-bar shadow-sm rounded-3 mb-3 p-3">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">Unidad de Negocio</label>
+                                <select id="UnidadNegocioFiltro" class="form-select">
+                                    <option value="-1" selected>-</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-6 d-flex gap-2 mt-2 mt-md-0">
+                                <button type="button" class="btn btn-primary flex-fill" onclick="aplicarFiltros()">
+                                    <i class="fa fa-search me-1"></i> Buscar
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="limpiarFiltros()">
+                                    <i class="fa fa-eraser me-1"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- DataTable -->
+                    <div class="dt-dark-wrap">
+                        <table class="dt-dark display nowrap compact" id="grd_Subrecetas" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Descripción</th>
+                                    <th>SKU</th>
+                                    <th>Unidad Negocio</th>
+                                    <th>Unidad Medida</th>
+                                    <th>Categoría</th>
+                                    <th>Costo Subrecetas</th>
+                                    <th>Costo Insumos</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal edición -->
+<div class="modal fade" id="modalEdicion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-edicion">
+        <div class="modal-content">
+            <div class="modal-header colorEncabezado">
+                <h5 class="modal-title fw-bold">Editar Subreceta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formSubreceta" class="row g-3">
+                    <input type="text" id="txtId" hidden>
+                    <div class="col-12">
+                        <label class="form-label">Descripción</label>
+                        <input type="text" class="form-control" id="txtDescripcion">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">SKU</label>
+                        <input type="text" class="form-control" id="txtSku">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Costo Unitario</label>
+                        <input type="number" class="form-control" id="txtCostoUnitario">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Unidad Negocio</label>
+                        <select id="UnidadesNegocio" class="form-select"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Unidad Medida</label>
+                        <select id="UnidadesMedida" class="form-select"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Categoría</label>
+                        <select id="Categorias" class="form-select"></select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal"><i class="fa fa-arrow-left"></i> Volver</button>
+                <button id="btnGuardar" class="btn btn-new" onclick="guardarCambios()"><i class="fa fa-check"></i> Registrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="~/Views/Utils/Modals.cshtml" />
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/locale/es.js"></script>
+
+    <script src="~/js/Subrecetas.js?v=3.0"></script>
+}
