@@ -17,7 +17,7 @@ public partial class Receta
 
     public int IdCategoria { get; set; }
 
-    public decimal? CostoSubRecetas { get; set; }
+    public decimal? CostoSubrecetas { get; set; }
 
     public decimal CostoInsumos { get; set; }
 

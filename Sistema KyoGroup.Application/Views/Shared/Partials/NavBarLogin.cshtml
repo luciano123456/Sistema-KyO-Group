@@ -25,6 +25,11 @@
                 </li>
 
 
+                <li class="nav-item" id="seccionSubrecetas">
+                    <a class="nav-link" href="@Url.Action("Index", "Subrecetas")">Subrecetas</a>
+                </li>
+
+
                 <li class="nav-item dropdown" id="seccionConfiguraciones" hidden>
                     <a class="nav-link dropdown-toggle" href="#" id="configDropdownLink" Rol="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Configuraciones
@@ -190,6 +195,16 @@
                             <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
                             <span class="config-card__title">Insumos Categorias</span>
                             <span class="config-card__subtitle">Insumos Categorias</span>
+                        </button>
+                    </div>
+
+                    <div class="col">
+                        <button type="button" class="config-card w-100"
+                                onclick="abrirConfiguracion('Subrecetas Categorias', 'SubrecetasCategoria')"
+                                data-label="Rol" data-table="Subrecetas">
+                            <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
+                            <span class="config-card__title">Subrecetas Categorias</span>
+                            <span class="config-card__subtitle">Subrecetas Categorias</span>
                         </button>
                     </div>
 

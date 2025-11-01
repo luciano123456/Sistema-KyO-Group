@@ -1,0 +1,309 @@
+﻿@{
+    ViewBag.Title = "Nueva Subreceta";
+}
+<title>@ViewBag.Title</title>
+
+<partial name="~/Views/Utils/Modals.cshtml" />
+
+@section Estilos {
+    <!-- DataTables / Buttons / FixedHeader / FontAwesome / Select2 -->
+    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+
+    <!-- SKIN igual al de Nuevo Pedido -->
+    <link href="~/css/RedisenoPantallas.css?v=1.0" rel="stylesheet" />
+    <link href="~/css/SubrecetasNuevoModif.css?v=1.0" rel="stylesheet" />
+}
+
+<!-- KPI superior -->
+<header class="cc-kpi cc-card cc-container-xxl">
+    <div class="cc-kpi-icon"><i class="fa fa-cutlery"></i></div>
+    <div class="cc-kpi-text">
+        <h1 id="tituloSubreceta" class="cc-kpi-title">Nueva Subreceta</h1>
+        <p class="cc-muted m-0">Registro y edición de Subrecetas</p>
+    </div>
+    <button type="button" class="btn btn-outline-light ms-auto" onclick="window.location.href='/Subrecetas'">
+        <i class="fa fa-angle-left me-2"></i> Volver a Subrecetas
+    </button>
+</header>
+
+<main class="cc-container-xxl">
+
+    <!-- ===== Tabs superiores (mismo estilo que Pedidos) ===== -->
+    <ul class="nav nav-tabs cc-tabs pestaniasDatos" id="tabs-datos-Subreceta" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="Subreceta-tab" data-bs-toggle="tab" href="#Subreceta" role="tab"
+               aria-controls="Subreceta" aria-selected="true">Datos de la Subreceta</a>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-4" id="tabs-datos-Subreceta-content">
+        <!-- ===== Datos de la Subreceta ===== -->
+        <section class="tab-pane fade show active" id="Subreceta" role="tabpanel" aria-labelledby="Subreceta-tab">
+            <div class="cc-section cc-card">
+                <div class="cc-titlebar">
+                    <h3 class="m-0"><i class="fa fa-info-circle me-2"></i>Datos de la Subreceta</h3>
+                </div>
+
+                <input type="hidden" id="idSubreceta" name="idSubreceta" />
+                <div class="cc-grid cc-grid-3xl">
+                    <div class="form-group">
+                        <label class="form-label" for="UnidadesNegocio">Unidad de Negocio</label>
+                        <select id="UnidadesNegocio" class="form-select">
+                            <option value="" disabled selected>Seleccionar...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="sku">SKU</label>
+                        <input type="text" id="sku" class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="descripcion">Descripción</label>
+                        <input type="text" id="descripcion" class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="Categorias">Categoría</label>
+                        <select id="Categorias" class="form-select">
+                            <option value="" disabled selected>Seleccionar...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="UnidadMedidas">Unidad de Medida</label>
+                        <select id="UnidadMedidas" class="form-select">
+                            <option value="" disabled selected>Seleccionar...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="costoSubrecetas">Costo Subrecetas</label>
+                        <input type="text" id="costoSubrecetas" class="form-control" readonly />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="costoInsumos">Costo Insumos</label>
+                        <input type="text" id="costoInsumos" class="form-control" readonly />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="CostoPorcion">Costo Porción</label>
+                        <input type="text" id="CostoPorcion" class="form-control" readonly />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="Rendimiento">Rendimiento</label>
+                        <input type="text" id="Rendimiento" class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="CostoUnitario">Costo Unitario</label>
+                        <input type="text" id="CostoUnitario" class="form-control" readonly />
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ===== Tabs inferiores (Subrecetas / Insumos) ===== -->
+    <ul class="nav nav-tabs cc-tabs mt-4" id="tabs-detalle" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="Subrecetas-tab2" data-bs-toggle="tab" href="#SubrecetasDetalle" role="tab"
+               aria-controls="SubrecetasDetalle" aria-selected="true">Subrecetas</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="insumos-tab" data-bs-toggle="tab" href="#insumos" role="tab"
+               aria-controls="insumos" aria-selected="false">Insumos</a>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-4" id="tabs-detalle-content">
+        <!-- Subrecetas Detalle -->
+        <section class="tab-pane fade show active" id="SubrecetasDetalle" role="tabpanel" aria-labelledby="Subrecetas-tab2">
+            <div class="cc-section cc-card">
+                <div class="cc-titlebar">
+                    <h3 class="m-0"><i class="fa fa-sitemap me-2"></i>Subrecetas</h3>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-new" onclick="anadirSubreceta()">
+                            <i class="fa fa-plus me-1"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+
+                <div class="cc-table">
+                    <table class="display nowrap table w-100" id="grd_Subrecetas" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Costo Unitario</th>
+                                <th>Cantidad</th>
+                                <th>SubTotal</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Insumos Detalle -->
+        <section class="tab-pane fade" id="insumos" role="tabpanel" aria-labelledby="insumos-tab">
+            <div class="cc-section cc-card">
+                <div class="cc-titlebar">
+                    <h3 class="m-0"><i class="fa fa-cubes me-2"></i>Insumos</h3>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-success" onclick="anadirInsumo()">
+                            <i class="fa fa-plus"></i> Añadir
+                        </button>
+                    </div>
+                </div>
+
+                <div class="cc-table">
+                    <table class="display nowrap table w-100" id="grd_Insumos" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Costo Unitario</th>
+                                <th>Cantidad</th>
+                                <th>SubTotal</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 my-3">
+        <button type="submit" id="btnNuevoModificar" class="btn btn-new" onclick="guardarCambios()">
+            <i class="fa fa-save me-1"></i> Registrar
+        </button>
+    </div>
+</main>
+
+<!-- ================ MODAL: INSUMO ================= -->
+<div class="modal fade" id="insumosModal" tabindex="-1" role="dialog" aria-labelledby="insumosModalLabel" aria-hidden="true" data-editing="false">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content cc-modal cc-modal--elevated">
+
+            <div class="modal-header cc-modal-header">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="cc-badge"><i class="fa fa-cube"></i></span>
+                    <h5 class="modal-title fw-bold m-0" id="insumosModalLabel">Seleccionar Insumo</h5>
+                </div>
+                <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="formInsumo" class="cc-form-grid cc-form-2col">
+                    <div class="cc-field full">
+                        <label for="insumoSelect" class="form-label">Insumo</label>
+                        <select id="insumoSelect" class="form-select">
+                            <option selected disabled>Seleccionar un Insumo</option>
+                        </select>
+                    </div>
+
+                    <div class="cc-field">
+                        <label for="precioInput" class="form-label">Precio</label>
+                        <input type="text" id="precioInput" class="form-control" placeholder="Ingrese precio manual">
+                    </div>
+
+                    <div class="cc-field">
+                        <label for="cantidadInput" class="form-label">Cantidad</label>
+                        <input type="number" id="cantidadInput" class="form-control" placeholder="Ingrese cantidad">
+                    </div>
+
+                    <div class="cc-field full">
+                        <label for="totalInput" class="form-label">Total</label>
+                        <input type="text" id="totalInput" class="form-control" disabled>
+                    </div>
+
+                    <div id="errorCamposInsumo" class="alert alert-danger d-none">Debes completar los campos obligatorios.</div>
+                </form>
+            </div>
+
+            <div class="modal-footer cc-modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" id="btnGuardarInsumo" class="btn btn-new" onclick="guardarInsumo()">
+                    <i class="fa fa-check"></i> Añadir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================ MODAL: Subreceta ================== -->
+<div class="modal fade" id="SubrecetasModal" tabindex="-1" role="dialog" aria-labelledby="SubrecetasModalLabel" aria-hidden="true" data-editing="false">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content cc-modal cc-modal--elevated">
+
+            <div class="modal-header cc-modal-header">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="cc-badge"><i class="fa fa-sitemap"></i></span>
+                    <h5 class="modal-title fw-bold m-0" id="SubrecetasModalLabel">Seleccionar Subreceta</h5>
+                </div>
+                <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="formSubreceta" class="cc-form-grid cc-form-2col">
+                    <div class="cc-field full">
+                        <label for="SubrecetaSelect" class="form-label">Subreceta</label>
+                        <select id="SubrecetaSelect" class="form-select">
+                            <option selected disabled>Seleccionar una Subreceta</option>
+                        </select>
+                    </div>
+
+                    <div class="cc-field">
+                        <label for="precioSubrecetaInput" class="form-label">Precio</label>
+                        <input type="text" id="precioSubrecetaInput" class="form-control" placeholder="Precio" readonly>
+                    </div>
+
+                    <div class="cc-field">
+                        <label for="cantidadSubrecetaInput" class="form-label">Cantidad</label>
+                        <input type="number" id="cantidadSubrecetaInput" class="form-control" placeholder="Ingrese cantidad">
+                    </div>
+
+                    <div class="cc-field full">
+                        <label for="totalSubrecetaInput" class="form-label">Total</label>
+                        <input type="text" id="totalSubrecetaInput" class="form-control" disabled>
+                    </div>
+
+                    <div id="errorCamposSub" class="alert alert-danger d-none">Debes completar los campos obligatorios.</div>
+                </form>
+            </div>
+
+            <div class="modal-footer cc-modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" id="btnGuardarSubreceta" class="btn btn-new" onclick="guardarSubreceta()">
+                    <i class="fa fa-check"></i> Añadir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- DataTables / Select2 -->
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+    <!-- (mismo orden que Proveedores-Insumos) -->
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/locale/es.js"></script>
+
+    <script src="~/js/SubrecetasNuevoModif.js?v=1.3"></script>
+    <script src="~/js/site.js"></script>
+}
+
+<script>
+    var SubrecetaData = @Html.Raw(Json.Serialize(ViewBag.Data ?? new { }));
+</script>

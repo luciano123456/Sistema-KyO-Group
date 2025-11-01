@@ -9,7 +9,7 @@ public partial class RecetasSubreceta
 
     public int IdReceta { get; set; }
 
-    public int IdSubReceta { get; set; }
+    public int IdSubreceta { get; set; }
 
     public decimal Cantidad { get; set; }
 
@@ -27,7 +27,7 @@ public partial class RecetasSubreceta
 
     public virtual Receta IdRecetaNavigation { get; set; } = null!;
 
-    public virtual Subreceta IdSubRecetaNavigation { get; set; } = null!;
+    public virtual Subreceta IdSubrecetaNavigation { get; set; } = null!;
 
     public virtual User? IdUsuarioModificaNavigation { get; set; }
 

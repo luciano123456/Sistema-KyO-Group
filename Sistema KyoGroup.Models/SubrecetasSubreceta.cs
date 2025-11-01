@@ -7,9 +7,9 @@ public partial class SubrecetasSubreceta
 {
     public int Id { get; set; }
 
-    public int IdSubRecetaPadre { get; set; }
+    public int IdSubrecetaPadre { get; set; }
 
-    public int IdSubRecetaHija { get; set; }
+    public int IdSubrecetaHija { get; set; }
 
     public decimal Cantidad { get; set; }
 
@@ -25,9 +25,9 @@ public partial class SubrecetasSubreceta
 
     public DateTime? FechaModifica { get; set; }
 
-    public virtual Subreceta IdSubRecetaHijaNavigation { get; set; } = null!;
+    public virtual Subreceta IdSubrecetaHijaNavigation { get; set; } = null!;
 
-    public virtual Subreceta IdSubRecetaPadreNavigation { get; set; } = null!;
+    public virtual Subreceta IdSubrecetaPadreNavigation { get; set; } = null!;
 
     public virtual User? IdUsuarioModificaNavigation { get; set; }
 
