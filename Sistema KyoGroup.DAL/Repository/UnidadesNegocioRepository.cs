@@ -53,6 +53,24 @@ namespace SistemaKyoGroup.DAL.Repository
             return await Task.FromResult(query);
         }
 
+        public async Task<IQueryable<UnidadesNegocio>> ObtenerTodosUsuario(int idUsuario)
+        {
+            try
+            {
+                // Buscar todas las unidades de negocio asignadas al usuario
+                var query = _dbcontext.UsuariosUnidadesNegocios
+                    .AsNoTracking()
+                    .Include(x => x.IdUnidadNegocioNavigation)
+                    .Where(x => x.IdUsuario == idUsuario)
+                    .Select(x => x.IdUnidadNegocioNavigation);
+
+                return await Task.FromResult(query);
+            }
+            catch
+            {
+                return Enumerable.Empty<UnidadesNegocio>().AsQueryable();
+            }
+        }
 
 
 

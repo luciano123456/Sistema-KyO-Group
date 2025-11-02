@@ -29,6 +29,10 @@
                     <a class="nav-link" href="@Url.Action("Index", "Subrecetas")">Subrecetas</a>
                 </li>
 
+                <li class="nav-item" id="seccionRecetas">
+                    <a class="nav-link" href="@Url.Action("Index", "Recetas")">Recetas</a>
+                </li>
+
 
                 <li class="nav-item dropdown" id="seccionConfiguraciones" hidden>
                     <a class="nav-link dropdown-toggle" href="#" id="configDropdownLink" Rol="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -143,7 +147,6 @@
             </div>
 
             <div class="modal-body py-3">
-                <!-- Grid responsiva: 1/2/3/4 columnas -->
                 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3" id="gridConfiguraciones">
 
                     <div class="col">
@@ -152,10 +155,9 @@
                                 data-label="Rol" data-table="Roles">
                             <img src="/Imagenes/Roles.png" alt="" class="config-card__img" loading="lazy">
                             <span class="config-card__title">Roles</span>
-                            <span class="config-card__subtitle">Permisos</span>
+                            <span class="config-card__subtitle">Accesos y permisos</span>
                         </button>
                     </div>
-
 
                     <div class="col">
                         <button type="button" class="config-card w-100"
@@ -163,10 +165,9 @@
                                 data-label="Rol" data-table="UnidadesNegocio">
                             <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
                             <span class="config-card__title">Unidades de Negocios</span>
-                            <span class="config-card__subtitle">Unidades de Negocios</span>
+                            <span class="config-card__subtitle">Áreas de trabajo</span>
                         </button>
                     </div>
-
 
                     <div class="col">
                         <button type="button" class="config-card w-100"
@@ -174,7 +175,7 @@
                                 data-label="Local" data-table="Locales">
                             <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
                             <span class="config-card__title">Locales</span>
-                            <span class="config-card__subtitle">Locales</span>
+                            <span class="config-card__subtitle">Sucursales activas</span>
                         </button>
                     </div>
 
@@ -184,7 +185,7 @@
                                 data-label="Unidades de Medida" data-table="UnidadesMedida">
                             <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
                             <span class="config-card__title">Unidades de Medida</span>
-                            <span class="config-card__subtitle">Unidades de Medida</span>
+                            <span class="config-card__subtitle">Pesos y volúmenes</span>
                         </button>
                     </div>
 
@@ -194,7 +195,7 @@
                                 data-label="Insumos Categorias" data-table="InsumosCategorias">
                             <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
                             <span class="config-card__title">Insumos Categorias</span>
-                            <span class="config-card__subtitle">Insumos Categorias</span>
+                            <span class="config-card__subtitle">Tipos de insumos</span>
                         </button>
                     </div>
 
@@ -204,12 +205,23 @@
                                 data-label="Rol" data-table="Subrecetas">
                             <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
                             <span class="config-card__title">Subrecetas Categorias</span>
-                            <span class="config-card__subtitle">Subrecetas Categorias</span>
+                            <span class="config-card__subtitle">Preparaciones base</span>
+                        </button>
+                    </div>
+
+                    <div class="col">
+                        <button type="button" class="config-card w-100"
+                                onclick="abrirConfiguracion('Recetas Categorias', 'RecetasCategoria')"
+                                data-label="Rol" data-table="Recetas">
+                            <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
+                            <span class="config-card__title">Recetas Categorias</span>
+                            <span class="config-card__subtitle">Platos finales</span>
                         </button>
                     </div>
 
                 </div>
             </div>
+
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-new px-4" data-bs-dismiss="modal">Aceptar</button>

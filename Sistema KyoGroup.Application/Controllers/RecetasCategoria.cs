@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SistemaKyoGroup.Application.Extensions;
 using SistemaKyoGroup.Application.Models;
 using SistemaKyoGroup.Application.Models.ViewModels;
 using SistemaKyoGroup.BLL.Service;
@@ -10,39 +9,22 @@ using System.Diagnostics;
 namespace SistemaKyoGroup.Application.Controllers
 {
     [Authorize]
-    public class UnidadesNegocioController : Controller
+    public class RecetasCategoriaController : Controller
     {
-        private readonly IUnidadesNegocioService _UnidadesNegocioService;
+        private readonly IRecetasCategoriaService _RecetasCategoriaService;
 
-        public UnidadesNegocioController(IUnidadesNegocioService UnidadesNegocioService)
+        public RecetasCategoriaController(IRecetasCategoriaService RecetasCategoriaService)
         {
-            _UnidadesNegocioService = UnidadesNegocioService;
-        }
-
-        [AllowAnonymous]
-        [HttpGet]
-        public async Task<IActionResult> ListaUsuario()
-        {
-            var userId = User.GetUserId();
-
-            var UnidadesNegocio = await _UnidadesNegocioService.ObtenerTodosUsuario((int)userId);
-
-            var lista = UnidadesNegocio.Select(c => new VMGenerico
-            {
-                Id = c.Id,
-                Nombre = c.Nombre,
-            }).ToList();
-
-            return Ok(lista);
+            _RecetasCategoriaService = RecetasCategoriaService;
         }
 
         [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> Lista()
         {
-            var UnidadesNegocio = await _UnidadesNegocioService.ObtenerTodos();
+            var RecetasCategoria = await _RecetasCategoriaService.ObtenerTodos();
 
-            var lista = UnidadesNegocio.Select(c => new VMGenerico
+            var lista = RecetasCategoria.Select(c => new VMRecetasCategoria
             {
                 Id = c.Id,
                 Nombre = c.Nombre,
@@ -53,29 +35,29 @@ namespace SistemaKyoGroup.Application.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Insertar([FromBody] VMGenerico model)
+        public async Task<IActionResult> Insertar([FromBody] VMRecetasCategoria model)
         {
-            var Rol = new UnidadesNegocio
+            var RecetasCategoria = new RecetasCategoria
             {
                 Id = model.Id,
                 Nombre = model.Nombre,
             };
 
-            bool respuesta = await _UnidadesNegocioService.Insertar(Rol);
+            bool respuesta = await _RecetasCategoriaService.Insertar(RecetasCategoria);
 
             return Ok(new { valor = respuesta });
         }
 
         [HttpPut]
-        public async Task<IActionResult> Actualizar([FromBody] VMGenerico model)
+        public async Task<IActionResult> Actualizar([FromBody] VMRecetasCategoria model)
         {
-            var Rol = new UnidadesNegocio
+            var RecetasCategoria = new RecetasCategoria
             {
                 Id = model.Id,
                 Nombre = model.Nombre,
             };
 
-            bool respuesta = await _UnidadesNegocioService.Actualizar(Rol);
+            bool respuesta = await _RecetasCategoriaService.Actualizar(RecetasCategoria);
 
             return Ok(new { valor = respuesta });
         }
@@ -83,7 +65,7 @@ namespace SistemaKyoGroup.Application.Controllers
         [HttpDelete]
         public async Task<IActionResult> Eliminar(int id)
         {
-            bool respuesta = await _UnidadesNegocioService.Eliminar(id);
+            bool respuesta = await _RecetasCategoriaService.Eliminar(id);
 
             return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
         }
@@ -91,11 +73,11 @@ namespace SistemaKyoGroup.Application.Controllers
         [HttpGet]
         public async Task<IActionResult> EditarInfo(int id)
         {
-             var Rol = await _UnidadesNegocioService.Obtener(id);
+            var EstadosUsuario = await _RecetasCategoriaService.Obtener(id);
 
-            if (Rol != null)
+            if (EstadosUsuario != null)
             {
-                return StatusCode(StatusCodes.Status200OK, Rol);
+                return StatusCode(StatusCodes.Status200OK, EstadosUsuario);
             }
             else
             {

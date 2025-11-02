@@ -1,8 +1,8 @@
-﻿/* ================== SubrecetasNuevoModif.js (ADAPTADO + validaciones genéricas) ================== */
+﻿/* ================== RecetasNuevoModif.js (ADAPTADO + validaciones genéricas) ================== */
 
-let gridInsumos = null, gridSubrecetas = null;
-let insumosCache = [];       // cache del modal Insumos
-let subrecetasCache = [];    // cache del modal Subrecetas
+let gridInsumos = null, gridRecetas = null;
+let insumosCache = [];     // cache del modal Insumos
+let subrecetasCache = [];  // cache del modal Subrecetas
 
 /* ===== Helpers de autenticación y UI ===== */
 function authHeaders(extra = {}) {
@@ -48,30 +48,29 @@ $(document).ready(async () => {
     await listaCategorias();
     await listaUnidadMedidas();
 
-    if (typeof SubrecetaData !== 'undefined' && SubrecetaData && SubrecetaData > 0) {
-        await cargarDatosSubreceta();
+    if (typeof RecetaData !== 'undefined' && RecetaData && RecetaData > 0) {
+        await cargarDatosReceta();
     } else {
         await configurarDataTableInsumos(null);
         await configurarDataTableSubrecetas(null);
-        $("#tituloSubreceta").text("Nueva Subreceta");
+        $("#tituloReceta").text("Nueva Receta");
     }
 
     // Listeners
     $('#UnidadesNegocio').on('change', function () {
         gridInsumos?.clear().draw();
-        gridSubrecetas?.clear().draw();
-        calcularDatosSubreceta();
+        gridRecetas?.clear().draw();
+        calcularDatosReceta();
     });
 
     // Select2 en modales
-    $("#SubrecetaSelect").select2({ dropdownParent: $("#SubrecetasModal"), width: "100%", placeholder: "Selecciona una opción", allowClear: false });
+    $("#RecetaSelect").select2({ dropdownParent: $("#RecetasModal"), width: "100%", placeholder: "Selecciona una opción", allowClear: false });
     $("#insumoSelect").select2({ dropdownParent: $("#insumosModal"), width: "100%", placeholder: "Selecciona una opción", allowClear: false });
 
-    // Bind validaciones blur para FORM pantalla (idéntico a Recetas)
-    ccValidators.bindBlurValidation(document.getElementById('frmSubreceta'));
-
+    // Bind validaciones blur para FORM pantalla
+    ccValidators.bindBlurValidation(document.getElementById('frmReceta'));
     ccValidators.autoHideOnInput(
-        document.getElementById('frmSubreceta'),
+        document.getElementById('frmReceta'),
         document.getElementById('alertRequeridos')
     );
 
@@ -79,15 +78,17 @@ $(document).ready(async () => {
     $('#insumosModal').on('shown.bs.modal', () => {
         const f = document.getElementById('formInsumo');
         const a = document.getElementById('modalAlertInsumo');
+        a?.classList.add('d-none');
         ccValidators.clearGroup(f, a);
         ccValidators.bindBlurValidation(f);
         ccValidators.autoHideOnInput(f, a);
     });
 
-    // — SUBRECETAS —
-    $('#SubrecetasModal').on('shown.bs.modal', () => {
+    // — SUBRECETAS — (IDs del HTML actual: #RecetasModal + #formSubreceta)
+    $('#RecetasModal').on('shown.bs.modal', () => {
         const f = document.getElementById('formSubreceta');
         const a = document.getElementById('modalAlertSub');
+        a?.classList.add('d-none');
         ccValidators.clearGroup(f, a);
         ccValidators.bindBlurValidation(f);
         ccValidators.autoHideOnInput(f, a);
@@ -95,42 +96,42 @@ $(document).ready(async () => {
 });
 
 /* ===== CARGA / EDICIÓN ===== */
-async function ObtenerDatosSubreceta(id) {
-    return await fetchJson(`/Subrecetas/EditarInfo?id=${id}`);
+async function ObtenerDatosReceta(id) {
+    return await fetchJson(`/Recetas/EditarInfo?id=${id}`);
 }
-async function cargarDatosSubreceta() {
-    if (!(typeof SubrecetaData !== 'undefined' && SubrecetaData && SubrecetaData > 0)) return;
-    const datos = await ObtenerDatosSubreceta(SubrecetaData);
-    const payload = (typeof datos === 'string') ? JSON.parse(datos) : datos;
+async function cargarDatosReceta() {
+    if (!(typeof RecetaData !== 'undefined' && RecetaData && RecetaData > 0)) return;
+    const datosReceta = await ObtenerDatosReceta(RecetaData);
+    const payload = (typeof datosReceta === 'string') ? JSON.parse(datosReceta) : datosReceta;
 
-    await insertarDatosSubreceta(payload.Subreceta || payload.subreceta || {});
+    await insertarDatosReceta(payload.receta || payload.receta || {});
     await configurarDataTableInsumos(payload.Insumos || []);
     await configurarDataTableSubrecetas(payload.Subrecetas || []);
-    calcularDatosSubreceta();
+    calcularDatosReceta();
 }
-async function insertarDatosSubreceta(d) {
-    $("#idSubreceta").val(d.Id);
-    $("#UnidadesNegocio").val(d.IdUnidadNegocio);
-    $("#descripcion").val(d.Descripcion);
-    $("#sku").val(d.Sku);
-    $("#Categorias").val(d.IdCategoria);
-    $("#UnidadMedidas").val(d.IdUnidadMedida);
+async function insertarDatosReceta(datos) {
+    $("#idReceta").val(datos.Id);
+    $("#UnidadesNegocio").val(datos.IdUnidadNegocio);
+    $("#descripcion").val(datos.Descripcion);
+    $("#sku").val(datos.Sku);
+    $("#Categorias").val(datos.IdCategoria);
+    $("#UnidadMedidas").val(datos.IdUnidadMedida);
 
-    $("#costoInsumos").val(fmtMon(d.CostoInsumos ?? 0));
-    $("#costoSubrecetas").val(fmtMon(d.CostoSubrecetas ?? 0));
-    $("#CostoPorcion").val(fmtMon(d.CostoPorcion ?? 0));
-    $("#Rendimiento").val(d.Rendimiento ?? 0);
-    $("#CostoUnitario").val(fmtMon(d.CostoUnitario ?? 0));
+    $("#costoInsumos").val(fmtMon(datos.CostoInsumos ?? 0));
+    $("#costoRecetas").val(fmtMon(datos.CostoSubRecetas ?? datos.CostoRecetas ?? 0));
+    $("#CostoPorcion").val(fmtMon(datos.CostoPorcion ?? 0));
+    $("#Rendimiento").val(datos.Rendimiento ?? 0);
+    $("#CostoUnitario").val(fmtMon(datos.CostoUnitario ?? 0));
 
     $("#btnNuevoModificar").text("Guardar");
-    $("#tituloSubreceta").text("Editar Subreceta");
+    $("#tituloReceta").text("Editar Receta");
 }
 
 /* ===== TABLAS ===== */
 async function configurarDataTableSubrecetas(data) {
     const rows = data != null && data.$values ? data.$values : (data || []);
-    if (!gridSubrecetas) {
-        gridSubrecetas = $('#grd_Subrecetas').DataTable({
+    if (!gridRecetas) {
+        gridRecetas = $('#grd_Subrecetas').DataTable({
             data: rows,
             language: { url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json" },
             scrollX: "100px",
@@ -142,20 +143,20 @@ async function configurarDataTableSubrecetas(data) {
                 { data: 'SubTotal', title: 'SubTotal', render: d => fmtMon(d) },
                 {
                     data: null, title: 'Acciones', orderable: false, searchable: false, render: (_, __, row) => `
-<button class='btn btn-sm btneditar btnacciones' type='button' onclick='editarSubreceta(${row.IdSubrecetaHija})' title='Editar'>
+<button class='btn btn-sm btneditar btnacciones' type='button' onclick='editarSubreceta(${row.IdSubReceta})' title='Editar'>
     <i class='fa fa-pencil-square-o fa-lg text-white'></i>
 </button>
-<button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarSubreceta(${row.IdSubrecetaHija})' title='Eliminar'>
+<button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarSubreceta(${row.IdSubReceta})' title='Eliminar'>
     <i class='fa fa-trash-o fa-lg text-danger'></i>
 </button>`
                 }
             ],
             orderCellsTop: true,
             fixedHeader: true,
-            initComplete: function () { setTimeout(() => gridSubrecetas.columns.adjust(), 10); }
+            initComplete: function () { setTimeout(() => gridRecetas.columns.adjust(), 10); }
         });
     } else {
-        gridSubrecetas.clear().rows().add(rows).draw();
+        gridRecetas.clear().rows().add(rows).draw();
     }
 }
 async function configurarDataTableInsumos(data) {
@@ -200,7 +201,8 @@ async function anadirInsumo() {
     const yaAgregados = new Set();
     gridInsumos?.rows().every(function () { yaAgregados.add(Number(this.data().IdInsumo)); });
 
-    const $sel = $("#insumoSelect").off('change').empty();
+    const $sel = $("#insumoSelect");
+    $sel.off('change').empty();
 
     let firstId = null;
     insumosCache.forEach(p => {
@@ -263,10 +265,18 @@ function upsertInsumo({ IdInsumo, Nombre, CostoUnitario, Cantidad }) {
     }
 }
 async function guardarInsumo() {
-    const form = $('#formInsumo')[0];
-    const alert = $('#modalAlertInsumo')[0];
+    const form = document.getElementById('formInsumo');
+    const alert = document.getElementById('modalAlertInsumo');
+
+    // oculto antes de validar
+    alert?.classList.add('d-none');
+
     const ok = ccValidators.validateGroup(form, alert);
-    if (!ok) return;
+    if (!ok) {
+        alert?.classList.remove('d-none');                  // <-- muestra banner
+        form.querySelector('.is-invalid')?.focus();         // foco al primer error
+        return;
+    }
 
     const id = Number($('#insumoSelect').val());
     const nombre = $('#insumoSelect option:selected').text();
@@ -301,7 +311,7 @@ async function guardarInsumo() {
     }
 
     $modal.modal('hide');
-    calcularDatosSubreceta();
+    calcularDatosReceta();
 }
 async function editarInsumo(id) {
     const idx = findRowIndex(gridInsumos, r => Number(r.IdInsumo) === Number(id));
@@ -336,7 +346,7 @@ async function editarInsumo(id) {
 function eliminarInsumo(id) {
     const idx = findRowIndex(gridInsumos, r => Number(r.IdInsumo) === Number(id));
     removeRowByIndex(gridInsumos, idx);
-    calcularDatosSubreceta();
+    calcularDatosReceta();
 }
 
 /* =========================================================================
@@ -347,9 +357,9 @@ async function anadirSubreceta() {
     subrecetasCache = await obtenerSubrecetasUnidadNegocio(IdUnidadNegocio);
 
     const yaAgregadas = new Set();
-    gridSubrecetas?.rows().every(function () { yaAgregadas.add(Number(this.data().IdSubrecetaHija)); });
+    gridRecetas?.rows().every(function () { yaAgregadas.add(Number(this.data().IdSubReceta)); });
 
-    const $sel = $("#SubrecetaSelect").off('change').empty();
+    const $sel = $("#RecetaSelect").off('change').empty();
 
     let firstId = null;
     subrecetasCache.forEach(p => {
@@ -366,70 +376,76 @@ async function anadirSubreceta() {
     $sel.off('change').on('change', function () {
         const selId = parseInt(this.value);
         const p = subrecetasCache.find(x => x.Id === selId) || { CostoUnitario: 0 };
-        $("#cantidadSubrecetaInput").val(1);
+        $("#cantidadRecetaInput").val(1);
         $("#precioSubrecetaInput").val(fmtMon(p.CostoUnitario));
-        $("#totalSubrecetaInput").val(fmtMon(p.CostoUnitario));
+        $("#totalRecetaInput").val(fmtMon(p.CostoUnitario));
     }).trigger('change');
 
-    $("#precioSubrecetaInput").off('input blur').on('input', calcularTotalSubreceta).on('blur', function () {
+    $("#precioSubrecetaInput").off('input blur').on('input', calcularTotalReceta).on('blur', function () {
         this.value = formatMoneda(convertirMonedaAFloat(this.value));
-        calcularTotalSubreceta();
+        calcularTotalReceta();
     });
-    $("#cantidadSubrecetaInput").off('input').on('input', calcularTotalSubreceta);
+    $("#cantidadRecetaInput").off('input').on('input', calcularTotalReceta);
 
-    const $modal = $('#SubrecetasModal');
+    const $modal = $('#RecetasModal');
     $modal.data('edit-index', -1);
-    $('#btnGuardarSubreceta').text('Añadir');
+    $modal.data('edit-key', null);
+    $('#btnGuardarReceta').text('Añadir');
     $('#modalAlertSub').addClass('d-none');
     ccValidators.clearGroup($('#formSubreceta')[0], $('#modalAlertSub')[0]);
     $modal.modal('show');
 }
-function calcularTotalSubreceta() {
+function calcularTotalReceta() {
     const precio = toNumberFromMoney($('#precioSubrecetaInput').val());
-    const cant = fmtN($('#cantidadSubrecetaInput').val());
-    $('#totalSubrecetaInput').val(fmtMon(precio * cant));
+    const cant = fmtN($('#cantidadRecetaInput').val());
+    $('#totalRecetaInput').val(fmtMon(precio * cant));
 }
-function upsertSubreceta({ IdSubrecetaHija, Nombre, CostoUnitario, Cantidad }) {
-    const idx = findRowIndex(gridSubrecetas, r => Number(r.IdSubrecetaHija) === Number(IdSubrecetaHija));
+function upsertSubreceta({ IdSubReceta, Nombre, CostoUnitario, Cantidad }) {
+    const idx = findRowIndex(gridRecetas, r => Number(r.IdSubReceta) === Number(IdSubReceta));
     const subTotal = fmtN(CostoUnitario) * fmtN(Cantidad);
 
     if (idx >= 0) {
-        updateRowByIndex(gridSubrecetas, idx, {
+        updateRowByIndex(gridRecetas, idx, {
             Nombre,
             CostoUnitario: fmtN(CostoUnitario),
             Cantidad: fmtN(Cantidad),
             SubTotal: subTotal
         });
     } else {
-        gridSubrecetas.row.add({
+        gridRecetas.row.add({
             Id: 0,
-            IdSubreceta: Number(IdSubrecetaHija),
-            IdSubrecetaHija: Number(IdSubrecetaHija),
+            IdSubReceta: Number(IdSubReceta),
             Nombre,
             CostoUnitario: fmtN(CostoUnitario),
             Cantidad: fmtN(Cantidad),
-            SubTotal: subTotal
+            SubTotal: subTotal,
+            __keyTempId: Date.now()
         }).draw(false);
     }
 }
 async function guardarSubreceta() {
-    const form = $('#formSubreceta')[0];
-    const alert = $('#modalAlertSub')[0];
+    const form = document.getElementById('formSubreceta');
+    const alert = document.getElementById('modalAlertSub');
+
+    alert?.classList.add('d-none');
+
     const ok = ccValidators.validateGroup(form, alert);
-    if (!ok) return;
-
-    const id = Number($('#SubrecetaSelect').val());
-    const nombre = $('#SubrecetaSelect option:selected').text();
+    if (!ok) {
+        alert?.classList.remove('d-none');
+        form.querySelector('.is-invalid')?.focus();
+        return;
+    }
+    const id = Number($('#RecetaSelect').val());
+    const nombre = $('#RecetaSelect option:selected').text();
     const precio = toNumberFromMoney($('#precioSubrecetaInput').val());
-    const cant = fmtN($('#cantidadSubrecetaInput').val() || 1);
+    const cant = fmtN($('#cantidadRecetaInput').val() || 1);
 
-    const modal = $('#SubrecetasModal');
+    const modal = $('#RecetasModal');
     const editIndex = Number(modal.data('edit-index') ?? -1);
 
     if (editIndex >= 0) {
-        updateRowByIndex(gridSubrecetas, editIndex, {
-            IdSubreceta: id,
-            IdSubrecetaHija: id,
+        updateRowByIndex(gridRecetas, editIndex, {
+            IdSubReceta: id,
             Nombre: nombre,
             CostoUnitario: precio,
             Cantidad: cant,
@@ -438,9 +454,9 @@ async function guardarSubreceta() {
     } else {
         // merge si ya existe
         let merged = false;
-        gridSubrecetas.rows().every(function () {
+        gridRecetas.rows().every(function () {
             const d = this.data();
-            if (parseInt(d.IdSubrecetaHija) === id) {
+            if (parseInt(d.IdSubReceta) === id) {
                 d.Cantidad = fmtN(cant);
                 d.CostoUnitario = precio;
                 d.SubTotal = precio * d.Cantidad;
@@ -448,46 +464,47 @@ async function guardarSubreceta() {
                 merged = true;
             }
         });
-        if (!merged) upsertSubreceta({ IdSubrecetaHija: id, Nombre: nombre, CostoUnitario: precio, Cantidad: cant });
+        if (!merged) upsertSubreceta({ IdSubReceta: id, Nombre: nombre, CostoUnitario: precio, Cantidad: cant });
     }
 
-    modal.modal('hide').data({ 'edit-index': '', 'data-editing': false });
-    calcularDatosSubreceta();
+    modal.modal('hide').data({ 'edit-index': '', 'edit-key': '', 'data-editing': false });
+    calcularDatosReceta();
 }
 async function editarSubreceta(id) {
-    const idx = findRowIndex(gridSubrecetas, r => Number(r.IdSubrecetaHija) === Number(id));
+    const idx = findRowIndex(gridRecetas, r => Number(r.IdSubReceta) === Number(id));
     if (idx < 0) { advertenciaModal("No se encontró la subreceta a editar."); return; }
 
-    const row = gridSubrecetas.row(idx).data();
+    const row = gridRecetas.row(idx).data();
     const IdUnidadNegocio = parseInt($("#UnidadesNegocio").val());
     subrecetasCache = await obtenerSubrecetasUnidadNegocio(IdUnidadNegocio);
 
-    const $sel = $("#SubrecetaSelect").off('change').empty();
-    const actual = subrecetasCache.find(x => x.Id === Number(row.IdSubrecetaHija));
+    const $sel = $("#RecetaSelect").off('change').empty();
+    const actual = subrecetasCache.find(x => x.Id === Number(row.IdSubReceta));
     if (actual) $sel.append(new Option(actual.Descripcion, actual.Id, true, true));
 
-    $("#SubrecetaSelect").prop("disabled", true);
-    $("#cantidadSubrecetaInput").val(row.Cantidad);
+    $("#RecetaSelect").prop("disabled", true);
+    $("#cantidadRecetaInput").val(row.Cantidad);
     $("#precioSubrecetaInput").val(fmtMon(row.CostoUnitario));
-    $("#totalSubrecetaInput").val(fmtMon(row.SubTotal));
+    $("#totalRecetaInput").val(fmtMon(row.SubTotal));
 
-    $("#precioSubrecetaInput").off('input blur').on('input', calcularTotalSubreceta).on('blur', function () {
+    $("#precioSubrecetaInput").off('input blur').on('input', calcularTotalReceta).on('blur', function () {
         this.value = formatMoneda(convertirMonedaAFloat(this.value));
-        calcularTotalSubreceta();
+        calcularTotalReceta();
     });
-    $("#cantidadSubrecetaInput").off('input').on('input', calcularTotalSubreceta);
+    $("#cantidadRecetaInput").off('input').on('input', calcularTotalReceta);
 
-    const $modal = $('#SubrecetasModal');
+    const $modal = $('#RecetasModal');
     $modal.data('edit-index', idx);
-    $('#btnGuardarSubreceta').text('Editar');
+    $modal.data('edit-key', row.__keyTempId || null);
+    $('#btnGuardarReceta').text('Editar');
     $('#modalAlertSub').addClass('d-none');
     ccValidators.clearGroup($('#formSubreceta')[0], $('#modalAlertSub')[0]);
     $modal.modal('show');
 }
 function eliminarSubreceta(id) {
-    const idx = findRowIndex(gridSubrecetas, r => Number(r.IdSubrecetaHija) === Number(id));
-    removeRowByIndex(gridSubrecetas, idx);
-    calcularDatosSubreceta();
+    const idx = findRowIndex(gridRecetas, r => Number(r.IdSubReceta) === Number(id));
+    removeRowByIndex(gridRecetas, idx);
+    calcularDatosReceta();
 }
 
 /* ===== LISTAS / combos ===== */
@@ -502,7 +519,7 @@ async function listaUnidadesNegocio() {
     data.forEach(d => sel.appendChild(new Option(d.Nombre, d.Id)));
 }
 async function listaCategoriasFilter() {
-    const data = await fetchJson(`/SubrecetasCategoria/Lista`, { headers: authHeaders() });
+    const data = await fetchJson(`/RecetasCategoria/Lista`, { headers: authHeaders() });
     return data.map(x => ({ Id: x.Id, Nombre: x.Nombre }));
 }
 async function listaCategorias() {
@@ -534,19 +551,19 @@ async function obtenerSubrecetasUnidadNegocio(id) {
 document.addEventListener('shown.bs.tab', (ev) => {
     const targetId = ev.target?.getAttribute('href');
     if (targetId === '#insumos' && gridInsumos) setTimeout(() => gridInsumos.columns.adjust(), 10);
-    if (targetId === '#SubrecetasDetalle' && gridSubrecetas) setTimeout(() => gridSubrecetas.columns.adjust(), 10);
+    if (targetId === '#Recetas' && gridRecetas) setTimeout(() => gridRecetas.columns.adjust(), 10);
 });
 
 /* ===== Cálculos totales ===== */
-document.getElementById('Rendimiento')?.addEventListener('blur', calcularDatosSubreceta);
-async function calcularDatosSubreceta() {
+document.getElementById('Rendimiento')?.addEventListener('blur', calcularDatosReceta);
+async function calcularDatosReceta() {
     let insumoTotal = 0, subTotal = 0;
 
     if (gridInsumos && gridInsumos.rows().count() > 0) {
         gridInsumos.rows().every(function () { insumoTotal += fmtN(this.data().SubTotal || 0); });
     }
-    if (gridSubrecetas && gridSubrecetas.rows().count() > 0) {
-        gridSubrecetas.rows().every(function () { subTotal += fmtN(this.data().SubTotal || 0); });
+    if (gridRecetas && gridRecetas.rows().count() > 0) {
+        gridRecetas.rows().every(function () { subTotal += fmtN(this.data().SubTotal || 0); });
     }
 
     const costoPorcion = subTotal + insumoTotal;
@@ -556,25 +573,25 @@ async function calcularDatosSubreceta() {
     $("#CostoUnitario").val(fmtMon(costoUnitario));
     $("#CostoPorcion").val(fmtMon(costoPorcion));
     $("#costoInsumos").val(fmtMon(insumoTotal));
-    $("#costoSubrecetas").val(fmtMon(subTotal));
+    $("#costoRecetas").val(fmtMon(subTotal));
 }
 
 /* ===== Guardar ===== */
 function guardarCambios() {
-    // Validación de pantalla (form principal) — exactamente igual al de Recetas
-    const form = document.getElementById('frmSubreceta');
+    // Validación de pantalla (form principal)
+    const form = document.getElementById('frmReceta');
     const alert = document.getElementById('alertRequeridos');
     const ok = ccValidators.validateGroup(form, alert);
     if (!ok) { return; }
 
-    const idSub = $("#idSubreceta").val();
+    const idReceta = $("#idReceta").val();
 
     function obtenerInsumos(grd) {
         const out = [];
         grd.rows().every(function () {
             const x = this.data();
             out.push({
-                "IdSubreceta": idSub ? parseInt(idSub) : 0,
+                "IdReceta": idReceta ? parseInt(idReceta) : 0,
                 "IdInsumo": parseInt(x.IdInsumo),
                 "Id": x.Id ? parseInt(x.Id) : 0,
                 "Nombre": x.Nombre,
@@ -590,7 +607,7 @@ function guardarCambios() {
         grd.rows().every(function () {
             const s = this.data();
             out.push({
-                "IdSubrecetaHija": parseInt(s.IdSubrecetaHija),
+                "IdSubReceta": parseInt(s.IdSubReceta),
                 "Id": s.Id ? parseInt(s.Id) : 0,
                 "Nombre": s.Nombre,
                 "CostoUnitario": parseFloat(s.CostoUnitario),
@@ -602,7 +619,7 @@ function guardarCambios() {
     }
 
     const insumos = obtenerInsumos(gridInsumos);
-    const subrecetas = obtenerSubrecetas(gridSubrecetas);
+    const subrecetas = obtenerSubrecetas(gridRecetas);
 
     if (insumos.length === 0 && subrecetas.length === 0) {
         advertenciaModal("Debes agregar al menos un insumo o subreceta.");
@@ -610,7 +627,7 @@ function guardarCambios() {
     }
 
     const payload = {
-        "Id": idSub ? parseInt(idSub) : 0,
+        "Id": idReceta ? parseInt(idReceta) : 0,
         "IdUnidadNegocio": parseInt($("#UnidadesNegocio").val()),
         "Descripcion": $("#descripcion").val(),
         "Sku": $("#sku").val(),
@@ -619,13 +636,13 @@ function guardarCambios() {
         "CostoPorcion": toNumberFromMoney($("#CostoPorcion").val()),
         "Rendimiento": parseFloat($("#Rendimiento").val()),
         "CostoUnitario": toNumberFromMoney($("#CostoUnitario").val()),
-        "CostoSubrecetas": toNumberFromMoney($("#costoSubrecetas").val()),
+        "CostoSubRecetas": toNumberFromMoney($("#costoRecetas").val()),
         "CostoInsumos": toNumberFromMoney($("#costoInsumos").val()),
-        "SubrecetasInsumos": insumos,
-        "SubrecetasSubrecetaIdSubrecetaPadreNavigations": subrecetas
+        "RecetasInsumos": insumos,
+        "RecetasSubreceta": subrecetas
     };
 
-    const url = payload.Id ? "/Subrecetas/Actualizar" : "/Subrecetas/Insertar";
+    const url = payload.Id ? "/Recetas/Actualizar" : "/Recetas/Insertar";
     const method = payload.Id ? "PUT" : "POST";
 
     fetch(url, {
@@ -636,14 +653,14 @@ function guardarCambios() {
         .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json(); })
         .then(res => {
             if (res.valor) {
-                exitoModal(payload.Id ? "Subreceta modificada correctamente" : "Subreceta registrada correctamente");
-                window.location.href = "/Subrecetas/Index";
+                exitoModal(payload.Id ? "Receta modificada correctamente" : "Receta registrada correctamente");
+                window.location.href = "/Recetas/Index";
             } else {
-                errorModal(res.mensaje || (payload.Id ? "Error al modificar la Subreceta" : "Error al crear la Subreceta"));
+                errorModal(res.mensaje || (payload.Id ? "Error al modificar la Receta" : "Error al crear la Receta"));
             }
         })
         .catch(err => {
             console.error(err);
-            errorModal("Ha ocurrido un error al guardar la Subreceta.");
+            errorModal("Ha ocurrido un error al guardar la Receta.");
         });
 }
