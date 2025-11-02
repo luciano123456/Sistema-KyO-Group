@@ -34,10 +34,12 @@ namespace SistemaKyoGroup.Application.Controllers
         {
             try
             {
-                var Subrecetas = await _SubrecetasService.ObtenerTodos();
+
+                var userId = User.GetUserId();
+
+                var Subrecetas = await _SubrecetasService.ObtenerTodosUnidadNegocio(IdUnidadNegocio, (int)userId);
 
                 var lista = Subrecetas
-                    .Where(x => IdUnidadNegocio == -1 || x.IdUnidadNegocio == IdUnidadNegocio)
                     .Select(c => new VMSubreceta
                     {
                         Id = c.Id,

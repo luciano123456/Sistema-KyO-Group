@@ -12,6 +12,7 @@ namespace SistemaKyoGroup.BLL.Service
 
         Task<bool> InsertarInsumos(List<SubrecetasInsumo> insumos);
         Task<List<SubrecetasInsumo>> ObtenerInsumos(int idSubreceta);
+        Task<IQueryable<Subreceta>> ObtenerTodosUnidadNegocio(int idUnidadNegocio, int userId);
         Task<bool> ActualizarInsumos(List<SubrecetasInsumo> insumos);
     }
 }

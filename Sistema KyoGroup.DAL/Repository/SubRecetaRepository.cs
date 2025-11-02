@@ -360,6 +360,40 @@ namespace SistemaKyoGroup.DAL.Repository
             return await Task.FromResult(query);
         }
 
+        public async Task<IQueryable<Subreceta>> ObtenerTodosUnidadNegocio(int idUnidadNegocio, int userId)
+        {
+            try
+            {
+                // Base: excluir recetas sin unidad (null o 0)
+                var baseQuery = _dbcontext.Subrecetas
+                    .AsNoTracking()
+                    .Where(r => r.IdUnidadNegocio > 0);
+
+                // Unidad puntual: mantener comportamiento original
+                if (idUnidadNegocio != -1)
+                    return await Task.FromResult(baseQuery.Where(r => r.IdUnidadNegocio == idUnidadNegocio));
+
+
+                // Ids de unidades asignadas al usuario
+                var idsPermitidos = await _dbcontext.UsuariosUnidadesNegocios
+                    .AsNoTracking()
+                    .Where(x => x.IdUsuario == userId)
+                    .Select(x => x.IdUnidadNegocio)
+                    .Distinct()
+                    .ToListAsync();
+
+                if (idsPermitidos == null || idsPermitidos.Count == 0)
+                    return Enumerable.Empty<Subreceta>().AsQueryable();
+
+                var filtrado = baseQuery.Where(r => idsPermitidos.Contains(r.IdUnidadNegocio));
+                return await Task.FromResult(filtrado);
+            }
+            catch
+            {
+                return Enumerable.Empty<Subreceta>().AsQueryable();
+            }
+        }
+
         /* ============================================================
          * (Opcional) Métodos legacy — mantenidos por compatibilidad
          *  Si vas a usar Actualizar con DIFF, no los necesitás.

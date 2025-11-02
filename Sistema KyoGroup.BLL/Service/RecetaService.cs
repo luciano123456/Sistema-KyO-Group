@@ -36,9 +36,9 @@ namespace SistemaKyoGroup.BLL.Service
             return await _contactRepo.ObtenerTodos();
         }
 
-        public async Task<IQueryable<Receta>> ObtenerTodosUnidadNegocio(int idUnidadNegocio)
+        public async Task<IQueryable<Receta>> ObtenerTodosUnidadNegocio(int idUnidadNegocio, int userId)
         {
-            return await _contactRepo.ObtenerTodosUnidadNegocio(idUnidadNegocio);
+            return await _contactRepo.ObtenerTodosUnidadNegocio(idUnidadNegocio, userId);
         }
 
         public async Task<bool> InsertarInsumos(List<RecetasInsumo> insumos)

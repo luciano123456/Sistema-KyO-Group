@@ -110,3 +110,277 @@
     border-radius: 999px;
     font-size: .83rem;
 }
+
+/* ==============================
+   ACCESOS (Unidades + Locales)
+   ============================== */
+.acc-container {
+    display: flex;
+    gap: 20px;
+    padding: 10px;
+    color: #e8e8fa;
+    font-size: 14px;
+}
+
+.acc-card {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 14px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+    padding: 15px 20px;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s;
+}
+
+    .acc-card h6 {
+        color: #b7baf9;
+        font-weight: 600;
+        font-size: 15px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+.acc-unit-item {
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.25s;
+}
+
+    .acc-unit-item.active {
+        background: linear-gradient(90deg, rgba(97, 117, 255, 0.2), rgba(50, 60, 150, 0.3));
+        border-color: rgba(97, 117, 255, 0.5);
+    }
+
+    .acc-unit-item:hover {
+        background: rgba(97, 117, 255, 0.15);
+        cursor: pointer;
+    }
+
+.acc-unit-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #f1f1ff;
+    font-weight: 500;
+}
+
+.acc-permit {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #c8c8f8;
+    font-size: 13px;
+}
+
+    .acc-permit input[type="checkbox"],
+    .acc-selectall input[type="checkbox"],
+    #accLocalesList input[type="checkbox"] {
+        accent-color: #7481ff;
+        transform: scale(1.1);
+        cursor: pointer;
+    }
+
+#accLocalesList {
+    max-height: 280px;
+    overflow-y: auto;
+    margin-top: 8px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+    #accLocalesList label {
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        color: #f5f5ff;
+        cursor: pointer;
+    }
+
+        #accLocalesList label:last-child {
+            border-bottom: none;
+        }
+
+.acc-selectall {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    font-size: 13px;
+    color: #c8c8f8;
+    margin-bottom: 5px;
+}
+
+#accResumenChips {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    gap: 6px;
+}
+
+    #accResumenChips .badge {
+        background: rgba(110, 130, 255, 0.15);
+        border: 1px solid rgba(150, 160, 255, 0.3);
+        color: #dfe2ff;
+        font-size: 12px;
+        padding: 6px 10px;
+        border-radius: 20px;
+    }
+
+
+/* Estado activo de la unidad seleccionada */
+.acc-units-list .list-group-item.unit-active {
+    background: rgba(90,120,255,.14);
+    border-color: rgba(120,150,255,.45);
+    box-shadow: inset 0 0 0 1px rgba(140,170,255,.25);
+    transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+
+/* ===== Modal más compacto ===== */
+.modal-edicion .modal-dialog {
+    max-width: 980px;
+}
+
+.cc-modal {
+    padding: 6px 6px 0 6px;
+}
+
+/* ===== Toast lindo abajo-derecha del modal ===== */
+/* Toast abajo-izquierda: como mucho la mitad del modal */
+.acc-toast {
+    position: absolute;
+    left: 18px;
+    right: auto !important; /* evita que se estire por alguna regla previa */
+    bottom: 14px;
+    /* tamaño/comportamiento */
+    max-width: 48%; /* <= la mitad aprox */
+    width: auto; /* que se adapte al contenido */
+    display: inline-flex; /* evita expandirse a toda la fila */
+    white-space: normal; /* permite varias líneas */
+    word-break: break-word; /* corta si hay palabras largas */
+    pointer-events: none;
+    /* look & feel */
+    background: rgba(10,12,20,.86);
+    color: #f6f7fb;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.12);
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    font-size: .92rem;
+    gap: 8px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all .22s ease;
+    z-index: 1085;
+}
+
+    .acc-toast.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+/* En pantallas chicas, que use casi todo el ancho */
+@media (max-width: 768px) {
+    .acc-toast {
+        left: 12px;
+        right: 12px !important;
+        max-width: none;
+        width: auto;
+    }
+}
+
+
+
+/* ===== Unidades de negocio (compacto) ===== */
+.acc-units-list.slim {
+    max-height: 360px;
+    overflow: auto;
+    padding-right: 6px;
+}
+
+.acc-units-list .list-group-item {
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 12px;
+    background: rgba(255,255,255,.04);
+    color: #e7e9fb;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+}
+
+.acc-units-list .unit-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.acc-units-list .unit-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.acc-units-list .badge {
+    font-weight: 600;
+}
+
+/* ===== Lista de locales ===== */
+#accLocalesList {
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px;
+    min-height: 220px;
+}
+
+    #accLocalesList .list-group-item {
+        background: transparent;
+        border: 0;
+        border-bottom: 1px solid rgba(255,255,255,.06);
+        color: #e7e9fb;
+        padding: 8px 10px;
+    }
+
+        #accLocalesList .list-group-item:last-child {
+            border-bottom: 0;
+        }
+
+/* ===== Chips resumen ===== */
+.acc-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.06);
+    border-radius: 16px;
+    padding: 6px 10px;
+    margin: 4px 6px 0 0;
+}
+
+    .acc-chip .x {
+        cursor: pointer;
+        opacity: .85
+    }
+
+        .acc-chip .x:hover {
+            opacity: 1
+        }
+
+/* Toolbar accesos */
+.acc-toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+}

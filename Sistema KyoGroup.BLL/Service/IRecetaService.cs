@@ -9,7 +9,7 @@ namespace SistemaKyoGroup.BLL.Service
         Task<bool> Eliminar(int id);
         Task<Receta> Obtener(int id);
         Task<IQueryable<Receta>> ObtenerTodos();
-        Task<IQueryable<Receta>> ObtenerTodosUnidadNegocio(int idUnidadNegocio);
+        Task<IQueryable<Receta>> ObtenerTodosUnidadNegocio(int idUnidadNegocio, int userId);
 
         Task<bool> InsertarInsumos(List<RecetasInsumo> insumos);
         Task<List<RecetasInsumo>> ObtenerInsumos(int idReceta);

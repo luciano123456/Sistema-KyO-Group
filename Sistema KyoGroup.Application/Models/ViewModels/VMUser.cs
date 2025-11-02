@@ -25,9 +25,9 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
     public class VMUnidadAsignada
     {
         public int IdUnidadNegocio { get; set; }
-        public bool TodosLocales { get; set; }
-        public List<int> LocalesIds { get; set; } = new();
-
+        public bool Enabled { get; set; }              // << NUEVO: acceso habilitado a la unidad
+        public bool TodosLocales { get; set; }         // true => todos los locales de esa unidad
+        public List<int> LocalesIds { get; set; } = new(); // subset explícito (solo si TodosLocales=false)
         public string? NombreUnidad { get; set; }
     }
 }
