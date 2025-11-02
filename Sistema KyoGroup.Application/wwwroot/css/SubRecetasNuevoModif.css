@@ -2750,3 +2750,26 @@ input[type="date"]::-webkit-calendar-picker-indicator{ filter: invert(1) ... }
 #fechaReceta {
     color-scheme: white;
 }
+
+
+/* helpers mínimos para el banner y mensajes */
+.cc-error {
+    font-size: .85rem;
+    color: #ff7a7a;
+    margin-top: 4px;
+    display: none;
+}
+
+.cc-invalid {
+    border-color: #ff7a7a !important;
+}
+
+#formAlert, #modalAlertInsumo, #modalAlertSub {
+    width: 100%;
+    margin-top: 12px;
+    background: linear-gradient(180deg, rgba(255,105,97,.08), rgba(255,105,97,.04));
+    border: 1px solid rgba(255,105,97,.35);
+    color: #ffd3d3;
+    padding: 12px 16px;
+    border-radius: 12px;
+}

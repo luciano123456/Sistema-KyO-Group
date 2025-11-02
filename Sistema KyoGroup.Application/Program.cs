@@ -65,6 +65,12 @@ builder.Services.AddScoped<ISubrecetasCategoriaService, SubrecetasCategoriaServi
 builder.Services.AddScoped<ISubrecetaRepository<Subreceta>, SubrecetaRepository>();
 builder.Services.AddScoped<ISubrecetaService, SubrecetaService>();
 
+builder.Services.AddScoped<IRecetasCategoriaRepository<RecetasCategoria>, RecetasCategoriaRepository>();
+builder.Services.AddScoped<IRecetasCategoriaService, RecetasCategoriaService>();
+
+builder.Services.AddScoped<IRecetaRepository<Receta>, RecetaRepository>();
+builder.Services.AddScoped<IRecetaService, RecetaService>();
+
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o =>
     {

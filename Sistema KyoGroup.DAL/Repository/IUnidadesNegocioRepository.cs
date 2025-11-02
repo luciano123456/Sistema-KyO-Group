@@ -15,5 +15,6 @@ namespace SistemaKyoGroup.DAL.Repository
         Task<bool> Insertar(UnidadesNegocio model);
         Task<UnidadesNegocio> Obtener(int id);
         Task<IQueryable<UnidadesNegocio>> ObtenerTodos();
+        Task<IQueryable<UnidadesNegocio>> ObtenerTodosUsuario(int idUsuario);
     }
 }

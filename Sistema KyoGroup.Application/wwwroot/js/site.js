@@ -313,3 +313,171 @@ function setInfoAuditoria(vm) {
         el.textContent = "";
     }
 }
+
+
+/* =========================================================================
+ * cc.validators.js  — Validaciones genéricas para pantallas y modales
+ * ========================================================================= */
+
+(function (w) {
+    const $ = (sel, ctx = document) => ctx.querySelector(sel);
+    const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
+
+    const hasFn = name => typeof w[name] === 'function';
+
+    function moneyToNumber(v) {
+        try {
+            if (hasFn('convertirMonedaAFloat')) return parseFloat(convertirMonedaAFloat(v));
+            // Fallback robusto
+            if (typeof v === 'number') return v;
+            const s = String(v ?? '').replace(/\s/g, '');
+            // admite $ . , negativos
+            const cleaned = s.replace(/[^0-9,\.\-]/g, '');
+            // si tiene coma y punto, asumimos coma decimal
+            if (cleaned.includes(',') && cleaned.includes('.')) {
+                const lastComma = cleaned.lastIndexOf(',');
+                const a = cleaned.slice(0, lastComma).replace(/[^\d\-]/g, '');
+                const b = cleaned.slice(lastComma + 1).replace(/[^\d]/g, '');
+                return parseFloat(`${a}.${b}`);
+            }
+            // si solo tiene coma, la usamos como decimal
+            if (cleaned.includes(',') && !cleaned.includes('.')) {
+                return parseFloat(cleaned.replace(/\./g, '').replace(',', '.'));
+            }
+            return parseFloat(cleaned.replace(/,/g, ''));
+        } catch { return 0; }
+    }
+
+    function isEmpty(v) {
+        if (v === null || v === undefined) return true;
+        if (typeof v === 'string') return v.trim() === '';
+        return false;
+    }
+
+    function showError(input, message) {
+        input.classList.add('is-invalid');
+        const fb = input.parentElement?.querySelector('.invalid-feedback');
+        if (fb) {
+            fb.textContent = message || fb.getAttribute('data-msg-required') || 'Campo requerido';
+            fb.classList.remove('d-none');
+        }
+    }
+    function showMinError(input) {
+        input.classList.add('is-invalid');
+        const fb = input.parentElement?.querySelector('.invalid-feedback');
+        if (fb) {
+            fb.textContent = fb.getAttribute('data-msg-min') || 'Valor inválido';
+            fb.classList.remove('d-none');
+        }
+    }
+    function clearError(input) {
+        input.classList.remove('is-invalid');
+        const fb = input.parentElement?.querySelector('.invalid-feedback');
+        if (fb) fb.classList.add('d-none');
+    }
+
+    function validateInput(input, opts = {}) {
+        const required = input.dataset.required === 'true' || opts.required;
+
+        // ✅ Aceptar data-min o data-gt
+        const minAttr = (input.dataset.min ?? input.dataset.gt);
+        const min = (minAttr !== undefined && minAttr !== null)
+            ? parseFloat(minAttr)
+            : (opts.min ?? null);
+
+        if (required) {
+            const val = input.value;
+            if (isEmpty(val) || val === '-1') return { valid: false, why: 'required' };
+        }
+
+        if (min !== null && !isNaN(min)) {
+            const num = (input.type === 'number') ? parseFloat(input.value) : moneyToNumber(input.value);
+            if (!(isFinite(num) && num > min - 1e-15)) return { valid: false, why: 'min' };
+        }
+        return { valid: true };
+    }
+
+    function autoHideOnInput(scope, alertEl) {
+        const $$ = (s, c = document) => Array.from(c.querySelectorAll(s));
+        const fields = $$('[data-required], [data-min], [data-gt]', scope);
+
+        fields.forEach(el => {
+            ['input', 'change', 'blur'].forEach(evt => {
+                el.addEventListener(evt, () => {
+                    const res = validateInput(el);
+                    if (!res.valid) {
+                        if (res.why === 'required') showError(el);
+                        else if (res.why === 'min') showMinError(el);
+                        alertEl?.classList.remove('d-none');             // 🔔 mostrar banner
+                    } else {
+                        clearError(el);
+                    }
+                    const allOk = $$('[data-required], [data-min], [data-gt]', scope)
+                        .every(x => validateInput(x).valid);
+                    if (allOk) alertEl?.classList.add('d-none');       // ✅ ocultar cuando todo ok
+                });
+            });
+        });
+    }
+
+
+
+    function bindBlurValidation(scope) {
+        $$('[data-required], [data-min]', scope).forEach(el => {
+            el.addEventListener('blur', () => {
+                const res = validateInput(el);
+                if (!res.valid) {
+                    if (res.why === 'required') showError(el);
+                    else if (res.why === 'min') showMinError(el);
+                } else {
+                    clearError(el);
+                }
+            });
+            // también en change de selects/inputs para revalidar
+            el.addEventListener('change', () => {
+                const res = validateInput(el);
+                if (!res.valid) {
+                    if (res.why === 'required') showError(el);
+                    else if (res.why === 'min') showMinError(el);
+                } else {
+                    clearError(el);
+                }
+            });
+        });
+    }
+
+    function validateGroup(scope, alertEl) {
+        const fields = $$('[data-required], [data-min]', scope);
+        let ok = true;
+        fields.forEach(el => {
+            const res = validateInput(el);
+            if (!res.valid) {
+                ok = false;
+                if (res.why === 'required') showError(el);
+                else if (res.why === 'min') showMinError(el);
+            } else {
+                clearError(el);
+            }
+        });
+        if (alertEl) {
+            if (!ok) alertEl.classList.remove('d-none');
+            else alertEl.classList.add('d-none');
+        }
+        return ok;
+    }
+
+    function clearGroup(scope, alertEl) {
+        $$('[data-required], [data-min]', scope).forEach(clearError);
+        if (alertEl) alertEl.classList.add('d-none');
+    }
+
+    // Expose
+    w.ccValidators = {
+        moneyToNumber,
+        validateInput,
+        bindBlurValidation,
+        validateGroup,
+        clearGroup,
+        autoHideOnInput      // <— NUEVO
+    };
+})(window);

@@ -38,6 +38,11 @@ namespace SistemaKyoGroup.BLL.Service
             return await _contactRepo.ObtenerTodos();
         }
 
+        public async Task<IQueryable<UnidadesNegocio>> ObtenerTodosUsuario(int idUsuario)
+        {
+            return await _contactRepo.ObtenerTodosUsuario(idUsuario);
+        }
+
 
 
     }
