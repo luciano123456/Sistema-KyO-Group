@@ -32,7 +32,10 @@ namespace SistemaKyoGroup.Application.Controllers
         {
             try
             {
-                var recetas = await _recetasService.ObtenerTodosUnidadNegocio(IdUnidadNegocio);
+
+                var userId = User.GetUserId();
+
+                var recetas = await _recetasService.ObtenerTodosUnidadNegocio(IdUnidadNegocio, (int)userId);
 
                 var lista = recetas
                     .Select(c => new VMReceta

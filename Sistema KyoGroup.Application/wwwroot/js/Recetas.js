@@ -383,7 +383,7 @@ $(document).on('click', function (e) {
 
 /* ================== LISTAS PARA COMBOS ================== */
 async function listaUnidadesNegocioFilter() {
-    const url = `/UnidadesNegocio/Lista`;
+    const url = `/UnidadesNegocio/ListaUsuario`;
     const data = await fetchJson(url, { headers: authHeaders() });
     return data.map(x => ({ Id: x.Id, Nombre: x.Nombre }));
 }

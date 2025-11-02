@@ -11,14 +11,13 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-    <!-- Estilos base del proyecto -->
-
+    <!-- Estilos base -->
     <link rel="stylesheet" href="~/css/usuarios.css" />
-    <link rel="stylesheet" href="~/css/DisenoPantallas.css"/>
+    <link rel="stylesheet" href="~/css/DisenoPantallas.css" />
 }
 
 <div class="container page-99">
-    <!-- Header tipo KPI -->
+    <!-- Header KPI -->
     <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
         <div class="d-flex align-items-center gap-3 flex-wrap">
             <div class="d-flex align-items-center gap-3">
@@ -28,8 +27,6 @@
                     <small class="text-muted-cc">Administración y acciones rápidas</small>
                 </div>
             </div>
-
-            <!-- KPIs -->
             <div class="ms-auto d-flex gap-3 flex-wrap">
                 <div class="cc-stat">
                     <div class="label">Cantidad</div>
@@ -44,11 +41,8 @@
         <div class="col-12">
             <div class="card-glass p-3">
                 <div class="tabla-wrap position-relative">
-
-                    <!-- Controles top -->
                     <div class="tabla-controls-top d-flex gap-2 flex-wrap align-items-center mb-2">
-                        <button class="btn btn-new d-flex align-items-center px-3 py-2 ms-auto"
-                                onclick="nuevoUsuario()">
+                        <button class="btn btn-new d-flex align-items-center px-3 py-2 ms-auto" onclick="nuevoUsuario()">
                             <i class="fa fa-plus-square me-2"></i> Nuevo Usuario
                         </button>
 
@@ -61,7 +55,6 @@
                         </div>
                     </div>
 
-                    <!-- DataTable -->
                     <div class="dt-dark-wrap">
                         <table class="dt-dark display nowrap compact" id="grd_Usuarios" style="width:100%">
                             <thead>
@@ -81,21 +74,25 @@
                         </table>
                     </div>
 
-                </div><!-- /tabla-wrap -->
-            </div><!-- /card-glass -->
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-
-<!-- Modal Usuarios (compacto con tabs) -->
+<!-- Modal Usuarios -->
 <div class="modal fade" id="modalEdicion" tabindex="-1" aria-labelledby="modalEdicionLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-edicion">
-        <div class="modal-content cc-modal">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-edicion">
+        <div class="modal-content cc-modal position-relative">
+            <!-- Toast -->
+          
+
             <div class="modal-header colorEncabezado">
                 <h5 class="modal-title fw-bold" id="modalEdicionLabel">Editar Usuario</h5>
                 <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
+
+              <div id="accToast" class="acc-toast"><i class="fa fa-info-circle"></i><span id="accToastMsg">Listo.</span></div>
 
             <div class="modal-body">
                 <!-- NAV TABS -->
@@ -162,7 +159,7 @@
                                 </select>
                             </div>
 
-                            <!-- Línea 4 (passwords compactas) -->
+                            <!-- Línea 4 -->
                             <div class="col-md-4" id="divContrasena">
                                 <label for="txtContrasena" class="form-label" id="lblContrasena">Contraseña (*)</label>
                                 <div class="input-group">
@@ -184,7 +181,6 @@
                                 </div>
                             </div>
 
-                            <!-- Alert genérico de validación -->
                             <div class="col-12">
                                 <div id="errorCampos" class="alert alert-danger d-none mt-2">
                                     Debes completar los campos requeridos.
@@ -195,17 +191,31 @@
 
                     <!-- Pestaña: Accesos -->
                     <div class="tab-pane fade" id="pane-accesos" Rol="tabpanel" aria-labelledby="tab-accesos">
-                        <div class="row g-3">
-                            <!-- Unidades -->
-                            <div class="col-12 col-lg-4">
-                                <div class="card-glass p-3 h-100">
-                                    <h6 class="fw-bold mb-2"><i class="fa fa-building-o me-2"></i>Unidades de Negocio</h6>
-                                    <div id="accUnidadesList" class="list-group acc-units-list"></div>
-                                </div>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h6 class="fw-bold m-0"><i class="fa fa-sitemap me-2"></i>Accesos por Unidades & Locales</h6>
+                            <div class="acc-toolbar">
+                                <button type="button" id="btnQuitarTodo" class="btn btn-outline-danger btn-sm">
+                                    <i class="fa fa-ban me-1"></i> Quitar acceso a TODO
+                                </button>
+                                <button type="button" id="btnRefrescarAccesos" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fa fa-refresh me-1"></i> Refrescar
+                                </button>
                             </div>
+                        </div>
 
-                            <!-- Locales -->
-                            <div class="col-12 col-lg-8">
+                      
+
+                        <div class="row g-3">
+
+                              <div class="col-12 col-lg-5">
+                            <div class="card-glass p-3 h-100">
+                                <h6 class="fw-bold mb-2"><i class="fa fa-building-o me-2"></i>Unidades de Negocio</h6>
+                                <div id="accUnidadesList" class="list-group acc-units-list slim"></div>
+                            </div>
+                        </div>
+
+                            <!-- Locales (IZQUIERDA) -->
+                            <div class="col-12 col-lg-7">
                                 <div class="card-glass p-3 h-100">
                                     <div class="d-flex align-items-center justify-content-between mb-2" id="cardLocalesHeader">
                                         <h6 class="fw-bold m-0"><i class="fa fa-map-marker me-2"></i>Locales</h6>
@@ -215,11 +225,13 @@
                                         </div>
                                     </div>
 
-                                    <!-- El JS reemplaza este select por una lista de checkboxes -->
-                                    <select id="accLocalesMulti" class="form-control" multiple size="10" disabled></select>
-                                    <div id="accLocalesList" class="list-group" style="border:1px solid rgba(255,255,255,.12);border-radius:12px;min-height:220px;"></div>
+                                    <!-- SOLO lista de checkboxes (sin select oculto) -->
+                                    <div id="accLocalesList" class="list-group"></div>
                                 </div>
                             </div>
+
+                            <!-- Unidades (DERECHA) -->
+                            
                         </div>
 
                         <!-- Resumen chips -->
@@ -239,29 +251,14 @@
 <partial name="~/Views/Utils/Modals.cshtml" />
 
 @section Scripts {
-
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-
-@*SCRIPTS DE BOTONES*@
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js">
-
-    </script><script src="~/js/site.js"></script>
-
-@*excel*@
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="~/js/site.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-
-@*pdf*@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-
-@*imprimir*@
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
-
-@*filter columns*@
     <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
-
-
-    <script src="~/js/Usuarios.js?v=1.2"></script>
-
+    <script src="~/js/Usuarios.js?v=1.5"></script>
 }

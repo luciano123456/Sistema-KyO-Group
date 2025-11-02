@@ -15,6 +15,7 @@ namespace SistemaKyoGroup.DAL.Repository
         Task<bool> Insertar(Subreceta model);
         Task<Subreceta> Obtener(int id);
         Task<IQueryable<Subreceta>> ObtenerTodos();
+        Task<IQueryable<Subreceta>> ObtenerTodosUnidadNegocio(int idUnidadNegocio, int userId);
         Task<bool> InsertarInsumos(List<SubrecetasInsumo> insumos);
         Task<List<SubrecetasInsumo>> ObtenerInsumos(int idSubreceta);
         Task<bool> ActualizarInsumos(List<SubrecetasInsumo> insumos);

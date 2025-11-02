@@ -13,41 +13,25 @@ namespace SistemaKyoGroup.Application.Controllers
     public class UsuariosController : Controller
     {
         private readonly IUsuariosService _Usuarioservice;
-        private readonly SessionHelper _sessionHelper;  // Inyección de SessionHelper
+        private readonly SessionHelper _sessionHelper;  // si lo usás, inyectalo por ctor
 
-        public UsuariosController(IUsuariosService Usuarioservice)
+        public UsuariosController(IUsuariosService Usuarioservice /*, SessionHelper sessionHelper*/)
         {
             _Usuarioservice = Usuarioservice;
+            //_sessionHelper = sessionHelper;
         }
 
         [AllowAnonymous]
-        public IActionResult Index()
-        {
-            return View();
-        }
-
+        public IActionResult Index() => View();
 
         public async Task<IActionResult> Configuracion()
         {
-            // Obtener el usuario actual desde la sesión usando el helper inyectado
             var userSession = await SessionHelper.GetUsuarioSesion(HttpContext);
+            if (userSession == null) return RedirectToAction("Login", "Index");
 
-            // Si no se pudo obtener el usuario de la sesión
-            if (userSession == null)
-            {
-                return RedirectToAction("Login", "Index");
-            }
-
-            // Obtener los detalles del usuario desde la base de datos
             var user = await _Usuarioservice.Obtener(userSession.Id);
+            if (user == null) return RedirectToAction("Login", "Index");
 
-            // Si el usuario no existe, redirigir al login
-            if (user == null)
-            {
-                return RedirectToAction("Login", "Index");
-            }
-
-            // Pasar los datos del usuario a la vista
             return View(user);
         }
 
@@ -74,7 +58,6 @@ namespace SistemaKyoGroup.Application.Controllers
             return Ok(lista);
         }
 
-
         [HttpPost]
         public async Task<IActionResult> Insertar([FromBody] VMUser model)
         {
@@ -100,11 +83,16 @@ namespace SistemaKyoGroup.Application.Controllers
                 var creado = await _Usuarioservice.ObtenerUsuario(model.Usuario);
                 if (creado != null)
                 {
-                    var unidades = model.Unidades.Select(x => x.IdUnidadNegocio).Distinct().ToList();
+                    // Solo unidades habilitadas
+                    var unidades = model.Unidades
+                        .Where(x => x.Enabled)
+                        .Select(x => x.IdUnidadNegocio)
+                        .Distinct()
+                        .ToList();
 
-                    // Diccionario unidad -> lista de locales (solo cuando es subset)
+                    // Subset de locales (solo cuando NO es todos)
                     var localesPorUnidad = model.Unidades
-                        .Where(x => !x.TodosLocales && x.LocalesIds != null && x.LocalesIds.Count > 0)
+                        .Where(x => x.Enabled && !x.TodosLocales && x.LocalesIds != null && x.LocalesIds.Count > 0)
                         .ToDictionary(
                             x => x.IdUnidadNegocio,
                             x => (IReadOnlyCollection<int>)x.LocalesIds.Distinct().ToList()
@@ -121,7 +109,6 @@ namespace SistemaKyoGroup.Application.Controllers
         public async Task<IActionResult> Actualizar([FromBody] VMUser model)
         {
             var passwordHasher = new PasswordHasher<User>();
-
             var userbase = await _Usuarioservice.Obtener(model.Id);
             var nombreUsuario = await _Usuarioservice.ObtenerUsuario(model.Usuario);
 
@@ -151,12 +138,16 @@ namespace SistemaKyoGroup.Application.Controllers
 
             bool ok = await _Usuarioservice.Actualizar(userbase);
 
-            if (ok && model.Unidades?.Any() == true)
+            if (ok)
             {
-                var unidades = model.Unidades.Select(x => x.IdUnidadNegocio).Distinct().ToList();
+                var unidades = model.Unidades
+                    .Where(x => x.Enabled)
+                    .Select(x => x.IdUnidadNegocio)
+                    .Distinct()
+                    .ToList();
 
                 var localesPorUnidad = model.Unidades
-                    .Where(x => !x.TodosLocales && x.LocalesIds != null && x.LocalesIds.Count > 0)
+                    .Where(x => x.Enabled && !x.TodosLocales && x.LocalesIds != null)
                     .ToDictionary(
                         x => x.IdUnidadNegocio,
                         x => (IReadOnlyCollection<int>)x.LocalesIds.Distinct().ToList()
@@ -168,15 +159,10 @@ namespace SistemaKyoGroup.Application.Controllers
             return Ok(new { valor = ok ? "OK" : "Error" });
         }
 
-
-
-
-
         [HttpDelete]
         public async Task<IActionResult> Eliminar(int id)
         {
             bool respuesta = await _Usuarioservice.Eliminar(id);
-
             return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
         }
 
@@ -184,15 +170,8 @@ namespace SistemaKyoGroup.Application.Controllers
         public async Task<IActionResult> EditarInfo(int id)
         {
             var Usuario = await _Usuarioservice.Obtener(id);
-
-            if (Usuario != null)
-            {
-                return StatusCode(StatusCodes.Status200OK, Usuario);
-            }
-            else
-            {
-                return StatusCode(StatusCodes.Status404NotFound);
-            }
+            if (Usuario != null) return StatusCode(StatusCodes.Status200OK, Usuario);
+            return StatusCode(StatusCodes.Status404NotFound);
         }
 
         [HttpGet]
@@ -201,29 +180,29 @@ namespace SistemaKyoGroup.Application.Controllers
             var unidades = await _Usuarioservice.ObtenerUnidadesDeUsuario(idUsuario);
             var locales = await _Usuarioservice.ObtenerLocalesDeUsuario(idUsuario);
 
-            // Agrupo por unidad (sin HasValue)
-            // - IdLocalNavigation puede venir null: filtro por != null
-            // - IdLocal es int? : uso GetValueOrDefault() y luego filtro > 0
+            // Agrupo locales por unidad (desde la navegación del Local)
             var localesPorUnidad = locales
                 .Where(l => l.IdLocalNavigation != null)
-                .GroupBy(l => l.IdLocalNavigation.IdUnidadNegocio)       // int (no nullable)
+                .GroupBy(l => l.IdLocalNavigation.IdUnidadNegocio)
                 .ToDictionary(
                     g => g.Key,
-                    g => g.Select(x => x.IdLocal)     // int
-                          .Where(id => id > 0)                            // descarto nulls/0
-                          .ToList()                                       // List<int>
+                    g => g.Select(x => x.IdLocal)
+                          .Where(id => id > 0)
+                          .ToList()
                 );
 
+            // Devuelvo SOLO las unidades asignadas (Enabled = true).
+            // El front tiene el catálogo completo y pinta todas; las no listadas acá quedan con Enabled=false por defecto.
             var vm = unidades.Select(u =>
             {
-                int idU = (u.IdUnidadNegocio != null) ? u.IdUnidadNegocio : 0;
-
-                localesPorUnidad.TryGetValue(idU, out List<int> lst);
+                int idU = u.IdUnidadNegocio;
+                localesPorUnidad.TryGetValue(idU, out List<int>? lst);
                 bool todos = (lst == null) || (lst.Count == 0);
 
                 return new VMUnidadAsignada
                 {
                     IdUnidadNegocio = idU,
+                    Enabled = true,               // está asignada
                     TodosLocales = todos,
                     LocalesIds = lst ?? new List<int>(),
                     NombreUnidad = u.IdUnidadNegocioNavigation?.Nombre
@@ -233,15 +212,7 @@ namespace SistemaKyoGroup.Application.Controllers
             return Ok(vm);
         }
 
-
-
-
-
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+        public IActionResult Privacy() => View();
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

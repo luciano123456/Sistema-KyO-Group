@@ -17,10 +17,18 @@ const Modelo_base = {
     Nombre: "",
     Telefono: "",
     Direccion: "",
+};
+
+/* === Helper para coalescer Pascal/camel por si el backend cambia === */
+function pick(row, prop) {
+    if (!row) return '';
+    if (prop in row) return row[prop];
+    const camel = prop.substring(0, 1).toLowerCase() + prop.substring(1);
+    if (camel in row) return row[camel];
+    return '';
 }
 
 $(document).ready(() => {
-
     listaUsuarios();
 
     document.querySelectorAll("#modalEdicion input, #modalEdicion select, #modalEdicion textarea").forEach(el => {
@@ -29,9 +37,9 @@ $(document).ready(() => {
         el.addEventListener("change", () => validarCampoIndividual(el));
         el.addEventListener("blur", () => validarCampoIndividual(el));
     });
+});
 
-})
-
+/* ======================== GUARDAR ======================== */
 function guardarCambios() {
     if (validarCampos()) {
         const idUsuario = $("#txtId").val();
@@ -48,12 +56,11 @@ function guardarCambios() {
             "Contrasena": idUsuario === "" ? $("#txtContrasena").val() : "",
             "ContrasenaNueva": $("#txtContrasenaNueva").val(),
             "CambioAdmin": 1,
-            "Unidades": acc_buildPayload(),
+            "Unidades": acc_buildPayload(), // <<=== payload accesos
         };
 
         const url = idUsuario === "" ? "/Usuarios/Insertar" : "/Usuarios/Actualizar";
         const method = idUsuario === "" ? "POST" : "PUT";
-
 
         fetch(url, {
             method: method,
@@ -87,8 +94,6 @@ function guardarCambios() {
     }
 }
 
-
-
 function nuevoUsuario() {
     limpiarModal();
     listaEstados();
@@ -101,17 +106,15 @@ function nuevoUsuario() {
 
     document.getElementById("divContrasena").removeAttribute("hidden");
     document.getElementById("divContrasenaNueva").setAttribute("hidden", "hidden");
-
 }
-async function mostrarModal(modelo) {
 
+async function mostrarModal(modelo) {
     limpiarModal();
     await acc_initUI(modelo.Id);
     activarTabDatos();
+
     const campos = ["Id", "Usuario", "Nombre", "Apellido", "Dni", "Telefono", "Direccion", "Contrasena", "ContrasenaNueva"];
-    campos.forEach(campo => {
-        $(`#txt${campo}`).val(modelo[campo]);
-    });
+    campos.forEach(campo => { $(`#txt${campo}`).val(modelo[campo]); });
 
     await listaEstados();
     await listaRoles();
@@ -122,11 +125,9 @@ async function mostrarModal(modelo) {
 
     document.getElementById("divContrasena").setAttribute("hidden", "hidden");
     document.getElementById("divContrasenaNueva").removeAttribute("hidden");
-
-
-
 }
 
+/* ======================== LISTA / DT ======================== */
 async function listaUsuarios() {
     let paginaActual = gridUsuarios != null ? gridUsuarios.page() : 0;
     const url = `/Usuarios/Lista`;
@@ -152,7 +153,7 @@ async function listaUsuarios() {
 }
 
 const editarUsuario = id => {
-    $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
+    $('.acciones-dropdown').hide();
 
     fetch("/Usuarios/EditarInfo?id=" + id, {
         method: 'GET',
@@ -172,41 +173,32 @@ const editarUsuario = id => {
                 throw new Error("Ha ocurrido un error.");
             }
         })
-        .catch(error => {
-            errorModal("Ha ocurrido un error.");
-        });
+        .catch(() => errorModal("Ha ocurrido un error."));
 };
 
-
 async function eliminarUsuario(id) {
-    $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
+    $('.acciones-dropdown').hide();
     const confirmado = await confirmarModal("¿Desea eliminar este usuario?");
     if (!confirmado) return;
 
-    if (confirmado) {
-        try {
-
-            const response = await fetch("/Usuarios/Eliminar?id=" + id, {
-                method: "DELETE",
-                headers: {
-                    'Authorization': 'Bearer ' + token,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error("Error al eliminar el Usuario.");
+    try {
+        const response = await fetch("/Usuarios/Eliminar?id=" + id, {
+            method: "DELETE",
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
             }
+        });
 
-            const dataJson = await response.json();
+        if (!response.ok) throw new Error("Error al eliminar el Usuario.");
 
-            if (dataJson.valor) {
-                listaUsuarios();
-                exitoModal("Usuario eliminado correctamente");
-            }
-        } catch (error) {
-            console.error("Ha ocurrido un error:", error);
+        const dataJson = await response.json();
+        if (dataJson.valor) {
+            listaUsuarios();
+            exitoModal("Usuario eliminado correctamente");
         }
+    } catch (error) {
+        console.error("Ha ocurrido un error:", error);
     }
 }
 
@@ -224,20 +216,21 @@ async function configurarDataTable(data) {
             scrollCollapse: true,
             columns: [
                 {
-                    data: "Id",
+                    data: null,
                     title: '',
-                    width: "1%", // Ancho fijo para la columna
-                    render: function (data) {
+                    width: "1%",
+                    render: function (_data, _type, row) {
+                        const id = pick(row, 'Id');
                         return `
-                <div class="acciones-menu" data-id="${data}">
-                    <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
+                <div class="acciones-menu" data-id="${id}">
+                    <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${id})' title='Acciones'>
                         <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
                     </button>
                     <div class="acciones-dropdown" style="display: none;">
-                        <button class='btn btn-sm btneditar' type='button' onclick='editarUsuario(${data})' title='Editar'>
+                        <button class='btn btn-sm btneditar' type='button' onclick='editarUsuario(${id})' title='Editar'>
                             <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
                         </button>
-                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarUsuario(${data})' title='Eliminar'>
+                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarUsuario(${id})' title='Eliminar'>
                             <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
                         </button>
                     </div>
@@ -246,21 +239,20 @@ async function configurarDataTable(data) {
                     orderable: false,
                     searchable: false,
                 },
-                { data: 'Usuario' },
-                { data: 'Nombre' },
-                { data: 'Apellido' },
-                { data: 'Dni' },
-                { data: 'Telefono' },
-                { data: 'Direccion' },
-                { data: 'Rol' },
+                { data: null, render: (_d, _t, row) => pick(row, 'Usuario') },
+                { data: null, render: (_d, _t, row) => pick(row, 'Nombre') },
+                { data: null, render: (_d, _t, row) => pick(row, 'Apellido') },
+                { data: null, render: (_d, _t, row) => pick(row, 'Dni') },
+                { data: null, render: (_d, _t, row) => pick(row, 'Telefono') },
+                { data: null, render: (_d, _t, row) => pick(row, 'Direccion') },
+                { data: null, render: (_d, _t, row) => pick(row, 'Rol') },
                 {
-                    data: 'Estado',
-                    render: function (data, type, row) {
-                        // Verificar si el estado es "Bloqueado" y aplicar el color rojo
-                        return data === "Bloqueado" ? `<span style="color: red">${data}</span>` : data;
+                    data: null,
+                    render: function (_d, _t, row) {
+                        const estado = pick(row, 'Estado');
+                        return estado === "Bloqueado" ? `<span style="color: red">${estado}</span>` : estado;
                     }
                 },
-
             ],
             dom: 'Bfrtip',
             buttons: [
@@ -269,9 +261,7 @@ async function configurarDataTable(data) {
                     text: 'Exportar Excel',
                     filename: 'Reporte Usuarios',
                     title: '',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7]
-                    },
+                    exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7] },
                     className: 'btn-exportar-excel',
                 },
                 {
@@ -279,18 +269,14 @@ async function configurarDataTable(data) {
                     text: 'Exportar PDF',
                     filename: 'Reporte Usuarios',
                     title: '',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7]
-                    },
+                    exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7] },
                     className: 'btn-exportar-pdf',
                 },
                 {
                     extend: 'print',
                     text: 'Imprimir',
                     title: '',
-                    exportOptions: {
-                        columns: [1, 2,3,4,5,6,7]
-                    },
+                    exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7] },
                     className: 'btn-exportar-print'
                 },
                 'pageLength'
@@ -301,7 +287,6 @@ async function configurarDataTable(data) {
             initComplete: async function () {
                 var api = this.api();
 
-                // Iterar sobre las columnas y aplicar la configuración de filtros
                 columnConfig.forEach(async (config) => {
                     var cell = $('.filters th').eq(config.index);
 
@@ -310,19 +295,19 @@ async function configurarDataTable(data) {
                             .appendTo(cell.empty())
                             .on('change', async function () {
                                 var val = $(this).val();
-                                var selectedText = $(this).find('option:selected').text(); // Obtener el texto del nombre visible
-                                await api.column(config.index).search(val ? '^' + selectedText + '$' : '', true, false).draw(); // Buscar el texto del nombre
+                                var selectedText = $(this).find('option:selected').text();
+                                await api.column(config.index).search(val ? '^' + selectedText + '$' : '', true, false).draw();
                             });
 
-                        var data = await config.fetchDataFunc(); // Llamada a la función para obtener los datos
+                        var data = await config.fetchDataFunc();
                         data.forEach(function (item) {
-                            select.append('<option value="' + item.Id + '">' + item.Nombre + '</option>')
+                            select.append('<option value="' + item.Id + '">' + item.Nombre + '</option>');
                         });
 
                     } else if (config.filterType === 'text') {
                         var input = $('<input type="text" placeholder="Buscar..." />')
                             .appendTo(cell.empty())
-                            .off('keyup change') // Desactivar manejadores anteriores
+                            .off('keyup change')
                             .on('keyup change', function (e) {
                                 e.stopPropagation();
                                 var regexr = '({search})';
@@ -336,35 +321,18 @@ async function configurarDataTable(data) {
                 });
 
                 $('.filters th').eq(0).html('');
-
                 configurarOpcionesColumnas();
 
-                setTimeout(function () {
-                    gridUsuarios.columns.adjust();
-                }, 10);
+                setTimeout(function () { gridUsuarios.columns.adjust(); }, 10);
 
-                actualizarKpisUsuarios(data)
-
-                $('body').on('mouseenter', '#grd_Usuarios .fa-map-marker', function () {
-                    $(this).css('cursor', 'pointer');
-                });
-
-
-
-                $('body').on('click', '#grd_Usuarios .fa-map-marker', function () {
-                    var locationText = $(this).parent().text().trim().replace(' ', ' '); // Obtener el texto visible
-                    var url = 'https://www.google.com/maps?q=' + encodeURIComponent(locationText);
-                    window.open(url, '_blank');
-                });
-
+                actualizarKpisUsuarios(data);
             },
         });
     } else {
         gridUsuarios.clear().rows.add(data).draw();
-        actualizarKpisUsuarios(data)
+        actualizarKpisUsuarios(data);
     }
 }
-
 
 async function listaRoles() {
     const url = `/Roles/Lista`;
@@ -372,15 +340,12 @@ async function listaRoles() {
     const data = await response.json();
 
     $('#Roles option').remove();
-
-    select = document.getElementById("Roles");
-
-    for (i = 0; i < data.length; i++) {
-        option = document.createElement("option");
+    const select = document.getElementById("Roles");
+    for (let i = 0; i < data.length; i++) {
+        const option = document.createElement("option");
         option.value = data[i].Id;
         option.text = data[i].Nombre;
         select.appendChild(option);
-
     }
 }
 
@@ -390,15 +355,12 @@ async function listaEstados() {
     const data = await response.json();
 
     $('#Estados option').remove();
-
-    select = document.getElementById("Estados");
-
-    for (i = 0; i < data.length; i++) {
-        option = document.createElement("option");
+    const select = document.getElementById("Estados");
+    for (let i = 0; i < data.length; i++) {
+        const option = document.createElement("option");
         option.value = data[i].Id;
         option.text = data[i].Nombre;
         select.appendChild(option);
-
     }
 }
 
@@ -406,48 +368,35 @@ async function listaEstadosFilter() {
     const url = `/EstadosUsuarios/Lista`;
     const response = await fetch(url);
     const data = await response.json();
-
-    return data.map(estado => ({
-        Id: estado.Id,
-        Nombre: estado.Nombre
-    }));
-
+    return data.map(estado => ({ Id: estado.Id, Nombre: estado.Nombre }));
 }
 
 async function listaRolesFilter() {
     const url = `/Roles/Lista`;
     const response = await fetch(url);
     const data = await response.json();
-
-    return data.map(rol => ({
-        Id: rol.Id,
-        Nombre: rol.Nombre
-    }));
-
+    return data.map(rol => ({ Id: rol.Id, Nombre: rol.Nombre }));
 }
 
 function configurarOpcionesColumnas() {
-    const grid = $('#grd_Usuarios').DataTable(); // Accede al objeto DataTable utilizando el id de la tabla
-    const columnas = grid.settings().init().columns; // Obtiene la configuración de columnas
-    const container = $('#configColumnasMenu'); // El contenedor del dropdown específico para configurar columnas
+    const grid = $('#grd_Usuarios').DataTable();
+    const columnas = grid.settings().init().columns;
+    const container = $('#configColumnasMenu');
 
-    const storageKey = `Usuarios_Columnas`; // Clave única para esta pantalla
+    const storageKey = `Usuarios_Columnas`;
+    const savedConfig = JSON.parse(localStorage.getItem(storageKey)) || {};
 
-    const savedConfig = JSON.parse(localStorage.getItem(storageKey)) || {}; // Recupera configuración guardada o inicializa vacía
-
-    container.empty(); // Limpia el contenedor
+    container.empty();
 
     columnas.forEach((col, index) => {
-        if (col.data && col.data !== "Id") { // Solo agregar columnas que no sean "Id"
-            // Recupera el valor guardado en localStorage, si existe. Si no, inicializa en 'false' para no estar marcado.
+        if (col && col.data !== "Id") {
             const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
-
-            // Asegúrate de que la columna esté visible si el valor es 'true'
             grid.column(index).visible(isChecked);
 
-            const columnName = index != 6 ? col.data : "Direccion";
+            const columnName = index != 6
+                ? (typeof col.data === 'string' ? col.data : $(grid.column(index).header()).text().trim())
+                : "Direccion";
 
-            // Ahora agregamos el checkbox, asegurándonos de que se marque solo si 'isChecked' es 'true'
             container.append(`
                 <li>
                     <label class="dropdown-item">
@@ -459,7 +408,6 @@ function configurarOpcionesColumnas() {
         }
     });
 
-    // Asocia el evento para ocultar/mostrar columnas
     $('.toggle-column').on('change', function () {
         const columnIdx = parseInt($(this).data('column'), 10);
         const isChecked = $(this).is(':checked');
@@ -469,73 +417,45 @@ function configurarOpcionesColumnas() {
     });
 }
 
-
-
 function toggleAcciones(id) {
     var $dropdown = $(`.acciones-menu[data-id="${id}"] .acciones-dropdown`);
-
-    // Si está visible, lo ocultamos, si está oculto lo mostramos
-    if ($dropdown.is(":visible")) {
-        $dropdown.hide();
-    } else {
-        // Ocultar todos los dropdowns antes de mostrar el seleccionado
-        $('.acciones-dropdown').hide();
-        $dropdown.show();
-    }
+    if ($dropdown.is(":visible")) $dropdown.hide();
+    else { $('.acciones-dropdown').hide(); $dropdown.show(); }
 }
 
 $(document).on('click', function (e) {
-    // Verificar si el clic está fuera de cualquier dropdown
     if (!$(e.target).closest('.acciones-menu').length) {
-        $('.acciones-dropdown').hide(); // Cerrar todos los dropdowns
+        $('.acciones-dropdown').hide();
     }
 });
-
 
 function limpiarModal() {
     const formulario = document.querySelector("#modalEdicion");
     if (!formulario) return;
 
     formulario.querySelectorAll("input, select, textarea").forEach(el => {
-        if (el.tagName === "SELECT") {
-            el.selectedIndex = 0;
-        } else {
-            el.value = "";
-        }
+        if (el.tagName === "SELECT") el.selectedIndex = 0;
+        else el.value = "";
         el.classList.remove("is-invalid", "is-valid");
     });
 
-    // Ocultar mensaje general de error
     const errorMsg = document.getElementById("errorCampos");
     if (errorMsg) errorMsg.classList.add("d-none");
 }
 
-
 function validarCampoIndividual(el) {
     const tag = el.tagName.toLowerCase();
     const id = el.id;
-    const valor = el.value ? el.value.trim() : ""; // Para inputs/selects
-
+    const valor = el.value ? el.value.trim() : "";
     const feedback = el.nextElementSibling;
 
-    if (id != "txtNombre" && id != "txtContrasena" && id != "txtUsuario") return //Solo valida el nombre
+    if (id != "txtNombre" && id != "txtContrasena" && id != "txtUsuario") return;
 
-
-    // Validación para inputs/selects normales
     if (tag === "input" || tag === "select" || tag === "textarea") {
-        if (feedback && feedback.classList.contains("invalid-feedback")) {
-            feedback.textContent = "Campo obligatorio";
-        }
-
-        if (valor === "" || valor === "Seleccionar") {
-            el.classList.remove("is-valid");
-            el.classList.add("is-invalid");
-        } else {
-            el.classList.remove("is-invalid");
-            el.classList.add("is-valid");
-        }
+        if (feedback && feedback.classList.contains("invalid-feedback")) feedback.textContent = "Campo obligatorio";
+        if (valor === "" || valor === "Seleccionar") { el.classList.add("is-invalid"); el.classList.remove("is-valid"); }
+        else { el.classList.remove("is-invalid"); el.classList.add("is-valid"); }
     }
-
     verificarErroresGenerales();
 }
 
@@ -543,42 +463,25 @@ function verificarErroresGenerales() {
     const errorMsg = document.getElementById("errorCampos");
     const hayInvalidos = document.querySelectorAll("#modalEdicion .is-invalid").length > 0;
     if (!errorMsg) return;
-
-    if (!hayInvalidos) {
-        errorMsg.classList.add("d-none");
-    }
+    if (!hayInvalidos) errorMsg.classList.add("d-none");
 }
 
 function validarCampos() {
-    const campos = [
-        "#txtNombre",
-        "#txtUsuario",
-        "#txtContrasena"
-    ];
-
+    const campos = ["#txtNombre", "#txtUsuario", "#txtContrasena"];
     let valido = true;
-
     campos.forEach(selector => {
         const campo = document.querySelector(selector);
         const valor = campo?.value.trim();
         const feedback = campo?.nextElementSibling;
-
         if (!campo || !valor || valor === "Seleccionar") {
-            campo.classList.add("is-invalid");
-            campo.classList.remove("is-valid");
+            campo.classList.add("is-invalid"); campo.classList.remove("is-valid");
             if (feedback) feedback.textContent = "Campo obligatorio";
             valido = false;
-        } else {
-            campo.classList.remove("is-invalid");
-            campo.classList.add("is-valid");
-        }
+        } else { campo.classList.remove("is-invalid"); campo.classList.add("is-valid"); }
     });
-
     document.getElementById("errorCampos").classList.toggle("d-none", valido);
     return valido;
 }
-
-
 
 function actualizarKpisUsuarios(data) {
     const cant = Array.isArray(data) ? data.length : 0;
@@ -587,328 +490,334 @@ function actualizarKpisUsuarios(data) {
 }
 
 /* ================================================================
- *  ACCESOS (Unidades de Negocio + Locales) - SIEMPRE REFRESCA
+ *      ACCESOS (Unidades + Locales) — CON CHECKS Y QUITAR TODO
  * ================================================================ */
-let _ACC_CAT_UNIDADES = null;     // [{Id, Nombre}]
-let _ACC_CAT_LOCALES = null;     // [{Id, IdCombo, NombreCombo, Nombre}]
-let _ACC_ASIGN = [];       // [{IdUnidadNegocio, LocalesIds:number[]}]
+let _ACC_CAT_UNIDADES = [];   // [{Id, Nombre}]
+let _ACC_CAT_LOCALES = [];   // [{Id, IdCombo, Nombre}]
+let _ACC_ENABLED = new Map(); // unitId -> boolean (tiene acceso)
+let _ACC_LOCALES_SET = new Map(); // unitId -> Set(localId)
 let _ACC_UNIDAD_ACTIVA = null;
 
+/* Toast dentro del modal (aparece 2.5s) */
+function acc_toast(msg) {
+    const box = document.getElementById('accToast');
+    const span = document.getElementById('accToastMsg');
+    if (!box || !span) return;
+    span.textContent = msg || 'Listo.';
+    box.classList.remove('show');
+    void box.offsetWidth;
+    box.classList.add('show');
+    setTimeout(() => box.classList.remove('show'), 2500);
+}
 
+/* Activar tab Datos para que no quede en Accesos al abrir */
 function activarTabDatos() {
-    // Botón del tab "Datos"
     const btnDatos = document.querySelector('#tab-datos');
     if (!btnDatos) return;
-
-    // Si existe Bootstrap.Tab, usarlo (BS5)
-    if (window.bootstrap && bootstrap.Tab) {
-        const tab = new bootstrap.Tab(btnDatos);
-        tab.show();
-    } else {
-        // Fallback: click directo (por si no está bootstrap.Tab)
-        btnDatos.click();
-    }
+    if (window.bootstrap && bootstrap.Tab) new bootstrap.Tab(btnDatos).show();
+    else btnDatos.click();
 }
 
-// Normalizador robusto (por si el backend cambia la forma)
 function normalizeAsignacion(a) {
     if (!a) return null;
-    const idU =
-        (a.IdUnidadNegocio != null ? a.IdUnidadNegocio :
-            (a.IdCombo != null ? a.IdCombo :
-                (a.UnidadId != null ? a.UnidadId :
-                    (a.Id != null ? a.Id : null))));
+    const idU = a.IdUnidadNegocio ?? a.IdCombo ?? a.UnidadId ?? a.Id;
     if (idU == null) return null;
 
-    let candidates = (
-        a.LocalesIds ??
-        a.Locales ??
-        a.IdLocales ??
-        a.Ids ??
-        a.Items ??
-        []
-    );
-    if (typeof candidates === 'string') {
-        candidates = candidates.split(',').map(s => s.trim()).filter(s => s.length);
-    }
-    const toNum = (x) => {
-        if (x == null) return null;
-        if (typeof x === 'number') return x;
-        if (typeof x === 'string') { const n = Number(x); return isNaN(n) ? null : n; }
-        if (typeof x === 'object') {
-            if (x.Id != null) return Number(x.Id);
-            if (x.IdLocal != null) return Number(x.IdLocal);
-            if (x.LocalId != null) return Number(x.LocalId);
-            if (x.IdLocalNavigation && x.IdLocalNavigation.Id != null) return Number(x.IdLocalNavigation.Id);
-        }
-        return null;
-    };
-    const localesNums = Array.from(new Set((Array.isArray(candidates) ? candidates : [candidates]).map(toNum).filter(n => n != null && !isNaN(n))));
-    return { IdUnidadNegocio: Number(idU), LocalesIds: localesNums };
+    const enabled = (a.Enabled === true) || (a.TodosLocales === true) || (Array.isArray(a.LocalesIds) && a.LocalesIds.length >= 0);
+    let locales = a.LocalesIds ?? a.Locales ?? a.IdLocales ?? [];
+    if (typeof locales === 'string') locales = locales.split(',').map(s => Number(s)).filter(n => !isNaN(n));
+    locales = Array.isArray(locales) ? locales.map(Number).filter(n => !isNaN(n)) : [];
+    if (a.TodosLocales === true) locales = []; // set vacío => todos
+    return { IdUnidadNegocio: Number(idU), Enabled: !!enabled, LocalesIds: locales };
 }
 
-// SIEMPRE refresca catálogos desde backend
 async function acc_cargarCatalogos() {
-    // Unidades
-    const resU = await fetch('/UnidadesNegocio/Lista', {
-        method: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json;charset=utf-8',
-            'Cache-Control': 'no-store'
-        }
-    });
-    if (!resU.ok) throw new Error(resU.statusText);
-    _ACC_CAT_UNIDADES = await resU.json();
-    _ACC_CAT_UNIDADES = Array.isArray(_ACC_CAT_UNIDADES) ? _ACC_CAT_UNIDADES : [];
+    const rh = { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' };
 
-    // Locales
-    const resL = await fetch('/Locales/Lista', {
-        method: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json;charset=utf-8',
-            'Cache-Control': 'no-store'
-        }
-    });
-    if (!resL.ok) throw new Error(resL.statusText);
-    _ACC_CAT_LOCALES = await resL.json();
-    _ACC_CAT_LOCALES = Array.isArray(_ACC_CAT_LOCALES) ? _ACC_CAT_LOCALES : [];
+    const rU = await fetch('/UnidadesNegocio/Lista', { headers: rh });
+    _ACC_CAT_UNIDADES = await rU.json(); if (!Array.isArray(_ACC_CAT_UNIDADES)) _ACC_CAT_UNIDADES = [];
+
+    const rL = await fetch('/Locales/Lista', { headers: rh });
+    _ACC_CAT_LOCALES = await rL.json(); if (!Array.isArray(_ACC_CAT_LOCALES)) _ACC_CAT_LOCALES = [];
 }
 
-// plantilla de tarjeta de unidad (single-select)
-function acc_templateUnidad(u, active) {
-    return `
-    <div class="acc-unit-item list-group-item d-flex align-items-center justify-content-between ${active ? 'active' : ''}"
-         data-id="${u.Id}"
-         style="border:1px solid rgba(255,255,255,.08); border-radius:12px; background:${active ? '#1f2a52' : 'rgba(255,255,255,.04)'}; color:#e7e9fb; margin-bottom:12px; cursor:pointer;">
-      <div class="d-flex align-items-center gap-2 py-2 px-3">
-        <i class="fa fa-building-o"></i>
-        <span class="text-truncate">${u.Nombre}</span>
-      </div>
-      <i class="fa fa-angle-right me-3 text-muted"></i>
-    </div>`;
+function acc_localesDeUnidad(idU) {
+    return _ACC_CAT_LOCALES.filter(l => Number(l.IdCombo) === Number(idU));
 }
 
-async function acc_renderUnidades(activeId, forceReload = false) {
-    if (forceReload) {
-        const resU = await fetch('/UnidadesNegocio/Lista', {
-            method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json;charset=utf-8',
-                'Cache-Control': 'no-store'
-            }
-        });
-        if (!resU.ok) throw new Error(resU.statusText);
-        _ACC_CAT_UNIDADES = await resU.json();
-        _ACC_CAT_UNIDADES = Array.isArray(_ACC_CAT_UNIDADES) ? _ACC_CAT_UNIDADES : [];
-    }
+function acc_renderUnidades() {
+    const wrap = document.getElementById('accUnidadesList');
+    if (!wrap) return;
 
-    const cont = document.getElementById('accUnidadesList');
-    if (!cont) return;
+    wrap.innerHTML = '';
 
-    cont.innerHTML = '';
-
-    const existe = _ACC_CAT_UNIDADES.some(u => Number(u.Id) === Number(activeId));
-    const idActivo = existe ? Number(activeId) : (_ACC_CAT_UNIDADES[0]?.Id ?? null);
-    _ACC_UNIDAD_ACTIVA = idActivo;
-
-    const frag = document.createDocumentFragment();
     _ACC_CAT_UNIDADES.forEach(u => {
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = acc_templateUnidad(u, Number(idActivo) === Number(u.Id)).trim();
-        frag.appendChild(wrapper.firstElementChild);
+        // Estado inicial por si no existe
+        if (!_ACC_ENABLED.has(u.Id)) _ACC_ENABLED.set(u.Id, false);
+        if (!_ACC_LOCALES_SET.has(u.Id)) _ACC_LOCALES_SET.set(u.Id, new Set());
+
+        const enabled = _ACC_ENABLED.get(u.Id) === true;
+        const isActive = (_ACC_UNIDAD_ACTIVA === u.Id);
+
+        const row = document.createElement('div');
+        row.className = `list-group-item ${isActive ? 'unit-active' : ''}`;
+
+        row.innerHTML = `
+            <div class="unit-head">
+                <div class="unit-name" data-open="${u.Id}" title="Ver locales">
+                    <i class="fa fa-building-o"></i>
+                    <span>${u.Nombre}</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge ${enabled ? 'bg-success' : 'bg-secondary'}">
+                        ${enabled ? 'Con acceso' : 'Sin acceso'}
+                    </span>
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input accUnitChk" type="checkbox"
+                               data-unit="${u.Id}" ${enabled ? 'checked' : ''}>
+                    </div>
+                </div>
+            </div>
+        `;
+        wrap.appendChild(row);
     });
-    cont.appendChild(frag);
 
-    $('#accUnidadesList').off('click').on('click', '.acc-unit-item', function () {
-        const idU = Number(this.getAttribute('data-id'));
-        acc_setUnidadActiva(idU);
-    });
-}
-
-function acc_localesDeUnidad(idUnidad) {
-    const result = new Map();
-    _ACC_CAT_LOCALES
-        .filter(l => Number(l.IdCombo) === Number(idUnidad))
-        .forEach(l => result.set(l.Id, l));
-    return Array.from(result.values());
-}
-
-// SIEMPRE refresca locales desde backend antes de pintar
-async function acc_renderLocales() {
-    const select = document.getElementById('accLocalesMulti');
-    if (select) select.style.display = 'none';
-
-    const cont = document.getElementById('accLocalesList');
-    if (!cont) return;
-
-    try {
-        const resL = await fetch('/Locales/Lista', {
-            method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json;charset=utf-8',
-                'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-                'Pragma': 'no-cache',
-                'Expires': '0'
-            }
+    // Abrir unidad (1 clic) y repintar activo
+    wrap.querySelectorAll('[data-open]').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const idU = Number(e.currentTarget.getAttribute('data-open'));
+            _ACC_UNIDAD_ACTIVA = idU;
+            acc_renderUnidades();  // repinta para aplicar .unit-active
+            acc_renderLocales();   // refresca locales de la unidad activa
         });
-        if (!resL.ok) throw new Error(resL.statusText);
-        _ACC_CAT_LOCALES = await resL.json();
-        _ACC_CAT_LOCALES = Array.isArray(_ACC_CAT_LOCALES) ? _ACC_CAT_LOCALES : [];
-    } catch (e) {
-        console.warn('No se pudieron obtener Locales (refresh):', e);
-        _ACC_CAT_LOCALES = Array.isArray(_ACC_CAT_LOCALES) ? _ACC_CAT_LOCALES : [];
+    });
+
+    // Toggle acceso por unidad (switch)
+    wrap.querySelectorAll('.accUnitChk').forEach(chk => {
+        chk.addEventListener('change', e => {
+            const idU = Number(e.target.getAttribute('data-unit'));
+            const on = !!e.target.checked;
+
+            _ACC_ENABLED.set(idU, on);
+            if (!on) _ACC_LOCALES_SET.set(idU, new Set()); // al desactivar, vaciar selección
+
+            acc_renderUnidades();         // refresca badges y estado activo
+            if (_ACC_UNIDAD_ACTIVA === idU) acc_renderLocales();
+            acc_renderChips();
+            acc_toast(on ? 'Acceso concedido a la unidad.' : 'Acceso removido de la unidad.');
+        });
+    });
+
+    // Si no hay unidad activa, seleccionar la primera y renderizar locales
+    if (_ACC_UNIDAD_ACTIVA == null && _ACC_CAT_UNIDADES.length) {
+        _ACC_UNIDAD_ACTIVA = _ACC_CAT_UNIDADES[0].Id;
+        acc_renderUnidades();
+        acc_renderLocales();
+    }
+}
+
+
+function acc_renderLocales() {
+    const list = document.getElementById('accLocalesList');
+    const selectAll = document.getElementById('accSelectAllLocales');
+    const header = document.querySelector('#cardLocalesHeader h6');
+    if (!list) return;
+
+    list.innerHTML = '';
+    if (!_ACC_UNIDAD_ACTIVA) {
+        if (selectAll) { selectAll.checked = false; selectAll.disabled = true; }
+        if (header) { header.innerHTML = `<i class="fa fa-map-marker me-2"></i>Locales`; }
+        return;
     }
 
-    cont.innerHTML = '';
+    const u = _ACC_CAT_UNIDADES.find(x => x.Id === _ACC_UNIDAD_ACTIVA);
+    header && (header.innerHTML = `<i class="fa fa-map-marker me-2"></i>Locales — <span class="text-info">${u?.Nombre ?? ('Unidad ' + _ACC_UNIDAD_ACTIVA)}</span>`);
 
+    const enabled = _ACC_ENABLED.get(_ACC_UNIDAD_ACTIVA) === true;
     const locales = acc_localesDeUnidad(_ACC_UNIDAD_ACTIVA);
-    const asign = _ACC_ASIGN.find(a => Number(a.IdUnidadNegocio) === Number(_ACC_UNIDAD_ACTIVA));
-    const pre = new Set((asign?.LocalesIds || []).map(Number));
+    const setSel = _ACC_LOCALES_SET.get(_ACC_UNIDAD_ACTIVA) || new Set();
 
-    if (locales.length === 0) {
-        cont.innerHTML = `<div class="text-muted small py-2 px-2">No hay locales para esta unidad.</div>`;
-    } else {
-        locales.forEach(l => {
-            const checked = pre.has(Number(l.Id)) ? 'checked' : '';
-            const row = document.createElement('label');
-            row.className = 'list-group-item d-flex align-items-center gap-2';
-            row.style.background = 'transparent';
-            row.style.border = '0';
-            row.style.borderBottom = '1px solid rgba(255,255,255,.06)';
-            row.innerHTML = `
-                <input type="checkbox" class="form-check-input accLocalChk" value="${l.Id}" ${checked}>
-                <span class="flex-grow-1 text-truncate">${l.Nombre}</span>`;
-            cont.appendChild(row);
+    locales.forEach(l => {
+        const item = document.createElement('label');
+        item.className = 'list-group-item d-flex align-items-center gap-2';
+        item.innerHTML = `
+            <input type="checkbox" class="form-check-input accLocalChk" value="${l.Id}" ${setSel.has(l.Id) ? 'checked' : ''} ${!enabled ? 'disabled' : ''}>
+            <span class="flex-grow-1 text-truncate">${l.Nombre}</span>`;
+        list.appendChild(item);
+    });
+
+    // Select All
+    if (selectAll) {
+        selectAll.disabled = !enabled || locales.length === 0;
+        if (enabled && locales.length > 0) {
+            selectAll.checked = locales.every(x => setSel.has(x.Id));
+        } else selectAll.checked = false;
+
+        selectAll.onchange = (e) => {
+            if (!enabled) { e.target.checked = false; return; }
+            if (e.target.checked) {
+                _ACC_LOCALES_SET.set(_ACC_UNIDAD_ACTIVA, new Set(locales.map(x => x.Id)));
+                list.querySelectorAll('.accLocalChk').forEach(c => c.checked = true);
+            } else {
+                _ACC_LOCALES_SET.set(_ACC_UNIDAD_ACTIVA, new Set());
+                list.querySelectorAll('.accLocalChk').forEach(c => c.checked = false);
+            }
+            acc_renderChips();
+        };
+    }
+
+    // Click en item
+    list.querySelectorAll('.accLocalChk').forEach(ch => {
+        ch.addEventListener('change', e => {
+            const idL = Number(e.target.value);
+            const set = _ACC_LOCALES_SET.get(_ACC_UNIDAD_ACTIVA) || new Set();
+            if (e.target.checked) set.add(idL); else set.delete(idL);
+            _ACC_LOCALES_SET.set(_ACC_UNIDAD_ACTIVA, set);
+            // actualizar select all
+            if (selectAll) {
+                const all = acc_localesDeUnidad(_ACC_UNIDAD_ACTIVA);
+                selectAll.checked = all.length > 0 && all.every(x => set.has(x.Id));
+            }
+            acc_renderChips();
         });
-        if (cont.lastElementChild) cont.lastElementChild.style.borderBottom = '0';
-    }
-
-    $('#accLocalesList').off('click').on('click', '.list-group-item', function (e) {
-        const chk = this.querySelector('.accLocalChk');
-        if (chk) {
-            if (e.target !== chk) { chk.checked = !chk.checked; }
-            $(chk).trigger('change');
-        }
     });
-
-    $('#accLocalesList').off('change').on('change', '.accLocalChk', function () {
-        acc_guardarSeleccionUnidadActual();
-        acc_refrescarSwitchSelectAll();
-    });
-
-    acc_refrescarSwitchSelectAll();
-}
-
-function acc_refrescarSwitchSelectAll() {
-    const sw = document.getElementById('accSelectAllLocales');
-    if (!sw) return;
-    const total = document.querySelectorAll('#accLocalesList .accLocalChk').length;
-    const marc = document.querySelectorAll('#accLocalesList .accLocalChk:checked').length;
-    sw.checked = total > 0 && marc === total;
-}
-
-function acc_bindSelectAllLocales() {
-    $('#accSelectAllLocales').off('change').on('change', function () {
-        const on = $(this).is(':checked');
-        document.querySelectorAll('#accLocalesList .accLocalChk').forEach(chk => chk.checked = on);
-        acc_guardarSeleccionUnidadActual();
-    });
-}
-
-function acc_guardarSeleccionUnidadActual() {
-    if (!_ACC_UNIDAD_ACTIVA) return;
-    const seleccion = Array.from(document.querySelectorAll('#accLocalesList .accLocalChk:checked')).map(i => Number(i.value));
-    const idx = _ACC_ASIGN.findIndex(a => a.IdUnidadNegocio === _ACC_UNIDAD_ACTIVA);
-    if (idx >= 0) {
-        _ACC_ASIGN[idx].LocalesIds = seleccion;
-    } else {
-        _ACC_ASIGN.push({ IdUnidadNegocio: _ACC_UNIDAD_ACTIVA, LocalesIds: seleccion });
-    }
-    acc_renderChips();
 }
 
 function acc_renderChips() {
-    const wrap = document.getElementById('accResumenChips');
-    if (!wrap) return;
-    let html = '';
-    _ACC_ASIGN.forEach(a => {
-        const u = _ACC_CAT_UNIDADES.find(x => x.Id === a.IdUnidadNegocio);
-        const nombre = u ? u.Nombre : `Unidad ${a.IdUnidadNegocio}`;
-        html += `<span class="badge rounded-pill me-2 mb-2" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);color:#e7e9fb;">
-                   <i class="fa fa-building-o me-1"></i>${nombre} <small>· ${a.LocalesIds.length} local(es)</small>
-                 </span>`;
-    });
-    wrap.innerHTML = html;
-}
+    const cont = document.getElementById('accResumenChips');
+    if (!cont) return;
+    cont.innerHTML = '';
 
-function acc_setUnidadActiva(idUnidad) {
-    // guardar lo visible antes de cambiar
-    acc_guardarSeleccionUnidadActual();
+    _ACC_CAT_UNIDADES.forEach(u => {
+        if (_ACC_ENABLED.get(u.Id) !== true) return;
 
-    _ACC_UNIDAD_ACTIVA = Number(idUnidad);
-    acc_renderUnidades(_ACC_UNIDAD_ACTIVA, false);
-    acc_renderLocales();
-    acc_renderChips();
-}
+        const localesUnidad = acc_localesDeUnidad(u.Id);
+        const total = localesUnidad.length;
+        const set = _ACC_LOCALES_SET.get(u.Id) || new Set();
 
-// INIT Accesos: SIEMPRE refresca catálogos + asignaciones
-async function acc_initUI(idUsuario) {
-    await acc_cargarCatalogos();
-
-    _ACC_ASIGN = [];
-    if (idUsuario && Number(idUsuario) > 0) {
-        try {
-            const resA = await fetch(`/Usuarios/Asignaciones?idUsuario=${idUsuario}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Bearer ' + token,
-                    'Content-Type': 'application/json;charset=utf-8'
-                }
-            });
-            if (!resA.ok) throw new Error(resA.statusText);
-            const raw = await resA.json();
-            if (Array.isArray(raw)) {
-                _ACC_ASIGN = raw.map(normalizeAsignacion).filter(Boolean);
-            }
-        } catch (e) {
-            console.warn('No se pudieron obtener asignaciones de usuario', e);
+        let txt;
+        if (total === 0) {
+            // La unidad no tiene locales
+            txt = 'Sin locales asignados';
+        } else if (set.size === 0) {
+            // Set vacío => ninguno seleccionado
+            txt = 'Sin locales asignados';
+        } else if (set.size === total) {
+            // Seleccionó todos explícitamente (el set contiene todos los IDs)
+            txt = 'Todos los locales';
+        } else {
+            // Selección parcial
+            txt = `${set.size} de ${total} locales asignados`;
         }
+
+        const chip = document.createElement('span');
+        chip.className = 'acc-chip';
+        chip.innerHTML = `
+            <i class="fa fa-building-o"></i>
+            <strong>${u.Nombre}</strong>
+            <span>· ${txt}</span>
+            <i class="fa fa-times x" title="Quitar acceso" data-xu="${u.Id}"></i>
+        `;
+        cont.appendChild(chip);
+    });
+
+    cont.querySelectorAll('[data-xu]').forEach(x => {
+        x.addEventListener('click', e => {
+            const idU = Number(e.currentTarget.getAttribute('data-xu'));
+            _ACC_ENABLED.set(idU, false);
+            _ACC_LOCALES_SET.set(idU, new Set());
+            if (_ACC_UNIDAD_ACTIVA === idU) acc_renderLocales();
+            acc_renderUnidades();
+            acc_renderChips();
+            acc_toast('Se quitó el acceso de la unidad.');
+        });
+    });
+}
+
+/* Botones del tab Accesos */
+function acc_bindToolbar() {
+    const btnAll = document.getElementById('btnQuitarTodo');
+    if (btnAll) {
+        btnAll.addEventListener('click', () => {
+            _ACC_CAT_UNIDADES.forEach(u => {
+                _ACC_ENABLED.set(u.Id, false);
+                _ACC_LOCALES_SET.set(u.Id, new Set());
+            });
+            acc_renderUnidades();
+            acc_renderLocales();
+            acc_renderChips();
+            acc_toast('Se revocó el acceso a TODAS las unidades.');
+        });
     }
 
-    const primeraAsignada = _ACC_ASIGN.length ? _ACC_ASIGN[0].IdUnidadNegocio : null;
-    _ACC_UNIDAD_ACTIVA = (primeraAsignada != null) ? Number(primeraAsignada) : (_ACC_CAT_UNIDADES[0]?.Id ?? null);
-
-    await acc_renderUnidades(_ACC_UNIDAD_ACTIVA, true); // fuerza refresh visual
-    await acc_renderLocales();                           // fuerza refresh de locales
-    acc_bindSelectAllLocales();
-    acc_renderChips();
+    const btnRef = document.getElementById('btnRefrescarAccesos');
+    if (btnRef) {
+        btnRef.addEventListener('click', async () => {
+            const uid = Number($("#txtId").val() || 0);
+            await acc_initUI(uid || 0);
+            acc_toast('Accesos refrescados.');
+        });
+    }
 }
 
-// salida para el payload al guardar
-function acc_buildPayload() {
-    acc_guardarSeleccionUnidadActual();
-    const map = new Map();
-    _ACC_ASIGN.forEach(a => {
-        const key = String(a.IdUnidadNegocio);
-        const locs = Array.from(new Set((a.LocalesIds || []).map(Number)));
-        if (locs.length > 0) {
-            map.set(key, { IdUnidadNegocio: a.IdUnidadNegocio, LocalesIds: locs });
-        }
+/* INIT de Accesos: carga catálogos + asignaciones */
+async function acc_initUI(idUsuario) {
+    const rh = { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json;charset=utf-8' };
+
+    await acc_cargarCatalogos();
+
+    // Estado base
+    _ACC_ENABLED = new Map();
+    _ACC_LOCALES_SET = new Map();
+    _ACC_CAT_UNIDADES.forEach(u => {
+        _ACC_ENABLED.set(u.Id, false);
+        _ACC_LOCALES_SET.set(u.Id, new Set());
     });
-    return Array.from(map.values());
+
+    // Asignaciones actuales
+    if (idUsuario && Number(idUsuario) > 0) {
+        try {
+            const res = await fetch(`/Usuarios/Asignaciones?idUsuario=${idUsuario}`, { headers: rh });
+            const arr = await res.json();
+            (arr || []).map(normalizeAsignacion).filter(Boolean).forEach(a => {
+                _ACC_ENABLED.set(a.IdUnidadNegocio, true); // si vino listada, está habilitada
+                _ACC_LOCALES_SET.set(a.IdUnidadNegocio, new Set((a.LocalesIds || []).map(Number)));
+            });
+        } catch { /* ignore */ }
+    }
+
+    // Unidad activa
+    const firstEnabled = _ACC_CAT_UNIDADES.find(u => _ACC_ENABLED.get(u.Id) === true)?.Id;
+    _ACC_UNIDAD_ACTIVA = firstEnabled ?? (_ACC_CAT_UNIDADES[0]?.Id ?? null);
+
+    acc_renderUnidades();
+    acc_renderLocales();
+    acc_renderChips();
+    acc_bindToolbar();
 }
 
-// === Mostrar / Ocultar contraseña ===
+/* Payload para backend */
+function acc_buildPayload() {
+    const out = [];
+    _ACC_CAT_UNIDADES.forEach(u => {
+        const enabled = _ACC_ENABLED.get(u.Id) === true;
+        if (!enabled) return;
+        const set = _ACC_LOCALES_SET.get(u.Id) || new Set();
+        out.push({
+            IdUnidadNegocio: u.Id,
+            Enabled: true,
+            TodosLocales: set.size === 0,      // vacío => todos
+            LocalesIds: Array.from(set.values())
+        });
+    });
+    return out;
+}
+
+/* Mostrar / Ocultar contraseña */
 function togglePwd(idInput) {
     const input = document.getElementById(idInput);
     if (!input) return;
-
     const btnIcon = event.target.closest('button').querySelector('i');
-
     if (input.type === "password") {
         input.type = "text";
         if (btnIcon) btnIcon.classList.replace('fa-eye', 'fa-eye-slash');
@@ -918,6 +827,6 @@ function togglePwd(idInput) {
     }
 }
 
-// Exponer funciones Accesos si las llamás desde otros lados
+/* Exponer funciones si las necesitás en otros lados */
 window.acc_initUI = acc_initUI;
 window.acc_buildPayload = acc_buildPayload;
