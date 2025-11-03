@@ -151,19 +151,19 @@ async function provConfigDataTable(data) {
                     width: "1%",
                     render: function (data) {
                         return `
-                <div class="acciones-menu" data-id="${data}">
-                    <button class='btn btn-sm btnacciones' type='button' onclick='provToggleAcciones(${data})' title='Acciones'>
-                        <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
-                    </button>
-                    <div class="acciones-dropdown" style="display: none;">
-                        <button class='btn btn-sm btneditar' type='button' onclick='provEditar(${data})' title='Editar'>
-                            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
-                        </button>
-                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarProveedor(${data})' title='Eliminar'>
-                            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
-                        </button>
-                    </div>
-                </div>`;
+      <div class="acciones-menu" data-id="${data}">
+        <button class='btn btn-sm btnacciones' type='button' title='Acciones'>
+          <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
+        </button>
+        <div class="acciones-dropdown" style="display:none">
+          <button class='btn btn-sm btneditar' type='button' onclick='provEditar(${data})' title='Editar'>
+            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
+          </button>
+          <button class='btn btn-sm btneliminar' type='button' onclick='eliminarProveedor(${data})' title='Eliminar'>
+            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
+          </button>
+        </div>
+      </div>`;
                     },
                     orderable: false,
                     searchable: false,

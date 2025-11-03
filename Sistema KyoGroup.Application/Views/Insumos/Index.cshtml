@@ -39,8 +39,8 @@
 
                     <!-- Controles top (botón Nuevo, toggle filtros, config columnas) -->
                     <div class="tabla-controls-top d-flex gap-2 flex-wrap align-items-center">
-                        <button class="btn btn-success d-flex align-items-center px-3 py-2" onclick="nuevoInsumo()">
-                            <i class="fa fa-plus-square me-2"></i> Nuevo Insumo
+                        <button class="btn btn-new d-flex align-items-center px-3 py-2" onclick="nuevoInsumo()">
+                            <i class="fa fa-plus-square me-2"></i> Nuevo
                         </button>
 
                         <!-- Toggle de filtros (estilo Gastos) -->
@@ -62,7 +62,7 @@
 
                         <div class="row g-2 align-items-end">
                             <div class="col-12 col-md-4">
-                                <label class="form-label">Unidad de Negocio</label>
+                                <label class="form-label">U. de Negocio</label>
                                 <select id="UnidadNegocioFiltro" class="form-select">
                                     <option value="-1" selected>Todos</option>
                                 </select>
@@ -188,14 +188,22 @@
 
                     <div class="col-md-2">
                         <label for="UnidadesMedida" class="form-label lblDescripcion">Unidad de Medida</label>
-                        <select id="UnidadesMedida" class="form-select">
-                            <option selected disabled>Seleccionar</option>
-                        </select>
+
+                        <div class="input-group input-plus">
+                            <select id="UnidadesMedida" class="form-select">
+                                <option value="-1" selected disabled>Seleccionar</option>
+                            </select>
+                            <button type="button" id="btnAddUM" class="btn btn-plus" title="Nueva unidad">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        </div>
+
                         <div class="invalid-feedback">Campo obligatorio</div>
                     </div>
 
+
                     <div class="col-md-5 position-relative">
-                        <label class="form-label lblDescripcion">Unidades de Negocio Asociadas</label>
+                        <label class="form-label lblDescripcion">U. de Negocio Asociadas</label>
                         <div id="btnUnidadesNegocio" class="form-select text-truncate" style="cursor: pointer;" tabindex="0" onclick="toggleUnidadesNegocio()">
                             Seleccionar Unidades
                         </div>
@@ -212,11 +220,21 @@
 
                     <div class="col-md-5">
                         <label for="Categorias" class="form-label lblDescripcion">Categoria</label>
-                        <select id="Categorias" class="form-select">
-                            <option value="-1" selected disabled>Seleccionar</option>
-                        </select>
+
+                        <div class="input-group input-plus">
+                            <select id="Categorias" class="form-select">
+                                <option value="-1" selected disabled>Seleccionar</option>
+                            </select>
+
+                            <button type="button" id="btnAddCategoria" class="btn btn-plus" title="Nueva categoría">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        </div>
+
                         <div class="invalid-feedback">Campo obligatorio</div>
                     </div>
+
+
 
                     <!-- Validación -->
                     <div id="errorCampos" class="alert alert-danger d-none">
@@ -274,6 +292,6 @@
     <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/locale/es.js"></script>
 
-    <script src="~/js/Insumos.js?v=1.1"></script>
+    <script src="~/js/Insumos.js?v=1.2"></script>
 
 }

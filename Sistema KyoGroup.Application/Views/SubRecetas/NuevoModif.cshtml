@@ -103,19 +103,34 @@
 
                     <div class="form-group">
                         <label class="form-label" for="Categorias">Categoría</label>
-                        <select id="Categorias" class="form-select" data-required="true" data-field="categoria">
-                            <option value="" disabled selected>Seleccionar...</option>
-                        </select>
+
+                        <div class="input-group input-plus">
+                            <select id="Categorias" class="form-select selectAgregado" data-required="true" data-field="categoria">
+                                <option value="" disabled selected>Seleccionar...</option>
+                            </select>
+                            <button type="button" id="btnAddCategoria" class="btn btn-plus" title="Nueva categoría">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        </div>
+
                         <div class="invalid-feedback d-none">Campo requerido</div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="UnidadMedidas">Unidad de Medida</label>
-                        <select id="UnidadMedidas" class="form-select" data-required="true" data-field="unidadMedida">
-                            <option value="" disabled selected>Seleccionar...</option>
-                        </select>
+
+                        <div class="input-group input-plus">
+                            <select id="UnidadMedidas" class="form-select selectAgregado" data-required="true" data-field="unidadMedida">
+                                <option value="" disabled selected>Seleccionar...</option>
+                            </select>
+                            <button type="button" id="btnAddUMSub" class="btn btn-plus" title="Nueva unidad de medida">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        </div>
+
                         <div class="invalid-feedback d-none">Campo requerido</div>
                     </div>
+
 
                     <div class="form-group">
                         <label class="form-label" for="costoSubrecetas">Costo Subrecetas</label>
@@ -359,7 +374,7 @@
     <script src="~/js/cc.validators.js?v=1.0"></script>
 
     <!-- Página -->
-    <script src="~/js/SubrecetasNuevoModif.js?v=2.0"></script>
+    <script src="~/js/SubrecetasNuevoModif.js?v=2.1"></script>
     <script src="~/js/site.js"></script>
 }
 

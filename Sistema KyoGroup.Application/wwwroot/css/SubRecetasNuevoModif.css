@@ -386,8 +386,8 @@ label {
     }
 
     /* Botones: por defecto full width en móviles */
-    .btn {
-        width: 100%;
+    #btnNuevoModificar {
+    width: 100%;
     }
 
     .dt-buttons .btn, .dataTables_wrapper .btn {
@@ -2772,4 +2772,9 @@ input[type="date"]::-webkit-calendar-picker-indicator{ filter: invert(1) ... }
     color: #ffd3d3;
     padding: 12px 16px;
     border-radius: 12px;
+}
+
+.selectAgregado {
+    border-start-end-radius: 0px !important;
+    border-end-end-radius: 0px !important;
 }

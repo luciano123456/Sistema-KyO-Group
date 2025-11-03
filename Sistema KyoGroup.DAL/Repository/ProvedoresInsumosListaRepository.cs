@@ -181,6 +181,36 @@ namespace SistemaKyoGroup.DAL.Repository
         }
 
 
+        public async Task<bool> EliminarMasivo(List<int> ids)
+        {
+            if (ids == null || ids.Count == 0) return false;
+
+            await using var tx = await _dbcontext.Database.BeginTransactionAsync();
+            try
+            {
+                var items = await _dbcontext.ProveedoresInsumosListas
+                    .Where(x => ids.Contains(x.Id))
+                    .ToListAsync();
+
+                if (items.Count == 0)
+                {
+                    await tx.CommitAsync(); // nada que borrar pero no es error
+                    return true;
+                }
+
+                _dbcontext.ProveedoresInsumosListas.RemoveRange(items);
+                await _dbcontext.SaveChangesAsync();
+                await tx.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                return false;
+            }
+        }
+
+
 
 
     }

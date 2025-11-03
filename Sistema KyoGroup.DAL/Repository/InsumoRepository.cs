@@ -21,57 +21,101 @@ namespace SistemaKyoGroup.DAL.Repository
             _dbcontext = context;
         }
 
-        public async Task<bool> Insertar(Models.Insumo model)
+        public async Task<bool> Insertar(Insumo model)
         {
-            using var transaction = await _dbcontext.Database.BeginTransactionAsync();
+            await using var tx = await _dbcontext.Database.BeginTransactionAsync();
             try
             {
-                // Extraer relaciones antes de agregar el Insumo
-                var unidadesNegocio = model.InsumosUnidadesNegocios ?? new List<InsumosUnidadesNegocio>();
-                var proveedores = model.InsumosProveedores?
-                    .GroupBy(p => new { p.IdProveedor, p.IdListaProveedor })
-                    .Select(g => g.First()) // eliminar duplicados
-                    .ToList() ?? new List<InsumosProveedor>();
+                // Normalización básica
+                model.Id = 0;
+                model.Descripcion = model.Descripcion?.Trim();
+                model.Sku = model.Sku?.Trim();
 
-                // Evitar que EF intente insertar automáticamente las relaciones
+                // En INSERT: NO tocar "modifica"
+                model.IdUsuarioModifica = null;
+                model.FechaModifica = null;
+
+                // --- 1) Copiamos y normalizamos hijos EN MEMORIA (aún fuera del contexto) ---
+                // Unidades de negocio (puede venir duplicado desde UI)
+                var unidadesNegocio = (model.InsumosUnidadesNegocios ?? new List<InsumosUnidadesNegocio>())
+                    .GroupBy(x => x.IdUnidadNegocio)
+                    .Select(g => new InsumosUnidadesNegocio
+                    {
+                        Id = 0,
+                        IdUnidadNegocio = g.Key
+                        // si tenés más campos opcionales, mapéalos aquí
+                    })
+                    .ToList();
+
+                // Proveedores (puede asociarse varias veces en distintos lados: deduplicamos por par clave)
+                var proveedores = (model.InsumosProveedores ?? new List<InsumosProveedor>())
+                    .GroupBy(p => new { p.IdProveedor, p.IdListaProveedor })
+                    .Select(g =>
+                    {
+                        var p = g.First();
+                        return new InsumosProveedor
+                        {
+                            Id = 0,
+                            IdProveedor = p.IdProveedor,
+                            IdListaProveedor = p.IdListaProveedor,
+                            // mapear otros campos NO clave si aplican (ej.: Precio, Moneda, etc.)
+                            // Precio = p.Precio
+                        };
+                    })
+                    .ToList();
+
+                // MUY IMPORTANTE: quitar las colecciones antes de adjuntar el padre,
+                // para que EF NO intente trackear el grafo y luego "severe" relaciones.
                 model.InsumosUnidadesNegocios = null;
                 model.InsumosProveedores = null;
 
-                // Insertar Insumo base
+                // --- 2) Insert del principal ---
                 _dbcontext.Insumos.Add(model);
-                await _dbcontext.SaveChangesAsync();
 
-                // Insertar Unidades de Negocio
-                foreach (var unidad in unidadesNegocio)
+                // Aseguramos que "modifica" siga nulo
+                var e = _dbcontext.Entry(model);
+                e.Property(nameof(Insumo.IdUsuarioModifica)).CurrentValue = null;
+                e.Property(nameof(Insumo.FechaModifica)).CurrentValue = null;
+
+                await _dbcontext.SaveChangesAsync(); // ← ya tenemos model.Id
+
+                // --- 3) Insert de hijos (ya con Id del padre) ---
+                if (unidadesNegocio.Count > 0)
                 {
-                    unidad.Id = 0;
-                    unidad.IdInsumo = model.Id;
-                    _dbcontext.InsumosUnidadesNegocios.Add(unidad);
+                    foreach (var un in unidadesNegocio)
+                    {
+                        un.Id = 0;
+                        un.IdInsumo = model.Id;
+                    }
+                    _dbcontext.InsumosUnidadesNegocios.AddRange(unidadesNegocio);
                 }
 
-                // Insertar Proveedores asignados
-                foreach (var proveedor in proveedores)
+                if (proveedores.Count > 0)
                 {
-                    proveedor.Id = 0;
-                    proveedor.IdInsumo = model.Id;
-                    _dbcontext.InsumosProveedores.Add(proveedor);
+                    foreach (var pr in proveedores)
+                    {
+                        pr.Id = 0;
+                        pr.IdInsumo = model.Id;
+                    }
+                    _dbcontext.InsumosProveedores.AddRange(proveedores);
                 }
 
                 await _dbcontext.SaveChangesAsync();
-                await transaction.CommitAsync();
+                await tx.CommitAsync();
                 return true;
             }
             catch
             {
-                await transaction.RollbackAsync();
-                throw;
+                await tx.RollbackAsync();
+                throw; // que el Controller traduzca con tu DbErrorHelper
             }
         }
 
 
+
         public async Task<bool> Actualizar(Insumo model)
         {
-            await using var transaction = await _dbcontext.Database.BeginTransactionAsync();
+            await using var tx = await _dbcontext.Database.BeginTransactionAsync();
             try
             {
                 var insumoExistente = await _dbcontext.Insumos
@@ -81,83 +125,58 @@ namespace SistemaKyoGroup.DAL.Repository
 
                 if (insumoExistente == null) return false;
 
-                // Copia escalares del modelo
                 var entry = _dbcontext.Entry(insumoExistente);
                 entry.CurrentValues.SetValues(model);
 
-                // ⛔ No tocar IdUsuarioRegistra
-                // (Ajustá el nombre si tu propiedad se llama distinto)
                 var pUsr = entry.Property(nameof(Insumo.IdUsuarioRegistra));
                 var pUsrFecha = entry.Property(nameof(Insumo.FechaRegistra));
+                pUsr.CurrentValue = pUsr.OriginalValue; pUsr.IsModified = false;
+                pUsrFecha.CurrentValue = pUsrFecha.OriginalValue; pUsrFecha.IsModified = false;
 
-                pUsr.CurrentValue = pUsr.OriginalValue;       // no tocar
-                pUsr.IsModified = false;
+                // Unidades
+                var nuevosUn = model.InsumosUnidadesNegocios ?? new List<InsumosUnidadesNegocio>();
+                var setUn = nuevosUn.Select(x => x.IdUnidadNegocio).ToHashSet();
+                var aEliminarUn = insumoExistente.InsumosUnidadesNegocios.Where(x => !setUn.Contains(x.IdUnidadNegocio)).ToList();
+                _dbcontext.InsumosUnidadesNegocios.RemoveRange(aEliminarUn);
+                foreach (var un in nuevosUn)
+                    if (!insumoExistente.InsumosUnidadesNegocios.Any(x => x.IdUnidadNegocio == un.IdUnidadNegocio))
+                    { un.Id = 0; un.IdInsumo = model.Id; _dbcontext.InsumosUnidadesNegocios.Add(un); }
 
-                pUsrFecha.CurrentValue = pUsrFecha.OriginalValue;  // no tocar
-                pUsrFecha.IsModified = false;
-
-
-                // === UNIDADES DE NEGOCIO ===
-                var nuevosUnidades = model.InsumosUnidadesNegocios ?? new List<InsumosUnidadesNegocio>();
-                var idsUnidadesNuevos = nuevosUnidades.Select(x => x.IdUnidadNegocio).ToHashSet();
-
-                var unidadesAEliminar = insumoExistente.InsumosUnidadesNegocios
-                    .Where(x => !idsUnidadesNuevos.Contains(x.IdUnidadNegocio))
-                    .ToList();
-                _dbcontext.InsumosUnidadesNegocios.RemoveRange(unidadesAEliminar);
-
-                foreach (var unidad in nuevosUnidades)
-                {
-                    if (!insumoExistente.InsumosUnidadesNegocios.Any(x => x.IdUnidadNegocio == unidad.IdUnidadNegocio))
-                    {
-                        unidad.Id = 0;
-                        unidad.IdInsumo = model.Id;
-                        _dbcontext.InsumosUnidadesNegocios.Add(unidad);
-                    }
-                }
-
-                // === PROVEEDORES ASIGNADOS ===
-                var nuevosProveedores = model.InsumosProveedores ?? new List<InsumosProveedor>();
-                var idsListaNuevos = nuevosProveedores.Select(x => x.IdListaProveedor).ToHashSet();
-
-                var proveedoresAEliminar = insumoExistente.InsumosProveedores
-                    .Where(x => !idsListaNuevos.Contains(x.IdListaProveedor))
-                    .ToList();
-                _dbcontext.InsumosProveedores.RemoveRange(proveedoresAEliminar);
-
-                foreach (var proveedor in nuevosProveedores)
-                {
-                    if (!insumoExistente.InsumosProveedores.Any(x => x.IdListaProveedor == proveedor.IdListaProveedor))
-                    {
-                        proveedor.Id = 0;
-                        proveedor.IdInsumo = model.Id;
-                        // (estas dos eran redundantes)
-                        // proveedor.IdListaProveedor = proveedor.IdListaProveedor;
-                        // proveedor.IdProveedor      = proveedor.IdProveedor;
-                        _dbcontext.InsumosProveedores.Add(proveedor);
-                    }
-                }
+                // Proveedores
+                var nuevosProv = model.InsumosProveedores ?? new List<InsumosProveedor>();
+                var setLp = nuevosProv.Select(x => x.IdListaProveedor).ToHashSet();
+                var aEliminarProv = insumoExistente.InsumosProveedores.Where(x => !setLp.Contains(x.IdListaProveedor)).ToList();
+                _dbcontext.InsumosProveedores.RemoveRange(aEliminarProv);
+                foreach (var pr in nuevosProv)
+                    if (!insumoExistente.InsumosProveedores.Any(x => x.IdListaProveedor == pr.IdListaProveedor))
+                    { pr.Id = 0; pr.IdInsumo = model.Id; _dbcontext.InsumosProveedores.Add(pr); }
 
                 await _dbcontext.SaveChangesAsync();
-                await transaction.CommitAsync();
+                await tx.CommitAsync();
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
-                await transaction.RollbackAsync();
-                return false;
+                await tx.RollbackAsync();
+                throw; // <-- dejamos que lo maneje el controller
             }
         }
-
-
 
         public async Task<bool> Eliminar(int id)
         {
-            Models.Insumo model = _dbcontext.Insumos.First(c => c.Id == id);
-            _dbcontext.Insumos.Remove(model);
-            await _dbcontext.SaveChangesAsync();
-            return true;
+            try
+            {
+                var model = await _dbcontext.Insumos.FirstAsync(c => c.Id == id);
+                _dbcontext.Insumos.Remove(model);
+                await _dbcontext.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                throw; // <-- que el controller mapee el mensaje
+            }
         }
+
 
         public async Task<Insumo> Obtener(int id)
         {

@@ -31,4 +31,10 @@ namespace KyoGroup.Application.Models.ViewModels
         public virtual ICollection<InsumosProveedor> InsumosProveedores { get; set; } = new List<InsumosProveedor>();
 
     }
+
+    public class VMProveedoresInsumosMasivo
+    {
+        public List<int> ids { get; set; } = new();
+    }
+
 }

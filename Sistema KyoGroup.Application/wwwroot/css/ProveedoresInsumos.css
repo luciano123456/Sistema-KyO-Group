@@ -144,3 +144,45 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+
+/* FAB: oculto por defecto, solo visible con la clase .show-fab */
+#fabEliminarPI {
+    display: none !important; /* <-- forzamos oculto por defecto */
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 9999;
+    border-radius: 999px;
+    padding: 12px 18px;
+    border: 0;
+    background: #dc3545;
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(0,0,0,.25);
+}
+
+    #fabEliminarPI.show-fab { /* visible solo cuando hay selección */
+        display: flex !important;
+    }
+
+/* cursor pointer al pasar por las filas */
+#grd_InsumosProveedor tbody tr {
+    cursor: pointer;
+}
+
+/* evitar pointer en los controles del menú de acciones */
+#grd_InsumosProveedor .acciones-menu,
+#grd_InsumosProveedor .acciones-menu * {
+    cursor: default;
+}
+
+/* fila seleccionada (rosa pastel, sin contorno) */
+#grd_InsumosProveedor tbody tr.row-selected {
+    background: #B727F5 !important;
+    outline: none !important;
+}
+
+    #grd_InsumosProveedor tbody tr.row-selected td {
+        background: transparent !important;
+        font-weight: bold;
+    }
