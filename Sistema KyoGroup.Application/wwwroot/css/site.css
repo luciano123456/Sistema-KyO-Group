@@ -609,3 +609,98 @@ input:disabled {
     border-radius: 0 0 0.5rem 0.5rem;
     box-shadow: none;
 }
+
+
+/* === Dropdown original (dentro de la celda): puede quedar oculto; no se usa para mostrar === */
+.acciones-dropdown {
+    display: none; /* lo manejamos con el clon */
+}
+
+/* contenedor del botón */
+.acciones-menu {
+    position: relative;
+}
+
+/* popover */
+.acciones-dropdown {
+    position: absolute;
+    min-width: 150px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.25);
+    z-index: 2147483646; /* por encima de todo */
+    display: none;
+    will-change: top, bottom, left, transform;
+}
+
+    /* direcciones */
+    .acciones-dropdown.drop-down {
+        top: calc(100% + 8px); /* debajo del botón */
+        bottom: auto;
+    }
+
+    .acciones-dropdown.drop-up {
+        bottom: calc(100% + 8px); /* arriba del botón */
+        top: auto;
+    }
+
+/* evita recortes en wrappers de DataTables */
+.dataTables_wrapper,
+.dataTables_scroll,
+.dataTables_scrollBody {
+    overflow: visible !important;
+}
+
+
+/* Botón + compacto, mismo alto que el select */
+.btn-plus {
+    min-width: 42px;
+    padding: 0 .65rem;
+    background: linear-gradient(180deg, #3940a0, #2c2f85);
+    color: #fff;
+    border: 1px solid rgba(99,102,241,.6);
+    border-left: 0; /* se fusiona con el select */
+}
+
+    .btn-plus:hover {
+        filter: brightness(1.05);
+    }
+
+    .btn-plus:focus {
+        box-shadow: 0 0 0 .25rem rgba(99,102,241,.35);
+    }
+
+/* Bordes fusionados (que no quede doble borde entre select y botón) */
+.input-plus .form-select {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-plus .btn-plus {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+
+.selectAgregado {
+    border-start-end-radius: 0px !important;
+    border-end-end-radius: 0px !important;
+    
+}
+
+/* Mostrar el feedback debajo del input-group SOLO cuando no esté oculto */
+.input-group + .invalid-feedback:not(.d-none) {
+    display: block !important;
+    width: 100% !important;
+    margin-top: .35rem;
+}
+
+/* Estados en select2 (igual que inputs) */
+.select2-selection.is-invalid {
+    border-color: #e55353 !important;
+    box-shadow: 0 0 0 .1rem rgba(229,83,83,.15) !important;
+}
+
+.select2-selection.is-valid {
+    border-color: #198754 !important;
+}

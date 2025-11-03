@@ -6,6 +6,22 @@
  * - CRUD + Importación desde Excel (comparar / importar)
  * ============================================================================ */
 
+// ====== Selección múltiple específica de ProveedoresInsumos ======
+let gridProvIns;                 // si ya usás un DataTable, reutilizá su variable aquí
+const _PI_selected = new Set();  // guarda IDs seleccionados para esta grilla
+
+function _piUpdateFAB() {
+    const $fab = $('#fabEliminarPI');
+    const c = _PI_selected.size;
+    if (c > 0) {
+        $fab.find('.count-badge').text(String(c));
+        $fab.show();
+    } else {
+        $fab.hide();
+    }
+}
+
+
 let gridInsumos;
 let isEditing = false;
 
@@ -298,10 +314,34 @@ async function listaInsumos(IdProveedor) {
 
 // ========= DataTable =========
 async function configurarDataTable(data) {
+    // ==== agregado: estado + helpers ====
+    window._PI_selected = window._PI_selected || new Set();
+
+    // (a) oculto forzado al entrar (evita que se vea en 0)
+    $('#fabEliminarPI').removeClass('show-fab').hide();
+
+    const _piUpdateFAB = () => {
+        const $fab = $('#fabEliminarPI');
+        const total = _PI_selected.size;
+
+        // actualiza badge si existe
+        $fab.find('.count-badge').text(String(`(${total})` || 0));
+
+        // (b) toggle por clase, nunca visible con 0
+        if (total > 0) $fab.addClass('show-fab').show();
+        else $fab.removeClass('show-fab').hide();
+    };
+
+    const _piIsActionClick = (e) =>
+        $(e.target).closest('button,a,input,select,label,.icon-btn,.acciones-menu,.acciones-dropdown').length > 0;
+
     if (!gridInsumos) {
         $('#grd_InsumosProveedor thead tr').clone(true).addClass('filters').appendTo('#grd_InsumosProveedor thead');
 
         gridInsumos = $('#grd_InsumosProveedor').DataTable({
+            // ==== [AGREGADO] rowId para persistir selección ====
+            rowId: 'Id',
+
             data,
             language: {
                 sLengthMenu: "Mostrar MENU registros",
@@ -317,19 +357,19 @@ async function configurarDataTable(data) {
                     width: "1%",
                     render: function (data) {
                         return `
-              <div class="acciones-menu" data-id="${data}">
-                <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
-                  <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
-                </button>
-                <div class="acciones-dropdown" style="display: none;">
-                  <button class='btn btn-sm btneditar' type='button' onclick='editarInsumo(${data})' title='Editar'>
-                    <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
-                  </button>
-                  <button class='btn btn-sm btneliminar' type='button' onclick='eliminarInsumo(${data})' title='Eliminar'>
-                    <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
-                  </button>
-                </div>
-              </div>`;
+      <div class="acciones-menu" data-id="${data}">
+        <button class='btn btn-sm btnacciones' type='button' title='Acciones'>
+          <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
+        </button>
+        <div class="acciones-dropdown" style="display:none">
+          <button class='btn btn-sm btneditar'  type='button' onclick='editarInsumo(${data})'   title='Editar'>
+            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
+          </button>
+          <button class='btn btn-sm btneliminar' type='button' onclick='eliminarInsumo(${data})' title='Eliminar'>
+            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
+          </button>
+        </div>
+      </div>`;
                     },
                     orderable: false,
                     searchable: false,
@@ -385,6 +425,15 @@ async function configurarDataTable(data) {
                     targets: [3] // Costo Unitario
                 }
             ],
+
+            // ==== [AGREGADO] marcar filas ya seleccionadas al crear ====
+            createdRow: function (row, rowData) {
+                const idStr = String(rowData?.Id ?? '');
+                if (idStr && _PI_selected.has(idStr)) {
+                    row.classList.add('row-selected');
+                }
+            },
+
             initComplete: async function () {
                 const api = this.api();
 
@@ -425,12 +474,88 @@ async function configurarDataTable(data) {
 
                 // KPIs con los datos actuales de la tabla (si existen KPIs en el DOM)
                 actualizarKpisProveedorInsumos(data);
+
+                // ==== [AGREGADO] click fila → toggle selección (evita clicks en menú/controles) ====
+                $('#grd_InsumosProveedor tbody')
+                    .off('click.pi-select')
+                    .on('click.pi-select', 'tr', function (e) {
+                        if (_piIsActionClick(e)) return;
+
+                        const row = gridInsumos.row(this);
+                        const id = String(row?.data()?.Id ?? '');
+                        if (!id) return;
+
+                        if (_PI_selected.has(id)) {
+                            _PI_selected.delete(id);
+                            this.classList.remove('row-selected');
+                        } else {
+                            _PI_selected.add(id);
+                            this.classList.add('row-selected');
+                        }
+                        _piUpdateFAB();
+                    });
+
+                // ==== [AGREGADO] re-aplicar selección al redibujar ====
+                gridInsumos.on('draw', function () {
+                    gridInsumos.rows().every(function () {
+                        const id = String(this.data()?.Id ?? '');
+                        const tr = this.node();
+                        if (id && _PI_selected.has(id)) tr.classList.add('row-selected');
+                        else tr.classList.remove('row-selected');
+                    });
+                    _piUpdateFAB();
+                });
+
+                // ==== [AGREGADO] acción FAB: borrar masivo ====
+                $('#fabEliminarPI').off('click.pi-del').on('click.pi-del', async function () {
+                    const ids = Array.from(_PI_selected).map(Number).filter(x => !isNaN(x));
+                    if (ids.length === 0) return;
+
+                    const ok = (typeof confirmarModal === 'function')
+                        ? await confirmarModal(`¿Eliminar ${ids.length} insumo(s) seleccionados?`)
+                        : window.confirm(`¿Eliminar ${ids.length} insumo(s) seleccionados?`);
+                    if (!ok) return;
+
+                    const token = (window.token || localStorage.getItem('JwtToken') || '').trim();
+                    const res = await fetch('/ProveedoresInsumos/EliminarMasivo', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+                        },
+                        body: JSON.stringify({ ids })
+                    });
+
+                    if (!res.ok) {
+                        if (typeof errorModal === 'function') errorModal('No se pudo eliminar.');
+                        return;
+                    }
+                    const j = await res.json();
+                    if (j?.valor === true) {
+                        _PI_selected.clear();
+                        _piUpdateFAB();
+                        if (typeof exitoModal === 'function') exitoModal('Eliminados correctamente.');
+                        gridInsumos.draw(false); // mantener página
+                    } else {
+                        if (typeof errorModal === 'function') errorModal(j?.mensaje || 'La operación no pudo completarse.');
+                    }
+                });
             },
         });
 
     } else {
         gridInsumos.clear().rows.add(data).draw();
         actualizarKpisProveedorInsumos(data);
+
+        // ==== [AGREGADO] re-aplicar selección tras refresh de datos existentes ====
+        gridInsumos.rows().every(function () {
+            const id = String(this.data()?.Id ?? '');
+            const tr = this.node();
+            if (id && _PI_selected.has(id)) tr.classList.add('row-selected');
+            else tr.classList.remove('row-selected');
+        });
+        _piUpdateFAB();
     }
 }
 
@@ -1186,3 +1311,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initFiltroProveedorPersistente();
     setTimeout(initFiltroProveedorPersistente, 300);
 });
+
+

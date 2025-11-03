@@ -481,3 +481,351 @@ function setInfoAuditoria(vm) {
         autoHideOnInput      // <— NUEVO
     };
 })(window);
+
+
+// ===== Modal reset helpers (Bootstrap 5) =====
+function __mm_removeAllBackdrops() {
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+}
+
+function __mm_resetBody() {
+    document.body.classList.remove('modal-open');
+    document.body.style.paddingRight = '';
+}
+
+function __mm_moveAllModalsToBody() {
+    document.querySelectorAll('.modal').forEach(m => {
+        if (m.parentElement !== document.body) document.body.appendChild(m);
+    });
+}
+
+function __mm_waitHidden(el) {
+    return new Promise(resolve => {
+        if (!el.classList.contains('show')) return resolve();
+        el.addEventListener('hidden.bs.modal', () => resolve(), { once: true });
+        const inst = bootstrap.Modal.getOrCreateInstance(el);
+        inst.hide();
+    });
+}
+
+async function closeAllModalsAsync() {
+    const opened = Array.from(document.querySelectorAll('.modal.show'));
+    for (const el of opened) await __mm_waitHidden(el);
+}
+
+/**
+ * Abre un modal "desde cero": cierra los que estén abiertos, limpia backdrops,
+ * resetea el body y muestra el modal indicado.
+ * @param {string} selector - ej: '#ModalEdicionConfiguraciones'
+ * @param {object} opts     - opciones bootstrap Modal
+ */
+async function openFreshModal(selector, opts = {}) {
+    __mm_moveAllModalsToBody();
+    await closeAllModalsAsync();
+    __mm_removeAllBackdrops();
+    __mm_resetBody();
+
+    const el = document.querySelector(selector);
+    if (!el) return;
+    const inst = bootstrap.Modal.getOrCreateInstance(el, Object.assign({
+        backdrop: true, keyboard: true, focus: true
+    }, opts));
+    inst.show();
+}
+
+
+function bsGet(elOrSel) {
+    const el = (typeof elOrSel === 'string') ? document.querySelector(elOrSel) : elOrSel;
+    return el ? bootstrap.Modal.getOrCreateInstance(el) : null;
+}
+async function bsHide(elOrSel) {
+    const inst = bsGet(elOrSel);
+    if (!inst) return;
+    const el = inst._element;
+    if (!el.classList.contains('show')) return;
+    await new Promise(res => el.addEventListener('hidden.bs.modal', res, { once: true }));
+    inst.hide();
+}
+function bsShow(elOrSel, opts = {}) {
+    const el = (typeof elOrSel === 'string') ? document.querySelector(elOrSel) : elOrSel;
+    if (!el) return;
+    const inst = bootstrap.Modal.getOrCreateInstance(el, Object.assign({ backdrop: true, keyboard: true, focus: true }, opts));
+    inst.show();
+}
+
+
+
+// Cierra cualquier menú abierto al clickear afuera, scrollear o redimensionar
+(function bindGlobalClose() {
+    const closeAll = () => document.querySelectorAll('.acciones-dropdown')
+        .forEach(d => d.style.display = 'none');
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.acciones-menu')) closeAll();
+    });
+    window.addEventListener('scroll', closeAll, true);
+    window.addEventListener('resize', closeAll);
+})();
+
+// Llamala desde tu render (ya lo hacés con onclick='toggleAcciones(id)')
+function toggleAcciones(id) {
+    const wrap = document.querySelector(`.acciones-menu[data-id="${id}"]`);
+    if (!wrap) return;
+    const dd = wrap.querySelector('.acciones-dropdown');
+
+    // cerrar otros
+    document.querySelectorAll('.acciones-dropdown').forEach(x => { if (x !== dd) x.style.display = 'none'; });
+
+    // toggle simple si ya estaba visible
+    if (dd.style.display === 'block') { dd.style.display = 'none'; return; }
+
+    // mostrar "fantasma" para medir
+    dd.style.visibility = 'hidden';
+    dd.style.display = 'block';
+    dd.classList.remove('drop-up', 'drop-down');
+
+    // medidas del botón y del menú
+    const br = wrap.getBoundingClientRect();
+    const mr = dd.getBoundingClientRect();
+    const below = window.innerHeight - br.bottom; // espacio debajo
+    const above = br.top;                          // espacio arriba
+
+    // decidir dirección
+    if (below < mr.height + 12 && above > below) {
+        dd.classList.add('drop-up');
+    } else {
+        dd.classList.add('drop-down');
+    }
+
+    // posición horizontal (pegado a la derecha del botón)
+    const baseLeft = 8;                 // offset respecto al botón
+    dd.style.left = baseLeft + 'px';
+
+    // corregir si se sale por la derecha
+    const mr2 = dd.getBoundingClientRect();
+    const overflowRight = mr2.right - window.innerWidth;
+    if (overflowRight > 0) {
+        dd.style.left = (baseLeft - overflowRight - 8) + 'px';
+    }
+
+    // listo
+    dd.style.visibility = '';
+}
+
+// (Opcional) Si no usás onclick en el HTML, podés delegar aquí:
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.acciones-menu .btnacciones');
+    if (!btn) return;
+    const host = btn.closest('.acciones-menu');
+    const id = host?.dataset.id;
+    if (id) toggleAcciones(id);
+});
+
+
+// === Helpers para ubicar el contenedor "lógico" del campo y su feedback ===
+function __fieldGroup(input) {
+    // Busca un wrapper razonable: form-group, cc-field o la columna bootstrap
+    return input.closest('.form-group, .cc-field, [class*="col-"], .mb-3') || input.parentElement;
+}
+function __feedback(input) {
+    const g = __fieldGroup(input);
+    if (!g) return null;
+    // Primero, si el hermano inmediato es el feedback (caso común)
+    if (input.nextElementSibling && input.nextElementSibling.classList?.contains('invalid-feedback'))
+        return input.nextElementSibling;
+    // Si hay input-group, el feedback suele estar después del grupo
+    if (input.parentElement?.classList?.contains('input-group')) {
+        const sib = input.parentElement.nextElementSibling;
+        if (sib && sib.classList?.contains('invalid-feedback')) return sib;
+    }
+    // Fallback: buscá dentro del contenedor lógico
+    return g.querySelector('.invalid-feedback');
+}
+
+function __markInvalid(input, on) {
+    input.classList.toggle('is-invalid', !!on);
+    // Si es select2, marcar el cascarón visual
+    try {
+        const $el = window.jQuery ? window.jQuery(input) : null;
+        if ($el && $el.data && $el.data('select2')) {
+            const $sel = $el.next('.select2').find('.select2-selection');
+            $sel.toggleClass('is-invalid', !!on);
+        }
+    } catch { }
+}
+
+function showError(input, message) {
+    __markInvalid(input, true);
+    const fb = __feedback(input);
+    if (fb) {
+        fb.textContent = message || fb.getAttribute('data-msg-required') || 'Campo obligatorio';
+        fb.classList.remove('d-none');
+    }
+}
+function showMinError(input) {
+    __markInvalid(input, true);
+    const fb = __feedback(input);
+    if (fb) {
+        fb.textContent = fb.getAttribute('data-msg-min') || 'Valor inválido';
+        fb.classList.remove('d-none');
+    }
+}
+function clearError(input) {
+    __markInvalid(input, false);
+    const fb = __feedback(input);
+    if (fb) fb.classList.add('d-none');
+}
+
+
+// ==== Helpers de validación robusta (input, input-group, select2) ====
+function __fieldContainer(el) {
+    // contenedor lógico donde suele vivir el feedback
+    return el.closest('.form-group, .cc-field, [class*="col-"], .mb-3') || el.parentElement;
+}
+function __feedbackEl(el) {
+    const cont = __fieldContainer(el);
+    if (!cont) return null;
+
+    // si el hermano inmediato es feedback, usarlo
+    if (el.nextElementSibling?.classList?.contains('invalid-feedback')) return el.nextElementSibling;
+
+    // si el input está dentro de un input-group, el feedback suele venir después del grupo
+    const group = el.closest('.input-group');
+    if (group && group.nextElementSibling?.classList?.contains('invalid-feedback')) {
+        return group.nextElementSibling;
+    }
+
+    // fallback: el primero dentro del contenedor
+    return cont.querySelector('.invalid-feedback');
+}
+function __setInvalid(el, invalid, msg) {
+    // marcar control nativo
+    el.classList.toggle('is-invalid', invalid);
+    el.classList.toggle('is-valid', !invalid);
+
+    // marcar select2 si corresponde
+    try {
+        const $el = window.jQuery ? window.jQuery(el) : null;
+        if ($el && $el.data && $el.data('select2')) {
+            const $sel = $el.next('.select2').find('.select2-selection');
+            $sel.toggleClass('is-invalid', invalid).toggleClass('is-valid', !invalid);
+        }
+    } catch { }
+
+    // mensaje
+    const fb = __feedbackEl(el);
+    if (fb) {
+        if (invalid) {
+            fb.textContent = msg || fb.getAttribute('data-msg-required') || 'Campo obligatorio';
+            fb.classList.remove('d-none');
+        } else {
+            fb.classList.add('d-none');
+        }
+    }
+}
+function __isEmptyValue(el) {
+    // valores placeholder típicos en tus selects
+    const v = (el?.value ?? '').toString().trim();
+    return v === '' || v === '-1' || v === 'Seleccionar' || v === 'Seleccionar...';
+}
+
+
+function _container(el) {
+    return el.closest('.form-group, [class*="col-"], .mb-3') || el.parentElement;
+}
+function _feedbackFor(el) {
+    // 1) si el select está dentro de input-group, el feedback suele venir DESPUÉS del grupo
+    const group = el.closest('.input-group');
+    if (group && group.nextElementSibling?.classList?.contains('invalid-feedback')) {
+        return group.nextElementSibling;
+    }
+    // 2) hermano inmediato
+    if (el.nextElementSibling?.classList?.contains('invalid-feedback')) return el.nextElementSibling;
+    // 3) fallback: primero dentro del contenedor
+    const c = _container(el);
+    return c ? c.querySelector('.invalid-feedback') : null;
+}
+function _setInvalid(el, invalid, msg = 'Campo obligatorio') {
+    el.classList.toggle('is-invalid', invalid);
+    el.classList.toggle('is-valid', !invalid);
+
+    // si es select2, marcar la "selection"
+    try {
+        const $el = window.jQuery ? window.jQuery(el) : null;
+        if ($el && $el.data && $el.data('select2')) {
+            const $sel = $el.next('.select2').find('.select2-selection');
+            $sel.toggleClass('is-invalid', invalid).toggleClass('is-valid', !invalid);
+        }
+    } catch { }
+
+    const fb = _feedbackFor(el);
+    if (fb) {
+        if (invalid) { fb.textContent = msg; fb.classList.remove('d-none'); }
+        else fb.classList.add('d-none');
+    }
+}
+function _isEmpty(el) {
+    const v = (el?.value ?? '').toString().trim();
+    return v === '' || v === '-1' || v === 'Seleccionar' || v === 'Seleccionar...';
+}
+
+// ===== Helpers mínimos usados por wireLiveValidationInsumo =====
+function fieldContainer(el) {
+    return el.closest('.form-group, .cc-field, [class*="col-"], .mb-3') || el.parentElement;
+}
+function feedbackFor(el) {
+    const group = el.closest('.input-group');
+    if (group && group.nextElementSibling?.classList?.contains('invalid-feedback')) return group.nextElementSibling;
+    if (el.nextElementSibling?.classList?.contains('invalid-feedback')) return el.nextElementSibling;
+    const c = fieldContainer(el);
+    return c ? c.querySelector('.invalid-feedback') : null;
+}
+function setInvalid(el, invalid, msg = 'Campo obligatorio') {
+    // estado en el control nativo
+    el.classList.toggle('is-invalid', !!invalid);
+    el.classList.toggle('is-valid', !invalid);
+
+    // si es select2, marcar el “cascarón” visual
+    try {
+        const $el = window.jQuery ? window.jQuery(el) : null;
+        if ($el && $el.data && $el.data('select2')) {
+            const $sel = $el.next('.select2').find('.select2-selection');
+            $sel.toggleClass('is-invalid', !!invalid).toggleClass('is-valid', !invalid);
+        }
+    } catch { }
+
+    // feedback
+    const fb = feedbackFor(el);
+    if (fb) {
+        if (invalid) { fb.textContent = msg; fb.classList.remove('d-none'); }
+        else fb.classList.add('d-none');
+    }
+}
+function _isEmpty(el) {
+    const v = (el?.value ?? '').toString().trim();
+    return v === '' || v === '-1' || v === 'Seleccionar' || v === 'Seleccionar...';
+}
+
+
+function resetErroresModal(modalSel) {
+    const root = document.querySelector(modalSel);
+    if (!root) return;
+
+    // Ocultar TODOS los feedbacks y limpiar estados
+    root.querySelectorAll('.invalid-feedback').forEach(fb => fb.classList.add('d-none'));
+    root.querySelectorAll('.is-invalid, .is-valid').forEach(el => el.classList.remove('is-invalid', 'is-valid'));
+
+    // Si hay select2, limpiá el “cascarón” visual
+    if (window.jQuery) {
+        root.querySelectorAll('select').forEach(sel => {
+            const $sel = jQuery(sel);
+            if ($sel.data && $sel.data('select2')) {
+                $sel.next('.select2').find('.select2-selection').removeClass('is-invalid is-valid');
+            }
+        });
+    }
+}
+
+// Llamalo al abrir:
+document.getElementById('modalEdicion')?.addEventListener('show.bs.modal', () => {
+    resetErroresModal('#modalEdicion');
+});

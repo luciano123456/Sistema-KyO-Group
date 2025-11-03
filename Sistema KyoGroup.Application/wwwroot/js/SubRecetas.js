@@ -223,15 +223,19 @@ async function configurarDataTable(data) {
                     width: "1%",
                     render: function (data) {
                         return `
-                <div class="acciones-menu" data-id="${data}">
-                    <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})'>
-                        <i class='fa fa-ellipsis-v fa-lg text-white'></i>
-                    </button>
-                    <div class="acciones-dropdown" style="display: none;">
-                        <button class='btn btn-sm btneditar' onclick='editarSubreceta(${data})'><i class='fa fa-pencil-square-o text-success'></i> Editar</button>
-                        <button class='btn btn-sm btneliminar' onclick='eliminarSubreceta(${data})'><i class='fa fa-trash-o text-danger'></i> Eliminar</button>
-                    </div>
-                </div>`;
+      <div class="acciones-menu" data-id="${data}">
+        <button class='btn btn-sm btnacciones' type='button' title='Acciones'>
+          <i class='fa fa-ellipsis-v fa-lg text-white'></i>
+        </button>
+        <div class="acciones-dropdown" style="display:none">
+          <button class='btn btn-sm btneditar' type='button' onclick='editarSubreceta(${data})'>
+            <i class='fa fa-pencil-square-o text-success'></i> Editar
+          </button>
+          <button class='btn btn-sm btneliminar' type='button' onclick='eliminarSubreceta(${data})'>
+            <i class='fa fa-trash-o text-danger'></i> Eliminar
+          </button>
+        </div>
+      </div>`;
                     },
                     orderable: false,
                     searchable: false,

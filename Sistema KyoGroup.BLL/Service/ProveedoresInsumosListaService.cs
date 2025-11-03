@@ -44,6 +44,10 @@ namespace SistemaKyoGroup.BLL.Service
         }
 
 
+        public async Task<bool> EliminarMasivo(List<int> ids)
+        {
+            return await _contactRepo.EliminarMasivo(ids);
+        }
 
         //public async Task<ProveedoresInsumos> ObtenerPorNombre(string nombre)
         //{

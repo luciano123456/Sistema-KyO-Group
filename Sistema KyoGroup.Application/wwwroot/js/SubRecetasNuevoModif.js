@@ -647,3 +647,122 @@ function guardarCambios() {
             errorModal("Ha ocurrido un error al guardar la Subreceta.");
         });
 }
+
+
+
+
+
+async function recargarCategoriasSubrecetaYSeleccionar(idSeleccionar = null) {
+    const sel = document.getElementById('Categorias');
+    if (!sel) return;
+
+    let data;
+    try { data = await fetchJson('/SubrecetasCategoria/Lista'); } catch { data = []; }
+    if (!Array.isArray(data)) data = [];
+
+    // Limpiar y volver a poner placeholder
+    sel.innerHTML = '';
+    const opt0 = new Option('Seleccionar...', '', false, false);
+    opt0.disabled = true; opt0.selected = true;
+    sel.add(opt0);
+
+    // Normalizo claves: { id, text } (select2) o { Id, Nombre } etc.
+    const norm = (data || []).map(x => {
+        const id = x.id ?? x.Id ?? x.ID ?? x.IdCategoria ?? x.IdSubrecetaCategoria ?? x.IdCategoriaSubreceta;
+        const texto = x.text ?? x.nombre ?? x.Nombre ?? x.descripcion ?? x.Descripcion ?? '';
+        return { id, texto: String(texto) };
+    }).filter(x => x.id != null && x.texto?.length);
+
+    // Agrego opciones
+    norm.forEach(x => sel.add(new Option(x.texto, String(x.id))));
+
+    // Selección
+    if (idSeleccionar != null) {
+        sel.value = String(idSeleccionar);
+    } else if (sel.options.length > 1) {
+        // último option real (ignora placeholder en 0)
+        sel.value = sel.options[sel.options.length - 1].value;
+    } else {
+        sel.value = '';
+    }
+
+    // Disparar change (nativo y select2)
+    sel.dispatchEvent(new Event('change'));
+    try { $('#Categorias').trigger('change.select2'); } catch { }
+
+    // Limpiar inválido si lo tuviera
+    sel.classList.remove('is-invalid');
+    const fb = sel.closest('.form-group')?.querySelector('.invalid-feedback');
+    if (fb) fb.classList.add('d-none');
+}
+
+// Botón ➕ de Categorías (abre config y al volver recarga + selecciona último)
+document.getElementById('btnAddCategoria')?.addEventListener('click', async () => {
+    try {
+        // Abrí tu pantalla de configuraciones en la sección de categorías de subrecetas
+        await openConfigAndWait({ nombre: 'Categorías de Subrecetas', controller: 'SubrecetasCategoria' });
+    } catch (_) {
+        // usuario canceló: no hacemos nada
+    } finally {
+        // Siempre actualizar lista y seleccionar el último
+        await recargarCategoriasSubrecetaYSeleccionar();
+    }
+});
+
+
+async function recargarUnidadMedidaSubrecetaYSeleccionar(idSeleccionar = null) {
+    const sel = document.getElementById('UnidadMedidas');
+    if (!sel) return;
+
+    // Traer datos
+    let data;
+    try { data = await fetchJson('/UnidadesMedida/Lista'); } catch { data = []; }
+    if (!Array.isArray(data)) data = [];
+
+    // Reset + placeholder
+    sel.innerHTML = '';
+    const opt0 = new Option('Seleccionar...', '', false, false);
+    opt0.disabled = true; opt0.selected = true;
+    sel.add(opt0);
+
+    // Normalizar: admite {id,text} (select2) o {Id, Nombre, Abreviatura} etc.
+    const norm = (data || []).map(x => {
+        const id = x.id ?? x.Id ?? x.ID ?? x.IdUnidadMedida ?? x.idUnidadMedida;
+        const nom = x.text ?? x.nombre ?? x.Nombre ?? x.descripcion ?? x.Descripcion ?? '';
+        const abr = x.abreviatura ?? x.Abreviatura ?? x.sigla ?? x.Sigla ?? '';
+        const texto = abr ? `${nom} (${abr})` : String(nom);
+        return { id, texto };
+    }).filter(x => x.id != null && x.texto);
+
+    // Poblar
+    norm.forEach(x => sel.add(new Option(x.texto, String(x.id))));
+
+    // Selección
+    if (idSeleccionar != null) {
+        sel.value = String(idSeleccionar);
+    } else if (sel.options.length > 1) {
+        sel.value = sel.options[sel.options.length - 1].value; // último real
+    } else {
+        sel.value = '';
+    }
+
+    // Notificar cambios (nativo + select2)
+    sel.dispatchEvent(new Event('change'));
+    try { $('#UnidadMedidas').trigger('change.select2'); } catch { }
+
+    // Quitar inválido si estaba
+    sel.classList.remove('is-invalid');
+    const fb = sel.closest('.form-group')?.querySelector('.invalid-feedback');
+    if (fb) fb.classList.add('d-none');
+}
+
+// Botón ➕: abrir config y al volver recargar + seleccionar
+document.getElementById('btnAddUMSub')?.addEventListener('click', async () => {
+    try {
+        await openConfigAndWait({ nombre: 'Unidades de Medida', controller: 'UnidadesMedida' });
+    } catch (_) {
+        // cancelado: nada
+    } finally {
+        await recargarUnidadMedidaSubrecetaYSeleccionar();
+    }
+});

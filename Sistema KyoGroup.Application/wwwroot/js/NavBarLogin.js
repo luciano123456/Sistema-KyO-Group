@@ -75,10 +75,15 @@ function getCtl() {
 }
 
 
-function abrirConfiguraciones() {
-    $('#ModalEdicionConfiguraciones').modal('show');
-    $("#btnGuardarConfiguracion").text("Aceptar");
-    $("#modalEdicionLabel").text("Configuraciones");
+async function abrirConfiguraciones() {
+    // Abre SIEMPRE “Configuraciones” en limpio (aunque vengas de otros modales)
+    await openFreshModal('#ModalEdicionConfiguraciones');
+    // (Opcional) setear títulos/botones después de mostrado
+    try {
+        document.getElementById("ModalEdicionConfiguracionesLabel").textContent = "Configuraciones";
+        const btn = document.getElementById("btnGuardarConfiguracion");
+        if (btn) btn.textContent = "Aceptar";
+    } catch { }
 }
 
 
@@ -361,14 +366,12 @@ function guardarCambiosConfiguracion() {
         "Nombre": $("#txtNombreConfiguracion").val()
     };
 
-    // --- NUEVO: inyectar valor extra si corresponde ---
+    // --- Campo extra (si aplica) ---
     if (extraFieldMeta?.key) {
         nuevoModelo[extraFieldMeta.key] = getExtraFieldValue();
     }
 
-
-
-    const ctl = getCtl();
+    const ctl = getCtl();                 // ← usa el controller configuracion actual
     const isInsert = idConfiguracion === "";
     const accion = isInsert ? "Insertar" : "Actualizar";
     const url = `/${ctl}/${accion}`;
@@ -385,13 +388,41 @@ function guardarCambiosConfiguracion() {
     })
         .then(response => {
             if (!response.ok) throw new Error(response.statusText);
-            return response.json();
+            return response.json(); // Esperamos {valor:bool, id?:number}
         })
-        .then(() => {
-            const mensaje = idConfiguracion === "" ? `${nombreConfiguracion} registrado/a correctamente` : `${nombreConfiguracion} modificado/a correctamente`;
-            llenarConfiguraciones();
+        .then(async (resp) => {
+            const fueAlta = (idConfiguracion === "");
+            const mensaje = fueAlta
+                ? `${nombreConfiguracion} registrado/a correctamente`
+                : `${nombreConfiguracion} modificado/a correctamente`;
+
+            // Refrescar grilla
+            await llenarConfiguraciones();
             cancelarModificarConfiguracion();
             exitoModal(mensaje);
+
+            // === EMITIR EVENTO "config:saved" para que otras pantallas (p.ej. Insumos) reaccionen ===
+            // Intentamos tomar el id del response; si no viene, buscamos el recien creado por nombre.
+            let savedId = resp?.id;
+
+            if (!savedId && fueAlta) {
+                try {
+                    const todos = await listaConfiguracion(); // devuelve [{Id, Nombre, ...}]
+                    const nombre = (nuevoModelo.Nombre || '').trim().toLowerCase();
+                    const match = (todos || []).find(x => String(x.Nombre || '').trim().toLowerCase() === nombre);
+                    if (match) savedId = match.Id;
+                } catch { /* ignore */ }
+            }
+
+            // Emitimos el evento; controller = getCtl() (ej. 'InsumosCategoria')
+            const ev = new CustomEvent('config:saved', {
+                detail: {
+                    controller: getCtl(),
+                    id: savedId || null,
+                    nombre: nuevoModelo.Nombre || ''
+                }
+            });
+            window.dispatchEvent(ev);
         })
         .catch(() => console.error('Error al guardar'));
 }
@@ -583,3 +614,209 @@ document.querySelectorAll('.nav-item.dropdown').forEach(dropdown => {
         });
     } catch (_) { }
 })();
+
+
+/* =========================================================
+ * Modal Manager v2 – Bootstrap 5
+ * - Todos los .modal se mueven al <body> (evita anidamientos)
+ * - Stacking: z-index para modal y backdrop por orden de apertura
+ * - Limpieza de backdrops huérfanos
+ * - Mantiene body .modal-open si quedan modales visibles
+ * - Ajusta padding-right del body por scrollbar (no “salta” la UI)
+ * ========================================================= */
+/* =========================================================
+ * Modal Manager — Bootstrap 5 (robusto y corto)
+ * ========================================================= */
+(function modalManager() {
+    const Z_BASE = 1050, STEP = 10;
+
+    // Asegurar que todos los modales cuelguen del <body>
+    function moveAllModalsToBody() {
+        document.querySelectorAll('.modal').forEach(m => {
+            if (m.parentElement !== document.body) document.body.appendChild(m);
+        });
+    }
+    document.addEventListener('DOMContentLoaded', moveAllModalsToBody);
+
+    // Utilidad: desbloquear body y limpiar backdrops sobrantes
+    function cleanState() {
+        const open = document.querySelectorAll('.modal.show').length;
+        const backs = document.querySelectorAll('.modal-backdrop');
+        // si hay más backdrops que modales visibles, borro extras (los más antiguos)
+        for (let i = 0; i < backs.length - open; i++) backs[i].remove();
+        if (open === 0) {
+            document.body.classList.remove('modal-open');
+            document.body.style.paddingRight = '';
+        } else {
+            document.body.classList.add('modal-open');
+            // Ajuste de padding por scrollbar (evita saltos)
+            const sw = (() => {
+                const d = document.createElement('div');
+                d.style.cssText = 'position:fixed;top:-9999px;width:100px;height:100px;overflow:scroll;';
+                document.body.appendChild(d);
+                const w = d.offsetWidth - d.clientWidth;
+                d.remove();
+                return w;
+            })();
+            if (sw > 0) document.body.style.paddingRight = sw + 'px';
+        }
+    }
+
+    // Al abrir: apilar modal y su backdrop
+    document.addEventListener('show.bs.modal', e => {
+        moveAllModalsToBody();
+        const modal = e.target;
+        const idSel = modal.id ? ('#' + modal.id) : null;
+
+        // Nivel = cantidad de backdrops existentes + 1
+        const level = document.querySelectorAll('.modal-backdrop').length + 1;
+        const z = Z_BASE + level * STEP;
+        modal.style.zIndex = z;
+
+        // Cuando el modal ya insertó el backdrop, lo etiquetamos y ordenamos
+        setTimeout(() => {
+            const backs = Array.from(document.querySelectorAll('.modal-backdrop'));
+            const last = backs[backs.length - 1];
+            if (last) {
+                last.style.zIndex = String(z - 1);
+                if (idSel) last.setAttribute('data-for', idSel);
+            }
+        }, 0);
+    });
+
+    // Al quedar visible, asegurar bloqueo del body
+    document.addEventListener('shown.bs.modal', cleanState);
+
+    // Al cerrar: eliminar el backdrop asociado a ese modal y reequilibrar
+    document.addEventListener('hidden.bs.modal', e => {
+        const modal = e.target;
+        const idSel = modal.id ? ('#' + modal.id) : null;
+        if (idSel) {
+            // borro el backdrop etiquetado para este modal (si existe)
+            const tagged = document.querySelector(`.modal-backdrop[data-for="${idSel}"]`);
+            if (tagged) tagged.remove();
+        }
+        cleanState();
+    });
+
+    // Failsafe al volver del historial o refrescar
+    window.addEventListener('pageshow', () => {
+        document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.paddingRight = '';
+    });
+
+    // Expongo un limpiador manual por si querés usarlo antes de abrir “en limpio”
+    window.forceCleanModals = function () {
+        document.querySelectorAll('.modal.show').forEach(el => {
+            const inst = bootstrap.Modal.getOrCreateInstance(el);
+            inst.hide();
+        });
+        document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.paddingRight = '';
+    };
+})();
+
+
+
+
+// ============ site.js (GENÉRICOS) ============
+
+// Fetch con JSON + token (GET/POST/PUT/DELETE)
+async function fetchJson(url, options = {}) {
+    const headers = Object.assign(
+        {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+        },
+        options.headers || {}
+    );
+
+    const res = await fetch(url, { ...options, headers });
+    if (!res.ok) {
+        // Intenta parsear JSON de error
+        let msg = 'Error en la solicitud';
+        try {
+            const j = await res.json();
+            msg = j?.mensaje || j?.error || res.statusText;
+        } catch { }
+        throw new Error(msg);
+    }
+    // Algunos endpoints DELETE devuelven vacío
+    const ct = res.headers.get('content-type') || '';
+    return ct.includes('application/json') ? res.json() : res.text();
+}
+
+// Llenar un <select> con datos [{id, nombre}] o mapeando claves personalizadas
+function llenarSelect(selectId, data, opts = {}) {
+    const {
+        value = 'Id',
+        text = 'Nombre',
+        includeSeleccionar = false,
+        seleccionarTexto = 'Seleccionar'
+    } = opts;
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+
+    sel.innerHTML = '';
+    if (includeSeleccionar) {
+        const op0 = document.createElement('option');
+        op0.value = '-1';
+        op0.textContent = seleccionarTexto;
+        op0.disabled = true;
+        op0.selected = true;
+        sel.appendChild(op0);
+    }
+
+    (data || []).forEach(x => {
+        const op = document.createElement('option');
+        op.value = String(x[value]);
+        op.textContent = String(x[text]);
+        sel.appendChild(op);
+    });
+}
+
+// ==== Bridge genérico para abrir Configuración y esperar "guardado" ====
+//
+// Requiere que NavBarLogin.js emita un CustomEvent('config:saved', {detail:{ controller, id, nombre }})
+// cuando se inserta/modifica una fila en configuraciones.
+//
+function openConfigAndWait({ nombre, controller, comboNombre = null, comboController = null, lblComboNombre = null, extraMeta = null }) {
+    return new Promise((resolve, reject) => {
+        let timeoutId;
+
+        // Handler que capta el evento de guardado
+        const onSaved = (ev) => {
+            const d = ev?.detail || {};
+            if (d?.controller === controller && d?.id) {
+                clearTimeout(timeoutId);
+                window.removeEventListener('config:saved', onSaved);
+                resolve(d.id);
+            }
+        };
+
+        window.addEventListener('config:saved', onSaved);
+
+        // Timeout para evitar promesas colgadas (5 min)
+        timeoutId = setTimeout(() => {
+            window.removeEventListener('config:saved', onSaved);
+            reject(new Error('config:saved timeout'));
+        }, 5 * 60 * 1000);
+
+        try {
+            // Usa las funciones globales ya existentes en NavBarLogin.js
+            if (typeof abrirConfiguracion !== 'function') {
+                clearTimeout(timeoutId);
+                window.removeEventListener('config:saved', onSaved);
+                return reject(new Error('abrirConfiguracion no está definido'));
+            }
+            abrirConfiguracion(nombre, controller, comboNombre, comboController, lblComboNombre, extraMeta);
+        } catch (err) {
+            clearTimeout(timeoutId);
+            window.removeEventListener('config:saved', onSaved);
+            reject(err);
+        }
+    });
+}

@@ -35,3 +35,67 @@
 .fila-asignada {
     background-color: #d4edda !important; /* verde suave */
 }
+
+
+/* Wrap para select + botón a la derecha */
+.input-plus {
+    align-items: stretch;
+}
+
+    .input-plus .form-select {
+        background-color: #2e2f47; /* tu tono dark */
+        color: #e6e6f0;
+        border: 1px solid rgba(255,255,255,0.12);
+    }
+
+        .input-plus .form-select:focus {
+            box-shadow: 0 0 0 .25rem rgba(99,102,241,.25); /* indigo glow */
+            border-color: rgba(99,102,241,.6);
+        }
+
+
+
+/* Estado inválido coherente */
+.form-select.is-invalid,
+.was-validated .form-select:invalid {
+    border-color: #dc3545 !important;
+    box-shadow: none !important;
+}
+
+/* Si usás Select2: que respete la altura y se vea integrado */
+.input-plus .select2-container--default .select2-selection--single {
+    height: 100%;
+    background-color: #2e2f47;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+    .input-plus .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 38px; /* ajustá si tu form-control es más alto */
+        color: #e6e6f0;
+    }
+
+    .input-plus .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 100%;
+    }
+
+
+
+/* El menú original puede quedar como está (position:absolute dentro de la celda) */
+/* Este es el clonado que vive en <body> */
+.acciones-dropdown-clone {
+    z-index: 999999; /* por encima de todo */
+    min-width: 150px;
+    background: #fff; /* o tu panel */
+    border-radius: 6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.25);
+    overflow: hidden; /* por estética */
+}
+
+/* Opcional: evita que el contenedor de la tabla recorte cosas por padding */
+.dataTables_scrollBody {
+    overflow: auto;
+}
+
+

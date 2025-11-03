@@ -178,76 +178,80 @@ namespace SistemaKyoGroup.Application.Controllers
         [HttpPost]
         public async Task<IActionResult> Insertar([FromBody] VMInsumo model)
         {
-
-            // Id del usuario desde el JWT
-            var userId = User.GetUserId();
-
-            var insumo = new Insumo
+            try
             {
-                Id = model.Id,
-                IdUnidadMedida = model.IdUnidadMedida,
-                Sku = model.Sku,
-                FechaActualizacion = DateTime.Now,
-                IdCategoria = model.IdCategoria,
-                Descripcion = model.Descripcion,
-                IdUsuarioRegistra = (int)userId, // fallback si hicieras pruebas sin token
-                FechaRegistra = DateTime.Now,
+                var userId = User.GetUserId();
 
-                InsumosUnidadesNegocios = model.InsumosUnidadesNegocios?.Select(u => new InsumosUnidadesNegocio
+                var entidad = new Insumo
                 {
-                    IdUnidadNegocio = u.IdUnidadNegocio
-                }).ToList(),
+                    Descripcion = model.Descripcion?.Trim(),
+                    Sku = model.Sku?.Trim(),
+                    IdUnidadMedida = model.IdUnidadMedida,
+                    IdCategoria = model.IdCategoria,
+                    IdUsuarioRegistra = userId ?? model.IdUsuarioRegistra,
+                    FechaRegistra = DateTime.Now,
+                    FechaActualizacion = DateTime.Now,
+                    // colecciones:
+                    InsumosUnidadesNegocios = model.InsumosUnidadesNegocios?.Select(x => new InsumosUnidadesNegocio { IdUnidadNegocio = x.IdUnidadNegocio }).ToList(),
+                    InsumosProveedores = model.InsumosProveedores?.Select(x => new InsumosProveedor { IdProveedor = x.IdProveedor, IdListaProveedor = x.IdListaProveedor }).ToList()
+                };
 
-                InsumosProveedores = model.InsumosProveedores?
-                    .GroupBy(p => new { p.IdProveedor, p.IdListaProveedor }) // evita duplicados
-                    .Select(g => new InsumosProveedor
-                    {
-                        IdProveedor = g.Key.IdProveedor,
-                        IdListaProveedor = g.Key.IdListaProveedor
-                    }).ToList()
-            };
-
-            var respuesta = await _InsumosService.Insertar(insumo);
-
-            return Ok(new
+                var ok = await _InsumosService.Insertar(entidad);
+                return Ok(new { valor = ok, mensaje = ok ? "Insumo registrado correctamente" : "No se pudo registrar el insumo" });
+            }
+            catch (Exception ex)
             {
-                valor = respuesta,
-                mensaje = respuesta ? "Insumo registrado correctamente" : "Error al registrar"
-            });
+                var msg = DbErrorHelper.FriendlyMessage(ex, "insumo");
+                return Ok(new { valor = false, mensaje = msg });
+            }
         }
-
 
         [HttpPut]
         public async Task<IActionResult> Actualizar([FromBody] VMInsumo model)
         {
-            var userId = User.GetUserId();
-
-            var Insumos = new Insumo
+            try
             {
-                Id = model.Id,
-                IdUnidadMedida = model.IdUnidadMedida,
-                Sku = model.Sku,
-                FechaActualizacion = DateTime.Now,
-                IdCategoria = model.IdCategoria,
-                Descripcion = model.Descripcion,
-                InsumosProveedores = model.InsumosProveedores,
-                InsumosUnidadesNegocios = model.InsumosUnidadesNegocios,
-                  IdUsuarioModifica = (int)userId, // fallback si hicieras pruebas sin token
-                FechaModifica = DateTime.Now
-            };
+                var userId = User.GetUserId();
 
-            bool respuesta = await _InsumosService.Actualizar(Insumos);
+                var entidad = new Insumo
+                {
+                    Id = model.Id,
+                    Descripcion = model.Descripcion?.Trim(),
+                    Sku = model.Sku?.Trim(),
+                    IdUnidadMedida = model.IdUnidadMedida,
+                    IdCategoria = model.IdCategoria,
+                    IdUsuarioModifica = userId,
+                    FechaModifica = DateTime.Now,
+                    FechaActualizacion = DateTime.Now,
+                    InsumosUnidadesNegocios = model.InsumosUnidadesNegocios?.Select(x => new InsumosUnidadesNegocio { IdUnidadNegocio = x.IdUnidadNegocio }).ToList(),
+                    InsumosProveedores = model.InsumosProveedores?.Select(x => new InsumosProveedor { IdProveedor = x.IdProveedor, IdListaProveedor = x.IdListaProveedor }).ToList()
+                };
 
-            return Ok(new { valor = respuesta });
+                var ok = await _InsumosService.Actualizar(entidad);
+                return Ok(new { valor = ok, mensaje = ok ? "Insumo modificado correctamente" : "No se pudo modificar el insumo" });
+            }
+            catch (Exception ex)
+            {
+                var msg = DbErrorHelper.FriendlyMessage(ex, "insumo");
+                return Ok(new { valor = false, mensaje = msg });
+            }
         }
 
         [HttpDelete]
         public async Task<IActionResult> Eliminar(int id)
         {
-            bool respuesta = await _InsumosService.Eliminar(id);
-
-            return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
+            try
+            {
+                var ok = await _InsumosService.Eliminar(id);
+                return Ok(new { valor = ok, mensaje = ok ? "Insumo eliminado correctamente" : "No se pudo eliminar el insumo" });
+            }
+            catch (Exception ex)
+            {
+                var msg = DbErrorHelper.FriendlyMessage(ex, "insumo");
+                return Ok(new { valor = false, mensaje = msg });
+            }
         }
+
 
         [HttpGet]
         public async Task<IActionResult> EditarInfo(int id)
@@ -293,7 +297,11 @@ namespace SistemaKyoGroup.Application.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+            });
         }
+
     }
 }

@@ -98,7 +98,11 @@ $(document).ready(() => {
  * CRUD / Guardado
  * ============================================================ */
 function guardarCambios() {
+
     if (!validarCampos()) return;
+
+ 
+   
 
     const idInsumo = $("#txtId").val();
 
@@ -128,16 +132,28 @@ function guardarCambios() {
     })
         .then(async response => {
             const data = await response.json();
-            if (data.valor == false) {
+
+            if (data.valor == false && data.mensaje != null) {
+                errorModal(data.mensaje);
+                return;
+            } else if (data.valor == false) {
                 errorModal("El insumo no se ha podido guardar correctamente");
                 return;
             }
 
-            $('#modalEdicion').modal('hide');
+            if (idInsumo != "") {
+                $('#modalEdicion').modal('hide');
+            } else {
+                limpiarModal();
+                seleccionarTodasUN();   // ✅ simula “Seleccionar todos” de UN
+            };
+
             exitoModal(data.mensaje || "Insumo guardado correctamente");
+
             // Mantener compatibilidad con llamadas existentes
             if (typeof aplicarFiltros === 'function') aplicarFiltros();
             else aplicarFiltrosInsumos();
+
         })
         .catch(error => {
             errorModal(error.message);
@@ -145,16 +161,31 @@ function guardarCambios() {
         });
 }
 
-function nuevoInsumo() {
+async function nuevoInsumo() {
+
 
     limpiarModal();
-    listaUnidadesNegocio();
-    listaUnidadesMedida();
-    listaInsumosCategoria();
+    await listaUnidadesNegocio(true);     // ← auto-select all
+    await listaUnidadesMedida();
+    await listaInsumosCategoria();
+
+    
+    //resetModalInsumo();
     $('#modalEdicion').modal('show');
     $("#btnGuardar").text("Registrar");
     $("#modalEdicionLabel").text("Nuevo Insumo");
 }
+
+function seleccionarTodasUN() {
+    const master = document.getElementById('checkTodosUnidades');
+    if (master) {
+        master.checked = true;
+        master.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+}
+
+
+
 
 async function mostrarModal(modelo) {
     limpiarModal();
@@ -279,13 +310,13 @@ async function listaInsumos(UnidadNegocio) {
 const editarInsumo = id => {
     $('.acciones-dropdown').hide();
     fetch("Insumos/EditarInfo?id=" + id,
-    {
-        method: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json'
-        }
-    })
+        {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            }
+        })
         .then(response => {
             if (!response.ok) throw new Error("Ha ocurrido un error.");
             return response.json();
@@ -315,12 +346,17 @@ async function eliminarInsumo(id) {
             }
         });
 
-        if (!response.ok) throw new Error("Error al eliminar el Insumo.");
-
         const dataJson = await response.json();
+        if (!dataJson.valor) {
+            errorModal(dataJson.mensaje || "No se pudo eliminar.");
+            return;
+        }
+
+
         if (dataJson.valor) {
             aplicarFiltrosInsumos();
             exitoModal("Insumo eliminado correctamente");
+
         }
     } catch (error) {
         console.error("Ha ocurrido un error:", error);
@@ -349,23 +385,27 @@ async function configurarDataTable(data) {
                     width: "1%",
                     render: function (data) {
                         return `
-                <div class="acciones-menu" data-id="${data}">
-                    <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${data})' title='Acciones'>
-                        <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
-                    </button>
-                    <div class="acciones-dropdown" style="display: none;">
-                        <button class='btn btn-sm btneditar' type='button' onclick='editarInsumo(${data})' title='Editar'>
-                            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
-                        </button>
-                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarInsumo(${data})' title='Eliminar'>
-                            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
-                        </button>
-                    </div>
-                </div>`;
+      <div class="acciones-menu" data-id="${data}">
+        <button class='btn btn-sm btnacciones' type='button' title='Acciones'>
+          <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
+        </button>
+        <div class="acciones-dropdown" style="display:none">
+          <button class='btn btn-sm btneditar'  type='button' onclick='editarInsumo(${data})'   title='Editar'>
+            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
+          </button>
+          <button class='btn btn-sm btnduplicar' type='button' onclick='duplicarInsumo(${data})' title='Duplicar'>
+            <i class='fa fa-clone fa-lg text-info' aria-hidden='true'></i> Duplicar
+          </button>
+          <button class='btn btn-sm btneliminar' type='button' onclick='eliminarInsumo(${data})' title='Eliminar'>
+            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
+          </button>
+        </div>
+      </div>`;
                     },
                     orderable: false,
                     searchable: false,
                 },
+
                 { data: 'Descripcion' },
                 { data: 'FechaActualizacion' },
                 { data: 'Sku' },
@@ -599,7 +639,7 @@ async function listaInsumosCategoriaFilter() {
     return data.map(x => ({ Id: x.Id, Nombre: x.Nombre }));
 }
 
-async function listaUnidadesNegocio() {
+async function listaUnidadesNegocio(autoSelectAll = false) {
     const data = await listaUnidadesNegocioFilter();
     const contenedor = document.getElementById("listaUnidades");
 
@@ -621,7 +661,9 @@ async function listaUnidadesNegocio() {
         contenedor.appendChild(wrapper);
     });
 
-    document.getElementById("checkTodosUnidades").addEventListener("change", function () {
+    // Listeners
+    const master = document.getElementById("checkTodosUnidades");
+    master.addEventListener("change", function () {
         document.querySelectorAll(".unidades-check").forEach(cb => cb.checked = this.checked);
         actualizarTextoUnidadesNegocio();
         validarCampoIndividual(document.getElementById("btnUnidadesNegocio"));
@@ -633,6 +675,12 @@ async function listaUnidadesNegocio() {
             validarCampoIndividual(document.getElementById("btnUnidadesNegocio"));
         });
     });
+
+    // ✅ AUTO: simular “Seleccionar todos” al terminar de armar la lista
+    if (autoSelectAll) {
+        master.checked = true;
+        master.dispatchEvent(new Event('change', { bubbles: true })); // dispara el handler
+    }
 }
 
 async function listaUnidadesMedida() {
@@ -858,6 +906,8 @@ function limpiarModal() {
 
     const errorMsg = document.getElementById("errorCampos");
     if (errorMsg) errorMsg.classList.add("d-none");
+
+    proveedoresAsignados = [];
 }
 
 function validarCampoIndividual(el) {
@@ -901,39 +951,44 @@ function verificarErroresGenerales() {
 }
 
 function validarCampos() {
-    const campos = ["#txtDescripcion", "#txtSku", "#Categorias", "#UnidadesMedida"];
     let valido = true;
 
-    campos.forEach(selector => {
-        const campo = document.querySelector(selector);
-        const valor = campo?.value.trim();
-        const feedback = campo?.nextElementSibling;
-
-        if (!campo || !valor || valor === "Seleccionar") {
-            campo.classList.add("is-invalid");
-            campo.classList.remove("is-valid");
-            if (feedback) feedback.textContent = "Campo obligatorio";
-            valido = false;
-        } else {
-            campo.classList.remove("is-invalid");
-            campo.classList.add("is-valid");
-        }
-    });
-
-    const btnUnidades = document.getElementById("btnUnidadesNegocio");
-    if (unidadesNegocioSeleccionados.length === 0) {
-        btnUnidades.classList.add("is-invalid");
-        btnUnidades.classList.remove("is-valid");
-        valido = false;
-    } else {
-        btnUnidades.classList.remove("is-invalid");
-        btnUnidades.classList.add("is-valid");
+    // inputs/selects que validás en el modal
+    const ids = ['#txtDescripcion', '#txtSku', '#UnidadesMedida', '#Categorias'];
+    for (const sel of ids) {
+        const el = document.querySelector(sel);
+        if (!el) continue;
+        const empty = _isEmpty(el);
+        _setInvalid(el, empty);
+        if (empty) valido = false;
     }
 
-    document.getElementById("errorCampos").classList.toggle("d-none", valido);
+    // U. de Negocio (pseudo-select): usamos 3 fuentes para el conteo
+    const btnUnidades = document.getElementById('btnUnidadesNegocio');
+    if (btnUnidades) {
+        // 1) array global si existe
+        let count = Array.isArray(window.unidadesNegocioSeleccionados) ? window.unidadesNegocioSeleccionados.length : 0;
+        // 2) fallback: checkboxes marcados dentro del dropdown
+        if (!count) {
+            const lista = document.getElementById('listaUnidades');
+            if (lista) count = lista.querySelectorAll('.form-check-input[type="checkbox"]:not(#checkTodosUnidades):checked').length;
+        }
+        // 3) fallback: atributo data-count si lo usás
+        if (!count) count = parseInt(btnUnidades.dataset.count || '0', 10) || 0;
+
+        const inval = count <= 0;
+        btnUnidades.classList.toggle('is-invalid', inval);
+        btnUnidades.classList.toggle('is-valid', !inval);
+
+        // feedback del contenedor
+        const fb = _feedbackFor(btnUnidades);
+        if (fb) fb.classList.toggle('d-none', !inval);
+        if (inval) valido = false;
+    }
+
+    document.getElementById('errorCampos')?.classList.toggle('d-none', valido);
     return valido;
 }
-
 // ==============================
 //  Filtros Insumos (completo)
 // ==============================
@@ -1057,3 +1112,259 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     })();
 });
+
+
+// Duplica un insumo: abre el modal con los datos precargados, pero en modo INSERT (Id vacío)
+async function duplicarInsumo(id) {
+    $('.acciones-dropdown').hide();
+
+    try {
+        const resp = await fetch("Insumos/EditarInfo?id=" + id, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            }
+        });
+        if (!resp.ok) throw new Error("Ha ocurrido un error.");
+
+        const origen = await resp.json();
+        if (!origen) throw new Error("Ha ocurrido un error.");
+
+        // ===== Normalización para duplicar =====
+        // 1) Id vacío => forzamos INSERT en guardarCambios()
+        const copia = {
+            ...origen,
+            Id: 0, // importante para no pisar el original
+            // Si querés evitar duplicar SKU por restricciones únicas, dejalo vacío:
+            // Sku: "",
+            // Si preferís copiarlo tal cual, comentá la línea de arriba:
+            Sku: origen.Sku || "",
+            Descripcion: ((origen.Descripcion || "") + " (copia)").trim(),
+
+            // Auditoría en blanco
+            IdUsuarioRegistra: null,
+            FechaRegistra: null,
+            IdUsuarioModifica: null,
+            FechaModifica: null,
+
+            // Colecciones: mantenemos UNs y Proveedores (si querés empezar sin proveedores, dejá [] )
+            InsumosUnidadesNegocios: Array.isArray(origen.InsumosUnidadesNegocios)
+                ? origen.InsumosUnidadesNegocios.map(u => ({ IdUnidadNegocio: u.IdUnidadNegocio }))
+                : [],
+            InsumosProveedores: Array.isArray(origen.InsumosProveedores)
+                ? origen.InsumosProveedores.map(p => ({
+                    IdProveedor: p.IdProveedor,
+                    IdListaProveedor: p.IdListaProveedor
+                }))
+                : []
+        };
+
+        // Abrimos el modal con la copia
+        await mostrarModal(copia);
+
+        // Forzamos modo "nuevo"
+        $("#txtId").val("");                     // <- esto hace que guardarCambios use INSERT
+        $("#btnGuardar").text("Registrar");
+        $("#modalEdicionLabel").text("Duplicar Insumo");
+
+        // Opcional: si NO querés copiar los proveedores, descomentá:
+        // proveedoresAsignados = [];
+        // (y si querés reflejar visualmente el cambio, cerrá/abra el modal o re-renderizá la tabla de proveedores asignados si aplica)
+
+    } catch (e) {
+        console.error(e);
+        errorModal("Ha ocurrido un error.");
+    }
+}
+
+
+// Helper local para volver a traer categorías (ajústalo a tu endpoint real)
+async function recargarCategoriasYSeleccionar(idSeleccionar = null) {
+    const sel = document.getElementById('Categorias');
+    if (!sel) return;
+
+    // guardo por si quiero restaurar
+    const prev = sel.value;
+
+    let data;
+    try {
+        data = await fetchJson('/InsumosCategoria/Lista');
+    } catch {
+        data = [];
+    }
+    if (!Array.isArray(data)) data = [];
+
+    // limpiar y agregar placeholder
+    sel.innerHTML = '';
+    const opt0 = new Option('Seleccionar', '-1', false, false);
+    opt0.disabled = true;
+    sel.add(opt0);
+
+    // helpers para detectar claves
+    const pickKey = (obj, keys) => keys.find(k => Object.prototype.hasOwnProperty.call(obj, k));
+    const idKeys = ['id', 'Id', 'ID', 'IdCategoria', 'idCategoria'];
+    const textKeys = ['nombre', 'Nombre', 'descripcion', 'Descripcion', 'name', 'Name'];
+
+    // cargar opciones
+    data.forEach(x => {
+        const idKey = pickKey(x, idKeys);
+        const txtKey = pickKey(x, textKeys);
+        if (idKey && txtKey) {
+            sel.add(new Option(String(x[txtKey]), String(x[idKey])));
+        }
+    });
+
+    // decidir selección
+    let valueToSelect = null;
+
+    if (idSeleccionar != null) {
+        valueToSelect = String(idSeleccionar);
+    } else {
+        // último option real (ignora placeholder)
+        if (sel.options.length > 1) {
+            valueToSelect = sel.options[sel.options.length - 1].value;
+        }
+    }
+
+    // si no hay último o no existe en la lista, intento restaurar el valor previo
+    if (valueToSelect && [...sel.options].some(o => o.value === valueToSelect)) {
+        sel.value = valueToSelect;
+    } else if (prev && [...sel.options].some(o => o.value === prev)) {
+        sel.value = prev;
+    } else {
+        sel.value = '-1'; // queda en placeholder si no hay nada más
+    }
+
+    // disparar eventos y limpiar validación
+    sel.dispatchEvent(new Event('change'));
+    try { $('#Categorias').trigger('change.select2'); } catch { }
+    sel.classList.remove('is-invalid');
+}
+
+
+
+// Botón [+] al lado de Categorías
+document.getElementById('btnAddCategoria')?.addEventListener('click', async () => {
+    try {
+        // Abre directamente el modal de Configuraciones en "Insumos Categorías"
+        const nuevoId = await openConfigAndWait({
+            nombre: 'Insumos Categorias',
+            controller: 'InsumosCategoria'
+        });
+
+        // Recargar el combo y seleccionar automáticamente lo recién creado
+        await recargarCategoriasYSeleccionar(nuevoId);
+    } catch (e) {
+        // Si el usuario canceló o no se creó nada, no hacemos nada
+        // console.debug(e);
+    }
+});
+
+
+
+// Carga /UnidadesMedida/Lista y selecciona el último (o por id si se pasa).
+async function recargarUnidadesMedidaYSeleccionar(idSeleccionar = null) {
+    const sel = document.getElementById('UnidadesMedida');
+    if (!sel) return;
+
+    let data;
+    try { data = await fetchJson('/UnidadesMedida/Lista'); } catch { data = []; }
+    if (!Array.isArray(data)) data = [];
+
+    // Limpiar y placeholder
+    sel.innerHTML = '';
+    const opt0 = new Option('Seleccionar', '-1', false, false);
+    opt0.disabled = true; opt0.selected = true;
+    sel.add(opt0);
+
+    // Normalizo claves y armo texto "Nombre (Abreviatura)" si existe
+    const norm = (data || []).map(x => {
+        const id = x.id ?? x.Id ?? x.ID ?? x.IdUnidadMedida ?? x.idUnidadMedida;
+        const nombre = x.nombre ?? x.Nombre ?? x.descripcion ?? x.Descripcion ?? '';
+        const abrev = x.abreviatura ?? x.Abreviatura ?? x.sigla ?? x.Sigla ?? '';
+        const texto = abrev ? `${nombre} (${abrev})` : String(nombre);
+        return { id, texto };
+    }).filter(x => x.id != null);
+
+    norm.forEach(x => sel.add(new Option(x.texto, String(x.id))));
+
+    // Decidir selección
+    if (idSeleccionar != null) {
+        sel.value = String(idSeleccionar);
+    } else if (sel.options.length > 1) {
+        // último option real (ignora placeholder)
+        sel.value = sel.options[sel.options.length - 1].value;
+    } else {
+        sel.value = '-1';
+    }
+
+    sel.dispatchEvent(new Event('change'));
+    try { $('#UnidadesMedida').trigger('change.select2'); } catch { }
+    sel.classList.remove('is-invalid');
+}
+
+
+document.getElementById('btnAddUM')?.addEventListener('click', async () => {
+    try {
+        // Abre el modal de Configuraciones en la sección Unidades de Medida
+        await openConfigAndWait({ nombre: 'Unidades de Medida', controller: 'UnidadesMedida' });
+    } catch (_) {
+        // usuario canceló: no pasa nada
+    } finally {
+        // Siempre recargo y selecciono el último
+        await recargarUnidadesMedidaYSeleccionar();
+    }
+});
+
+
+
+function seleccionarTodasUnidadesNegocio() {
+    const master = document.getElementById('checkTodosUnidades');
+    const checks = document.querySelectorAll('.unidades-check');
+
+    checks.forEach(cb => cb.checked = true);
+
+    // sincronizo el array y la UI del “botón select”
+    unidadesNegocioSeleccionados = Array.from(checks).map(cb => parseInt(cb.value));
+    if (master) master.checked = true;
+
+    actualizarTextoUnidadesNegocio();
+    const btn = document.getElementById("btnUnidadesNegocio");
+    if (btn) validarCampoIndividual(btn);
+}
+
+
+
+
+document.getElementById('modalEdicion')?.addEventListener('show.bs.modal', () => {
+    resetErroresModal('#modalEdicion');
+});
+
+// Usa estos helpers que ya tenés unificados
+// fieldContainer, feedbackEl, setInvalid, _isEmpty  (o como los hayas nombrado)
+
+function wireLiveValidationInsumo() {
+    const ids = ['#txtDescripcion', '#txtSku', '#UnidadesMedida', '#Categorias'];
+
+    ids.forEach(sel => {
+        const el = document.querySelector(sel);
+        if (!el) return;
+
+        const reval = () => setInvalid(el, _isEmpty(el));   // limpia o marca según valor
+        el.addEventListener('change', reval);
+        el.addEventListener('input', reval);
+        el.addEventListener('blur', reval);
+    });
+
+    // Si usás select2 en alguno, revalidá también sus eventos
+    if (window.jQuery && $.fn.select2) {
+        $('#UnidadesMedida, #Categorias')
+            .on('select2:select select2:clear', function () {
+                setInvalid(this, _isEmpty(this));
+            });
+    }
+}
+
+// Llamalo una sola vez cuando cargas el modal/página:
+document.addEventListener('DOMContentLoaded', wireLiveValidationInsumo);

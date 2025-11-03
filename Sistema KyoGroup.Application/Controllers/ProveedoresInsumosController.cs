@@ -197,6 +197,16 @@ namespace SistemaKyoGroup.Application.Controllers
             return Ok(vm);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> EliminarMasivo([FromBody] VMProveedoresInsumosMasivo payload)
+        {
+            if (payload == null || payload.ids == null || payload.ids.Count == 0)
+                return BadRequest(new { valor = false, mensaje = "Sin IDs" });
+
+            var ok = await _ProveedoresInsumosService.EliminarMasivo(payload.ids);
+            return Ok(new { valor = ok });
+        }
+
         public IActionResult Privacy()
         {
             return View();
@@ -205,7 +215,11 @@ namespace SistemaKyoGroup.Application.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+            });
         }
+
     }
 }

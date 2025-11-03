@@ -11,5 +11,6 @@ namespace SistemaKyoGroup.BLL.Service
         Task<IQueryable<ProveedoresInsumosLista>> ObtenerTodos();
         Task<IQueryable<ProveedoresInsumosLista>> ObtenerPorProveedor(int idProveedor);
         Task<bool> ImportarDesdeLista(int idProveedor, List<ProveedoresInsumosLista> lista);
+        Task<bool> EliminarMasivo(List<int> ids);
     }
 }

@@ -222,19 +222,19 @@ async function configurarDataTable(data) {
                     render: function (_data, _type, row) {
                         const id = pick(row, 'Id');
                         return `
-                <div class="acciones-menu" data-id="${id}">
-                    <button class='btn btn-sm btnacciones' type='button' onclick='toggleAcciones(${id})' title='Acciones'>
-                        <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
-                    </button>
-                    <div class="acciones-dropdown" style="display: none;">
-                        <button class='btn btn-sm btneditar' type='button' onclick='editarUsuario(${id})' title='Editar'>
-                            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
-                        </button>
-                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarUsuario(${id})' title='Eliminar'>
-                            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
-                        </button>
-                    </div>
-                </div>`;
+      <div class="acciones-menu" data-id="${id}">
+        <button class='btn btn-sm btnacciones' type='button' title='Acciones'>
+          <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
+        </button>
+        <div class="acciones-dropdown" style="display:none;">
+          <button class='btn btn-sm btneditar'  type='button' onclick='editarUsuario(${id})'   title='Editar'>
+            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
+          </button>
+          <button class='btn btn-sm btneliminar' type='button' onclick='eliminarUsuario(${id})' title='Eliminar'>
+            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
+          </button>
+        </div>
+      </div>`;
                     },
                     orderable: false,
                     searchable: false,
