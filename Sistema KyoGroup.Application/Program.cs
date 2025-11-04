@@ -59,11 +59,11 @@ builder.Services.AddScoped<IProveedoresInsumoservice, ProveedoresInsumoservice>(
 builder.Services.AddScoped<IUnidadesMedidaRepository<UnidadesMedida>, UnidadesMedidaRepository>();
 builder.Services.AddScoped<IUnidadesMedidaService, UnidadesMedidaService>();
 
-builder.Services.AddScoped<ISubrecetasCategoriaRepository<SubrecetasCategoria>, SubrecetasCategoriaRepository>();
-builder.Services.AddScoped<ISubrecetasCategoriaService, SubrecetasCategoriaService>();
+builder.Services.AddScoped<ISubRecetasCategoriaRepository<SubRecetasCategoria>, SubRecetasCategoriaRepository>();
+builder.Services.AddScoped<ISubRecetasCategoriaService, SubRecetasCategoriaService>();
 
-builder.Services.AddScoped<ISubrecetaRepository<Subreceta>, SubrecetaRepository>();
-builder.Services.AddScoped<ISubrecetaService, SubrecetaService>();
+builder.Services.AddScoped<ISubRecetaRepository<SubReceta>, SubRecetaRepository>();
+builder.Services.AddScoped<ISubRecetaService, SubRecetaService>();
 
 builder.Services.AddScoped<IRecetasCategoriaRepository<RecetasCategoria>, RecetasCategoriaRepository>();
 builder.Services.AddScoped<IRecetasCategoriaService, RecetasCategoriaService>();

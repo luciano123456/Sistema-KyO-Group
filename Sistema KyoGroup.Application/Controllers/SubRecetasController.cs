@@ -12,13 +12,13 @@ using SistemaKyoGroup.Application.Extensions;
 namespace SistemaKyoGroup.Application.Controllers
 {
     [Authorize]
-    public class SubrecetasController : Controller
+    public class SubRecetasController : Controller
     {
-        private readonly ISubrecetaService _SubrecetasService;
+        private readonly ISubRecetaService _SubRecetasService;
 
-        public SubrecetasController(ISubrecetaService SubrecetasService)
+        public SubRecetasController(ISubRecetaService SubRecetasService)
         {
-            _SubrecetasService = SubrecetasService;
+            _SubRecetasService = SubRecetasService;
         }
 
         [AllowAnonymous]
@@ -37,10 +37,10 @@ namespace SistemaKyoGroup.Application.Controllers
 
                 var userId = User.GetUserId();
 
-                var Subrecetas = await _SubrecetasService.ObtenerTodosUnidadNegocio(IdUnidadNegocio, (int)userId);
+                var SubRecetas = await _SubRecetasService.ObtenerTodosUnidadNegocio(IdUnidadNegocio, (int)userId);
 
-                var lista = Subrecetas
-                    .Select(c => new VMSubreceta
+                var lista = SubRecetas
+                    .Select(c => new VMSubReceta
                     {
                         Id = c.Id,
                         FechaActualizacion = c.FechaActualizacion,
@@ -52,7 +52,7 @@ namespace SistemaKyoGroup.Application.Controllers
                         UnidadMedida = c.IdUnidadMedidaNavigation.Nombre,
                         UnidadNegocio = c.IdUnidadNegocioNavigation.Nombre,
                         Descripcion = c.Descripcion,
-                        CostoSubrecetas = c.CostoSubrecetas,
+                        CostoSubRecetas = c.CostoSubRecetas,
                         CostoInsumos = c.CostoInsumos,
                         CostoPorcion = c.CostoPorcion,
                         Rendimiento = c.Rendimiento,
@@ -65,23 +65,23 @@ namespace SistemaKyoGroup.Application.Controllers
             catch (Exception ex)
             {
                 // Idealmente, loguear el error con un logger
-                return StatusCode(500, new { error = "Error al obtener las Subrecetas." });
+                return StatusCode(500, new { error = "Error al obtener las SubRecetas." });
             }
         }
 
         [HttpPost]
-        public async Task<IActionResult> Insertar([FromBody] VMSubreceta model)
+        public async Task<IActionResult> Insertar([FromBody] VMSubReceta model)
         {
             var userId = User.GetUserId();
 
-            var Subreceta = new Subreceta
+            var SubReceta = new SubReceta
             {
                 IdUnidadNegocio = model.IdUnidadNegocio,
                 Sku = model.Sku,
                 Descripcion = model.Descripcion,
                 IdUnidadMedida = model.IdUnidadMedida,
                 IdCategoria = model.IdCategoria,
-                CostoSubrecetas = model.CostoSubrecetas,
+                CostoSubRecetas = model.CostoSubRecetas,
                 CostoInsumos = model.CostoInsumos,
                 CostoPorcion = (decimal)model.CostoPorcion,
                 CostoUnitario = model.CostoUnitario,
@@ -90,7 +90,7 @@ namespace SistemaKyoGroup.Application.Controllers
                 IdUsuarioRegistra = userId ?? model.IdUsuarioRegistra, // fallback si hicieras pruebas sin token
                 FechaRegistra = DateTime.Now,
 
-                SubrecetasInsumos = model.SubrecetasInsumos?.Select(i => new SubrecetasInsumo
+                SubRecetasInsumos = model.SubRecetasInsumos?.Select(i => new SubRecetasInsumo
                 {
                     IdInsumo = i.IdInsumo,
                     Cantidad = i.Cantidad,
@@ -100,9 +100,9 @@ namespace SistemaKyoGroup.Application.Controllers
                     FechaRegistra = DateTime.Now,
                 }).ToList(),
 
-                SubrecetasSubrecetaIdSubrecetaHijaNavigations = model.SubrecetasSubrecetaIdSubrecetaPadreNavigations?.Select(s => new SubrecetasSubreceta
+                SubRecetasSubRecetaIdSubRecetaHijaNavigations = model.SubRecetasSubRecetaIdSubRecetaPadreNavigations?.Select(s => new SubRecetasSubReceta
                 {
-                    IdSubrecetaHija = s.IdSubrecetaHija,
+                    IdSubRecetaHija = s.IdSubRecetaHija,
                     Cantidad = s.Cantidad,
                     CostoUnitario = s.CostoUnitario,
                     Subtotal = s.Subtotal,
@@ -111,19 +111,19 @@ namespace SistemaKyoGroup.Application.Controllers
                 }).ToList()
             };
 
-            var resultado = await _SubrecetasService.Insertar(Subreceta);
+            var resultado = await _SubRecetasService.Insertar(SubReceta);
             return Ok(new { valor = resultado });
         }
 
 
 
         [HttpPut]
-        public async Task<IActionResult> Actualizar([FromBody] VMSubreceta model)
+        public async Task<IActionResult> Actualizar([FromBody] VMSubReceta model)
         {
 
             var userId = User.GetUserId();
 
-            var Subreceta = new Subreceta
+            var SubReceta = new SubReceta
             {
                 Id = model.Id,
                 IdUnidadNegocio = model.IdUnidadNegocio,
@@ -131,7 +131,7 @@ namespace SistemaKyoGroup.Application.Controllers
                 Descripcion = model.Descripcion,
                 IdUnidadMedida = model.IdUnidadMedida,
                 IdCategoria = model.IdCategoria,
-                CostoSubrecetas = model.CostoSubrecetas,
+                CostoSubRecetas = model.CostoSubRecetas,
                 CostoInsumos = model.CostoInsumos,
                 CostoPorcion = (decimal)model.CostoPorcion,
                 CostoUnitario = model.CostoUnitario,
@@ -140,7 +140,7 @@ namespace SistemaKyoGroup.Application.Controllers
                 IdUsuarioModifica = (int)userId, // fallback si hicieras pruebas sin token
                 FechaModifica = DateTime.Now,
 
-                SubrecetasInsumos = model.SubrecetasInsumos?.Select(i => new SubrecetasInsumo
+                SubRecetasInsumos = model.SubRecetasInsumos?.Select(i => new SubRecetasInsumo
                 {
                     IdInsumo = i.IdInsumo,
                     Cantidad = i.Cantidad,
@@ -150,10 +150,10 @@ namespace SistemaKyoGroup.Application.Controllers
                     FechaModifica = DateTime.Now,
                 }).ToList(),
 
-                SubrecetasSubrecetaIdSubrecetaPadreNavigations = model.SubrecetasSubrecetaIdSubrecetaPadreNavigations?.Select(s => new SubrecetasSubreceta
+                SubRecetasSubRecetaIdSubRecetaPadreNavigations = model.SubRecetasSubRecetaIdSubRecetaPadreNavigations?.Select(s => new SubRecetasSubReceta
                 {
-                    IdSubrecetaPadre = model.Id,
-                    IdSubrecetaHija = s.IdSubrecetaHija,
+                    IdSubRecetaPadre = model.Id,
+                    IdSubRecetaHija = s.IdSubRecetaHija,
                     Cantidad = s.Cantidad,
                     CostoUnitario = s.CostoUnitario,
                     Subtotal = s.Subtotal,
@@ -164,7 +164,7 @@ namespace SistemaKyoGroup.Application.Controllers
 
             };
 
-            var resultado = await _SubrecetasService.Actualizar(Subreceta);
+            var resultado = await _SubRecetasService.Actualizar(SubReceta);
             return Ok(new { valor = resultado });
         }
 
@@ -174,7 +174,7 @@ namespace SistemaKyoGroup.Application.Controllers
         [HttpDelete]
         public async Task<IActionResult> Eliminar(int id)
         {
-            var (eliminado, mensaje) = await _SubrecetasService.Eliminar(id);
+            var (eliminado, mensaje) = await _SubRecetasService.Eliminar(id);
             return Ok(new { valor = eliminado, mensaje });
         }
 
@@ -185,9 +185,9 @@ namespace SistemaKyoGroup.Application.Controllers
             if (id <= 0)
                 return Ok(new { });
 
-            var model = await _SubrecetasService.Obtener(id);
+            var model = await _SubRecetasService.Obtener(id);
 
-            var Subreceta = new VMSubreceta
+            var SubReceta = new VMSubReceta
             {
                 Id = model.Id,
                 IdUnidadMedida = model.IdUnidadMedida,
@@ -198,14 +198,14 @@ namespace SistemaKyoGroup.Application.Controllers
                 Descripcion = model.Descripcion,
                 CostoUnitario = model.CostoUnitario,
                 CostoInsumos = model.CostoInsumos,
-                CostoSubrecetas = model.CostoSubrecetas,
+                CostoSubRecetas = model.CostoSubRecetas,
                 Rendimiento = model.Rendimiento,
             };
 
-            var insumos = model.SubrecetasInsumos.Select(p => new VMSubrecetasInsumo
+            var insumos = model.SubRecetasInsumos.Select(p => new VMSubRecetasInsumo
             {
                 Id = p.Id,
-                IdSubreceta = p.IdSubreceta,
+                IdSubReceta = p.IdSubReceta,
                 IdInsumo = p.IdInsumo,
                 Nombre = p.IdInsumoNavigation.Descripcion,
                 Cantidad = p.Cantidad,
@@ -213,25 +213,25 @@ namespace SistemaKyoGroup.Application.Controllers
                 SubTotal = p.SubTotal
             }).ToList();
 
-            var Subrecetas = model.SubrecetasSubrecetaIdSubrecetaPadreNavigations.Select(p => new VMSubrecetasSubreceta
+            var SubRecetas = model.SubRecetasSubRecetaIdSubRecetaPadreNavigations.Select(p => new VMSubRecetasSubReceta
             {
                 Id = p.Id,
-                IdSubrecetaPadre = p.IdSubrecetaPadre,
-                IdSubrecetaHija = p.IdSubrecetaHija,
+                IdSubRecetaPadre = p.IdSubRecetaPadre,
+                IdSubRecetaHija = p.IdSubRecetaHija,
                 Cantidad = p.Cantidad,
                 CostoUnitario = p.CostoUnitario,
                 SubTotal = p.Subtotal,
-                Nombre = p.IdSubrecetaHijaNavigation?.Descripcion,
-                IdSubrecetaHijaNavigation = p.IdSubrecetaHijaNavigation,
-                IdSubrecetaPadreNavigation = p.IdSubrecetaPadreNavigation
+                Nombre = p.IdSubRecetaHijaNavigation?.Descripcion,
+                IdSubRecetaHijaNavigation = p.IdSubRecetaHijaNavigation,
+                IdSubRecetaPadreNavigation = p.IdSubRecetaPadreNavigation
             }).ToList();
 
 
             var result = new Dictionary<string, object>
             {
-                ["Subreceta"] = Subreceta,
+                ["SubReceta"] = SubReceta,
                 ["Insumos"] = insumos,
-                ["Subrecetas"] = Subrecetas
+                ["SubRecetas"] = SubRecetas
             };
 
             var jsonOptions = new JsonSerializerOptions

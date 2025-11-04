@@ -13,6 +13,8 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
         public string Codigo { get; set; }
         public string Descripcion { get; set; }
         public decimal CostoUnitario { get; set; }
+        public decimal Costo { get; set; }
+        public decimal Cantidad { get; set; }
     }
 
 

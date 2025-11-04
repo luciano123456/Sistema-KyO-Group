@@ -2,7 +2,7 @@
 
 namespace SistemaKyoGroup.Application.Models.ViewModels
 {
-    public class VMSubrecetasCategoria
+    public class VMSubRecetasCategoria
     {
         public int Id { get; set; }
 

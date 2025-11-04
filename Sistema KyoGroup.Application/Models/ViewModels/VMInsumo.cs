@@ -48,7 +48,7 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
 
         public virtual ICollection<RecetasInsumo> RecetasInsumos { get; set; } = new List<RecetasInsumo>();
 
-        public virtual ICollection<SubrecetasInsumo> SubrecetasInsumos { get; set; } = new List<SubrecetasInsumo>();
+        public virtual ICollection<SubRecetasInsumo> SubRecetasInsumos { get; set; } = new List<SubRecetasInsumo>();
 
     }
 }

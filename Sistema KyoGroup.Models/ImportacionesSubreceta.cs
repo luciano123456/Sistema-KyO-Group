@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SistemaKyoGroup.Models;
 
-public partial class ImportacionesSubreceta
+public partial class ImportacionesSubReceta
 {
     public int Id { get; set; }
 
@@ -11,7 +11,7 @@ public partial class ImportacionesSubreceta
 
     public int IdVentaReceta { get; set; }
 
-    public int IdSubreceta { get; set; }
+    public int IdSubReceta { get; set; }
 
     public decimal Cantidad { get; set; }
 

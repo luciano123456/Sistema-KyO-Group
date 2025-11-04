@@ -170,7 +170,7 @@
     cursor: pointer;
 }
 
-/* evitar pointer en los controles del menú de acciones */
+/* evitar pointer en los contRoles del menú de acciones */
 #grd_InsumosProveedor .acciones-menu,
 #grd_InsumosProveedor .acciones-menu * {
     cursor: default;

@@ -38,24 +38,30 @@ namespace SistemaKyoGroup.Application.Controllers
         [HttpGet]
         public async Task<IActionResult> Lista()
         {
-            var Usuarios = await _Usuarioservice.ObtenerTodos();
-
-            var lista = Usuarios.Select(c => new VMUser
+            try
             {
-                Id = c.Id,
-                Usuario = c.Usuario,
-                Nombre = c.Nombre,
-                Apellido = c.Apellido,
-                Dni = c.Dni,
-                Telefono = c.Telefono,
-                Direccion = c.Direccion,
-                IdRol = c.IdRol,
-                Rol = c.IdRolNavigation.Nombre,
-                IdEstado = c.IdEstado,
-                Estado = c.IdEstadoNavigation.Nombre,
-            }).ToList();
+                var Usuarios = await _Usuarioservice.ObtenerTodos();
 
-            return Ok(lista);
+                var lista = Usuarios.Select(c => new VMUser
+                {
+                    Id = c.Id,
+                    Usuario = c.Usuario,
+                    Nombre = c.Nombre,
+                    Apellido = c.Apellido,
+                    Dni = c.Dni,
+                    Telefono = c.Telefono,
+                    Direccion = c.Direccion,
+                    IdRol = c.IdRol,
+                    Rol = c.IdRolNavigation.Nombre,
+                    IdEstado = c.IdEstado,
+                    Estado = c.IdEstadoNavigation.Nombre,
+                }).ToList();
+
+                return Ok(lista);
+            } catch (Exception ex)
+            {
+                return Ok(null);
+            }
         }
 
         [HttpPost]

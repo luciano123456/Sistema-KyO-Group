@@ -21,7 +21,6 @@ function _piUpdateFAB() {
     }
 }
 
-
 let gridInsumos;
 let isEditing = false;
 
@@ -29,9 +28,11 @@ let isEditing = false;
 const columnConfig = [
     { index: 1, filterType: 'text' }, // Codigo
     { index: 2, filterType: 'text' }, // Descripcion
-    { index: 3, filterType: 'text' }, // Costo Unitario
-    { index: 4, filterType: 'text' }, // Proveedor
-    { index: 5, filterType: 'text' }, // Fecha Actualizacion
+    { index: 3, filterType: 'text' }, // Costo
+    { index: 4, filterType: 'text' }, // Cantidad
+    { index: 5, filterType: 'text' }, // Costo Unitario
+    { index: 6, filterType: 'text' }, // Proveedor
+    { index: 7, filterType: 'text' }, // Fecha Actualizacion
 ];
 
 // ========= Claves de persistencia filtros top =========
@@ -59,26 +60,35 @@ function actualizarKpisProveedorInsumos(data) {
     const cant = Array.isArray(data) ? data.length : 0;
     const el = document.getElementById('kpiCantItems');
     if (el) el.textContent = cant;
-    
 }
 
 // ========= INIT principal =========
 $(document).ready(() => {
-    // Top filtro + primera carga
+    // Recalcular en vivo costo unitario
+    ['txtCosto', 'txtCantidad'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', recalcularCostoUnitario);
+            el.addEventListener('change', recalcularCostoUnitario);
+            el.addEventListener('blur', recalcularCostoUnitario);
+        }
+    });
+
+    // Filtro top + primera carga
     bootstrapFiltroProveedor().then(() => aplicarFiltros());
 
-    // Select2 para el select del modal
+    // Select2 en el select del modal (visual válido/invalid con la lógica abajo)
     $("#Proveedores")
         .select2({
             dropdownParent: $("#modalEdicion"),
             width: "100%",
-            placeholder: "Selecciona una opción",
+            placeholder: "Seleccionar",
             allowClear: false
         })
         .on('change', function () { validarCampoIndividual(this); })
         .on('select2:close', function () { validarCampoIndividual(this); });
 
-    // Validaciones en vivo
+    // Validaciones en vivo (inputs/selects/textarea dentro del form del modal)
     document.querySelectorAll("#formInsumo input, #formInsumo select, #formInsumo textarea")
         .forEach(el => {
             el.setAttribute("autocomplete", "off");
@@ -191,7 +201,7 @@ async function aplicarFiltros() {
     await listaInsumos(idProv);
 }
 
-// Botón "Limpiar" (si luego agregás uno, ya queda listo)
+// Botón "Limpiar"
 async function limpiarFiltrosPI() {
     setProveedorFiltro(-1);
     await aplicarFiltros();
@@ -211,11 +221,18 @@ function guardarCambios() {
     if (!validarCampos()) return;
 
     const idInsumo = $("#txtId").val();
+
+    const costo = formatearSinMiles($("#txtCosto").val());
+    const cantidad = _parseNumberLoose($("#txtCantidad").val());
+    const unitario = (!isNaN(costo) && !isNaN(cantidad) && cantidad !== 0) ? (costo / cantidad) : NaN;
+
     const nuevoModelo = {
         Id: idInsumo !== "" ? parseInt(idInsumo) : 0,
         Codigo: $("#txtCodigo").val(),
         Descripcion: $("#txtDescripcion").val(),
-        CostoUnitario: $("#txtCostoUnitario").val(),
+        Costo: isNaN(costo) ? 0 : +costo.toFixed(2),
+        Cantidad: isNaN(cantidad) ? 0 : +cantidad.toFixed(4),
+        CostoUnitario: isNaN(unitario) ? 0 : +unitario.toFixed(4),
         IdProveedor: parseInt($("#Proveedores").val()),
     };
 
@@ -253,6 +270,8 @@ function nuevoInsumo() {
         $("#btnGuardar").text("Registrar");
         $("#modalEdicionLabel").text("Nuevo Insumo");
     });
+
+    $("#txtCantidad").val(1);
 }
 
 async function mostrarModal(modelo) {
@@ -262,8 +281,19 @@ async function mostrarModal(modelo) {
 
     await listaProveedores();
 
-    const campos = ["Id", "Codigo", "Descripcion", "CostoUnitario"];
-    campos.forEach(campo => { $(`#txt${campo}`).val(modelo[campo]); });
+    // Soporte por compatibilidad
+    const costo = (modelo.Costo ?? 0);
+    const cantidad = (modelo.Cantidad ?? 1);
+    const unitario = (modelo.CostoUnitario ?? ((cantidad ? costo / cantidad : 0)));
+
+    $("#txtId").val(modelo.Id);
+    $("#txtCodigo").val(modelo.Codigo);
+    $("#txtDescripcion").val(modelo.Descripcion);
+
+    $("#txtCosto").val(isNaN(costo) ? '' : costo.toFixed(2));
+    $("#txtCantidad").val(isNaN(cantidad) ? '' : cantidad.toString());
+    $("#txtCostoUnitario").val(isNaN(unitario) ? '' : (+unitario).toFixed(2));
+
     $("#Proveedores").val(modelo.IdProveedor).trigger("change.select2");
 
     $('#modalEdicion').modal('show');
@@ -323,11 +353,7 @@ async function configurarDataTable(data) {
     const _piUpdateFAB = () => {
         const $fab = $('#fabEliminarPI');
         const total = _PI_selected.size;
-
-        // actualiza badge si existe
         $fab.find('.count-badge').text(String(`(${total})` || 0));
-
-        // (b) toggle por clase, nunca visible con 0
         if (total > 0) $fab.addClass('show-fab').show();
         else $fab.removeClass('show-fab').hide();
     };
@@ -339,9 +365,7 @@ async function configurarDataTable(data) {
         $('#grd_InsumosProveedor thead tr').clone(true).addClass('filters').appendTo('#grd_InsumosProveedor thead');
 
         gridInsumos = $('#grd_InsumosProveedor').DataTable({
-            // ==== [AGREGADO] rowId para persistir selección ====
             rowId: 'Id',
-
             data,
             language: {
                 sLengthMenu: "Mostrar MENU registros",
@@ -376,10 +400,74 @@ async function configurarDataTable(data) {
                 },
                 { data: 'Codigo' },
                 { data: 'Descripcion' },
+                { data: 'Costo' },
+                { data: 'Cantidad' },
                 { data: 'CostoUnitario' },
                 { data: 'Proveedor' },
                 { data: 'FechaActualizacion' },
             ],
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    text: 'Exportar Excel',
+                    filename: 'Reporte Proveedores-Insumos',
+                    title: '',
+                    exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7] },
+                    className: 'btn-exportar-excel',
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: 'Exportar PDF',
+                    filename: 'Reporte Proveedores-Insumos',
+                    title: '',
+                    exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7] },
+                    className: 'btn-exportar-pdf',
+                },
+                {
+                    extend: 'print',
+                    text: 'Imprimir',
+                    title: '',
+                    exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7] },
+                    className: 'btn-exportar-print'
+                },
+                'pageLength'
+            ],
+            orderCellsTop: true,
+            fixedHeader: true,
+            columnDefs: [
+                { // Costo y CostoUnitario
+                    render: function (data) {
+                        const n = parseFloat(data);
+                        if (isNaN(n)) return '';
+                        try {
+                            return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 2 }).format(n);
+                        } catch {
+                            return '$ ' + n.toFixed(2);
+                        }
+                    },
+                    targets: [3, 5]
+                },
+                { // Cantidad
+                    render: function (data) {
+                        const n = parseFloat(data);
+                        if (isNaN(n)) return '';
+                        return (Math.round(n * 10000) / 10000).toString();
+                    },
+                    targets: [4]
+                },
+                { // Fecha
+                    render: function (data) {
+                        if (data) {
+                            const date = new Date(data);
+                            return moment(date, 'YYYY-MM-DD hh:mm').format('DD/MM/YYYY HH:mm');
+                        }
+                        return '';
+                    },
+                    targets: [7]
+                }
+            ],
+
             dom: 'Bfrtip',
             buttons: [
                 {
@@ -409,24 +497,7 @@ async function configurarDataTable(data) {
             ],
             orderCellsTop: true,
             fixedHeader: true,
-            columnDefs: [
-                {
-                    render: function (data) {
-                        if (data) {
-                            const date = new Date(data);
-                            return moment(date, 'YYYY-MM-DD hh:mm').format('DD/MM/YYYY HH:mm');
-                        }
-                        return '';
-                    },
-                    targets: [5] // Fecha
-                },
-                {
-                    render: function (data) { return formatNumber(data); },
-                    targets: [3] // Costo Unitario
-                }
-            ],
 
-            // ==== [AGREGADO] marcar filas ya seleccionadas al crear ====
             createdRow: function (row, rowData) {
                 const idStr = String(rowData?.Id ?? '');
                 if (idStr && _PI_selected.has(idStr)) {
@@ -442,7 +513,7 @@ async function configurarDataTable(data) {
                     const cell = $('.filters th').eq(config.index);
 
                     if (config.filterType === 'text') {
-                        const input = $('<input type="text" placeholder="Buscar..." />')
+                        $('<input type="text" placeholder="Buscar..." />')
                             .appendTo(cell.empty())
                             .off('keyup change')
                             .on('keyup change', function (e) {
@@ -455,7 +526,6 @@ async function configurarDataTable(data) {
                                 $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
                             });
                     } else if (config.filterType === 'select') {
-                        // (Dejar preparado por si en un futuro agregás selects por columna)
                         const select = $('<select><option value="">Seleccionar</option></select>')
                             .appendTo(cell.empty())
                             .on('change', function () {
@@ -472,14 +542,14 @@ async function configurarDataTable(data) {
 
                 setTimeout(() => { gridInsumos.columns.adjust(); }, 10);
 
-                // KPIs con los datos actuales de la tabla (si existen KPIs en el DOM)
+                // KPIs
                 actualizarKpisProveedorInsumos(data);
 
-                // ==== [AGREGADO] click fila → toggle selección (evita clicks en menú/controles) ====
+                // Selección por fila
                 $('#grd_InsumosProveedor tbody')
                     .off('click.pi-select')
                     .on('click.pi-select', 'tr', function (e) {
-                        if (_piIsActionClick(e)) return;
+                        if ($(e.target).closest('button,a,input,select,label,.icon-btn,.acciones-menu,.acciones-dropdown').length) return;
 
                         const row = gridInsumos.row(this);
                         const id = String(row?.data()?.Id ?? '');
@@ -495,7 +565,6 @@ async function configurarDataTable(data) {
                         _piUpdateFAB();
                     });
 
-                // ==== [AGREGADO] re-aplicar selección al redibujar ====
                 gridInsumos.on('draw', function () {
                     gridInsumos.rows().every(function () {
                         const id = String(this.data()?.Id ?? '');
@@ -506,7 +575,6 @@ async function configurarDataTable(data) {
                     _piUpdateFAB();
                 });
 
-                // ==== [AGREGADO] acción FAB: borrar masivo ====
                 $('#fabEliminarPI').off('click.pi-del').on('click.pi-del', async function () {
                     const ids = Array.from(_PI_selected).map(Number).filter(x => !isNaN(x));
                     if (ids.length === 0) return;
@@ -536,7 +604,7 @@ async function configurarDataTable(data) {
                         _PI_selected.clear();
                         _piUpdateFAB();
                         if (typeof exitoModal === 'function') exitoModal('Eliminados correctamente.');
-                        gridInsumos.draw(false); // mantener página
+                        gridInsumos.draw(false);
                     } else {
                         if (typeof errorModal === 'function') errorModal(j?.mensaje || 'La operación no pudo completarse.');
                     }
@@ -548,7 +616,6 @@ async function configurarDataTable(data) {
         gridInsumos.clear().rows.add(data).draw();
         actualizarKpisProveedorInsumos(data);
 
-        // ==== [AGREGADO] re-aplicar selección tras refresh de datos existentes ====
         gridInsumos.rows().every(function () {
             const id = String(this.data()?.Id ?? '');
             const tr = this.node();
@@ -653,7 +720,6 @@ async function listaProveedoresFiltro() {
         select.appendChild(op);
     });
 
-    // Si usás Select2 en el filtro TOP, refrescar
     if (window.jQuery && $.fn.select2 && $(select).data('select2')) {
         $(select).trigger('change.select2');
     }
@@ -670,58 +736,68 @@ function limpiarModal() {
         el.classList.remove("is-invalid", "is-valid");
     });
 
-    const proveedores = document.getElementById("Proveedores");
-    if (proveedores && $(proveedores).data('select2')) {
-        $(proveedores).val("").trigger("change.select2");
-        $(proveedores).next(".select2-container").removeClass("is-valid is-invalid");
+    const Proveedores = document.getElementById("Proveedores");
+    if (Proveedores && $(Proveedores).data('select2')) {
+        $(Proveedores).val("").trigger("change.select2");
+        $(Proveedores).next(".select2-container").removeClass("is-valid is-invalid");
     }
 
     const errorMsg = document.getElementById("errorCampos");
     if (errorMsg) errorMsg.classList.add("d-none");
 }
 
+/* ============================================================================
+ * VALIDACIONES (ADAPTADAS A LA LÓGICA DE "INSUMOS")
+ * - Campo a campo con feedback .invalid-feedback debajo
+ * - Soporte Select2 visual (is-valid / is-invalid sobre .select2-selection)
+ * - Numéricos: txtCosto, txtCantidad (Cantidad no puede ser 0)
+ * - Banner general #errorCampos
+ * ============================================================================ */
+
 function validarCampoIndividual(el) {
-    const tag = el.tagName.toLowerCase();
+    const tag = (el?.tagName || '').toLowerCase();
     const id = el.id;
-    const valor = el.value ? el.value.trim() : "";
+    const raw = (el.value ?? '').trim();
     const feedback = el.nextElementSibling;
-
-    const camposNumericos = ["txtCostoUnitario"];
-    const esNumero = camposNumericos.includes(id);
-
-    if (tag === "input" || tag === "select" || tag === "textarea") {
-        if (feedback && feedback.classList.contains("invalid-feedback")) {
-            feedback.textContent = "Campo obligatorio";
+    const isSelect = el.classList.contains('select2-hidden-accessible');
+    const setFb = (msg) => {
+        if (feedback && feedback.classList?.contains('invalid-feedback')) {
+            feedback.textContent = msg || 'Campo obligatorio';
         }
+    };
 
-        if (valor === "" || valor === "Seleccionar") {
-            el.classList.remove("is-valid");
-            el.classList.add("is-invalid");
-        } else if (esNumero) {
-            const sinFormato = valor.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".");
-            if (isNaN(parseFloat(sinFormato))) {
-                el.classList.remove("is-valid");
-                el.classList.add("is-invalid");
-                if (feedback) feedback.textContent = "Valor erróneo";
+    // Aplica solo a inputs/select/textarea
+    if (tag === 'input' || tag === 'select' || tag === 'textarea') {
+        // Reset visual previo de select2
+        if (isSelect) $(el).next('.select2-container').find('.select2-selection').removeClass('is-valid is-invalid');
+
+        // Reglas de vacío
+        const esVacio = !raw || raw === 'Seleccionar' || raw === '-1';
+
+        // Reglas numéricas
+        const esCampoNumero = (id === 'txtCosto' || id === 'txtCantidad' || id === 'txtCostoUnitario');
+
+        if (esVacio) {
+            setFb('Campo obligatorio');
+            if (isSelect) $(el).next('.select2-container').find('.select2-selection').addClass('is-invalid');
+            else { el.classList.remove('is-valid'); el.classList.add('is-invalid'); }
+        } else if (esCampoNumero) {
+            // parse flexible: 1.234,56 / 1,234.56 / 1234.56 / 1234,56
+            const val = _parseNumberLoose(raw);
+            let inval = isNaN(val);
+            if (!inval && id === 'txtCantidad') inval = (val === 0);
+            if (inval) {
+                setFb(id === 'txtCantidad' ? 'Debe ser distinto de 0' : 'Valor erróneo');
+                if (isSelect) $(el).next('.select2-container').find('.select2-selection').addClass('is-invalid');
+                else { el.classList.remove('is-valid'); el.classList.add('is-invalid'); }
             } else {
-                el.classList.remove("is-invalid");
-                el.classList.add("is-valid");
+                if (isSelect) $(el).next('.select2-container').find('.select2-selection').addClass('is-valid');
+                else { el.classList.remove('is-invalid'); el.classList.add('is-valid'); }
             }
         } else {
-            el.classList.remove("is-invalid");
-            el.classList.add("is-valid");
+            if (isSelect) $(el).next('.select2-container').find('.select2-selection').addClass('is-valid');
+            else { el.classList.remove('is-invalid'); el.classList.add('is-valid'); }
         }
-    }
-
-    // select2 visual
-    if ($(el).hasClass("select2-hidden-accessible")) {
-        const container = $(el).next(".select2-container");
-        container.removeClass("is-valid is-invalid");
-
-        if (!valor || valor === "Seleccionar") container.addClass("is-invalid");
-        else container.addClass("is-valid");
-
-        $(el).removeClass("is-valid is-invalid");
     }
 
     verificarErroresGenerales();
@@ -729,60 +805,68 @@ function validarCampoIndividual(el) {
 
 function verificarErroresGenerales() {
     const errorMsg = document.getElementById("errorCampos");
-    const hayInvalidos = document.querySelectorAll("#formInsumo .is-invalid").length > 0;
     if (!errorMsg) return;
-    if (!hayInvalidos) errorMsg.classList.add("d-none");
+
+    // Considera inválido un select2 si su selección tiene .is-invalid
+    const hayInvalidosForm = document.querySelectorAll("#formInsumo .is-invalid").length > 0
+        || Array.from(document.querySelectorAll('#formInsumo .select2-container .select2-selection'))
+            .some(sel => sel.classList.contains('is-invalid'));
+
+    if (!hayInvalidosForm) errorMsg.classList.add("d-none");
 }
 
 function validarCampos() {
-    const campos = ["#txtCodigo", "#txtDescripcion", "#Proveedores", "#txtCostoUnitario"];
-    const camposNumericos = ["#txtCostoUnitario"];
+    const campos = ["#txtCodigo", "#txtDescripcion", "#Proveedores", "#txtCosto", "#txtCantidad"];
     let valido = true;
 
-    campos.forEach(selector => {
-        const campo = document.querySelector(selector);
-        const valor = campo?.value?.trim();
-        const feedback = campo?.nextElementSibling;
-        const esNumero = camposNumericos.includes(selector);
-        const isSelect2 = campo?.classList.contains("select2-hidden-accessible");
+    const mark = (el, ok, msg) => {
+        const isSelect = el.classList.contains('select2-hidden-accessible');
+        const fb = el.nextElementSibling;
+        if (fb && fb.classList.contains('invalid-feedback')) {
+            fb.textContent = msg || 'Campo obligatorio';
+            fb.classList.toggle('d-none', ok);
+        }
+        if (isSelect) {
+            const sel = $(el).next('.select2-container').find('.select2-selection');
+            sel.toggleClass('is-invalid', !ok);
+            sel.toggleClass('is-valid', ok);
+        } else {
+            el.classList.toggle('is-invalid', !ok);
+            el.classList.toggle('is-valid', ok);
+        }
+    };
 
-        if (isSelect2) $(campo).next(".select2-container").removeClass("is-valid is-invalid");
+    campos.forEach(sel => {
+        const el = document.querySelector(sel);
+        if (!el) { valido = false; return; }
 
-        if (!campo || !valor || valor === "Seleccionar") {
-            if (isSelect2) $(campo).next(".select2-container").addClass("is-invalid");
-            else {
-                campo.classList.add("is-invalid");
-                campo.classList.remove("is-valid");
-            }
-            if (feedback?.classList.contains("invalid-feedback")) feedback.textContent = "Campo obligatorio";
+        const v = (el.value ?? '').trim();
+        const esVacio = !v || v === 'Seleccionar' || v === '-1';
+        if (esVacio) {
+            mark(el, false, 'Campo obligatorio');
             valido = false;
-        } else if (esNumero) {
-            const sinFormato = valor.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".");
-            if (isNaN(parseFloat(sinFormato))) {
-                if (isSelect2) $(campo).next(".select2-container").addClass("is-invalid");
-                else {
-                    campo.classList.remove("is-valid");
-                    campo.classList.add("is-invalid");
-                }
-                if (feedback?.classList.contains("invalid-feedback")) feedback.textContent = "Valor erróneo";
+            return;
+        }
+
+        // numéricos
+        if (sel === '#txtCosto' || sel === '#txtCantidad') {
+            const num = _parseNumberLoose(v);
+            if (isNaN(num) || (sel === '#txtCantidad' && num === 0)) {
+                mark(el, false, sel === '#txtCantidad' ? 'Debe ser distinto de 0' : 'Valor erróneo');
                 valido = false;
             } else {
-                if (isSelect2) $(campo).next(".select2-container").addClass("is-valid");
-                else {
-                    campo.classList.remove("is-invalid");
-                    campo.classList.add("is-valid");
-                }
+                mark(el, true);
             }
         } else {
-            if (isSelect2) $(campo).next(".select2-container").addClass("is-valid");
-            else {
-                campo.classList.remove("is-invalid");
-                campo.classList.add("is-valid");
-            }
+            mark(el, true);
         }
     });
 
-    document.getElementById("errorCampos").classList.toggle("d-none", valido);
+    const banner = document.getElementById('errorCampos');
+    if (banner) banner.classList.toggle('d-none', valido);
+
+    if (typeof recalcularCostoUnitario === "function") recalcularCostoUnitario();
+
     return valido;
 }
 
@@ -1024,7 +1108,9 @@ async function enviarDatos() {
         Lista: listaInsumosArray.map(x => ({
             Codigo: x.Codigo ?? x.codigo ?? '',
             Descripcion: x.Descripcion ?? x.descripcion ?? '',
-            CostoUnitario: x.CostoUnitario ?? x.costoUnitario ?? x.precioNuevo ?? x.PrecioNuevo ?? 0
+            CostoUnitario: x.CostoUnitario ?? x.costoUnitario ?? x.precioNuevo ?? x.PrecioNuevo ?? 0,
+            Cantidad: 1,
+            Costo: x.CostoUnitario
         }))
     };
 
@@ -1156,13 +1242,12 @@ function extraerBloquesDesdeMatriz(hoja) {
             const celdaDescripcion = normalizarClave(row[col + 1]);
             const celdaPrecio = normalizarClave(row[col + 2]);
 
-            // Detecta encabezado "codigo/descripcion/precio"
             if (celdaCodigo.includes("codigo") && celdaDescripcion.includes("descripcion") && celdaPrecio.includes("precio")) {
 
                 let f = fila + 1;
 
                 while (f < jsonMatriz.length) {
-                    const datos = Array.isArray(jsonMatriz[f]) ? jsonMatriz[f] : []; // <= nunca null
+                    const datos = Array.isArray(jsonMatriz[f]) ? jsonMatriz[f] : [];
 
                     const codigo = datos[col]?.toString().trim() ?? '';
                     const descripcion = datos[col + 1]?.toString().trim() ?? '';
@@ -1178,11 +1263,9 @@ function extraerBloquesDesdeMatriz(hoja) {
                     const vacio = !codigo && !descripcion && !precioRaw;
                     const esTitulo = (!codigo && descripcion && descripcion.startsWith('-') && descripcion.endsWith('-'));
 
-                    // --- reglas de corte / avance ---
-                    if (esEncabezado || esTitulo) break;     // corta solo por nuevo bloque/título
-                    if (vacio) { f++; continue; }             // fila vacía: saltar y seguir
+                    if (esEncabezado || esTitulo) break;
+                    if (vacio) { f++; continue; }
 
-                    // --- validación y push ---
                     if (!descripcion || isNaN(precio)) {
                         errores.push(`- Fila ${f + 1}: "${codigo}" "${descripcion}" "${precioRaw}"`);
                     } else {
@@ -1196,7 +1279,6 @@ function extraerBloquesDesdeMatriz(hoja) {
                     f++;
                 }
 
-                // salteo las 2 columnas del bloque detectado
                 col += 2;
             }
         }
@@ -1214,7 +1296,6 @@ function normalizarClave(clave) {
 function normalizarTexto(txt) {
     return txt?.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() || '';
 }
-
 
 const editarInsumo = (id) => {
     $('.acciones-dropdown').hide();
@@ -1239,9 +1320,6 @@ const editarInsumo = (id) => {
         })
         .catch(() => errorModal("Ha ocurrido un error."));
 };
-
-
-
 
 // === Toggle Filtros PROV: tolerante a IDs P / PI ===
 const _KEY_BAR_VISIBLE_PI = 'ProvIns_FiltroBar_Visible';
@@ -1282,10 +1360,8 @@ function initFiltroProveedorPersistente() {
 
     if (!btn || !icon || !bar) return;
 
-    // Evita submit si el botón está dentro de un form
     btn.setAttribute('type', 'button');
 
-    // Estado inicial persistido
     let visible = true;
     try {
         const raw = localStorage.getItem(_KEY_BAR_VISIBLE_PI);
@@ -1299,17 +1375,56 @@ function initFiltroProveedorPersistente() {
     btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const oculto = bar.classList.toggle('d-none'); // true si queda oculto
+        const oculto = bar.classList.toggle('d-none');
         icon.classList.toggle('fa-arrow-down', oculto);
         icon.classList.toggle('fa-arrow-up', !oculto);
         try { localStorage.setItem(_KEY_BAR_VISIBLE_PI, oculto ? '0' : '1'); } catch { }
     });
 }
 
-// Reintento por si el HTML se inyecta más tarde
 document.addEventListener('DOMContentLoaded', () => {
     initFiltroProveedorPersistente();
     setTimeout(initFiltroProveedorPersistente, 300);
 });
 
+// Reemplazo DEFINITIVO
+function _parseNumberLoose(txt) {
+    if (txt == null) return NaN;
+    let s = txt.toString().trim().replace(/[^0-9.,-]/g, '');
+    if (s === '' || s === '-' || s === ',' || s === '.') return NaN;
 
+    const lastComma = s.lastIndexOf(',');
+    const lastDot = s.lastIndexOf('.');
+
+    if (lastComma !== -1 && lastDot !== -1) {
+        const decSep = lastComma > lastDot ? ',' : '.';
+        const thouSep = decSep === ',' ? '.' : ',';
+        s = s.split(thouSep).join('');
+        s = s.replace(decSep, '.');
+        return parseFloat(s);
+    }
+
+    if (lastComma !== -1) {
+        s = s.split('.').join('');
+        s = s.replace(',', '.');
+        return parseFloat(s);
+    }
+
+    return parseFloat(s);
+}
+
+function recalcularCostoUnitario() {
+    const costo = _parseNumberLoose(document.getElementById('txtCosto')?.value);
+    const cant = _parseNumberLoose(document.getElementById('txtCantidad')?.value);
+    const out = document.getElementById('txtCostoUnitario');
+    if (!out) return;
+    let unit = NaN;
+    if (!isNaN(costo) && !isNaN(cant) && cant !== 0) unit = costo / cant;
+    out.value = isNaN(unit) ? '' : unit.toFixed(2);
+}
+
+// Utilidad usada en guardarCambios (dejada como estaba en tu código)
+function formatearSinMiles(txt) {
+    if (txt == null) return NaN;
+    return _parseNumberLoose(txt);
+}

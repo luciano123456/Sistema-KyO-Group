@@ -27,34 +27,71 @@ namespace SistemaKyoGroup.Application.Controllers
             return View();
         }
 
-
         [HttpGet]
-        public async Task<IActionResult> Lista(int IdProveedor)
+        [ProducesResponseType(typeof(List<VMProveedoresInsumos>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Lista([FromQuery] int IdProveedor)
         {
-            var ProveedoresInsumos = await _ProveedoresInsumosService.ObtenerTodos();
+            // 1) Validación simple de entrada -> 400
+            // (Ej.: si solo aceptás -1 o ids positivos)
+            if (IdProveedor < -1)
+            {
+                // BadRequest (400) con ProblemDetails
+                return Problem(
+                    detail: "El parámetro IdProveedor es inválido. Debe ser -1 (todos) o un Id positivo.",
+                    title: "Parámetro inválido",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
+            }
 
-            var lista = ProveedoresInsumos
-                .Where(c => IdProveedor == -1 || c.IdProveedor == IdProveedor)
-                .Select(c => new VMProveedoresInsumos
-                {
-                    Id = c.Id,
-                    Descripcion = c.Descripcion,
-                    CostoUnitario = c.CostoUnitario,
-                    Codigo = c.Codigo,
-                    FechaActualizacion = c.FechaActualizacion,
-                    IdProveedor = c.IdProveedor,
-                    Proveedor = c.IdProveedorNavigation != null ? c.IdProveedorNavigation.Nombre : "",
-                    IdUsuarioRegistra = c.IdUsuarioRegistra,
-                    FechaRegistra = c.FechaRegistra,
-                    IdUsuarioModifica = c.IdUsuarioModifica,
-                    FechaModifica = c.FechaModifica,
-                    UsuarioRegistra = c.IdUsuarioRegistraNavigation != null ? c.IdUsuarioRegistraNavigation.Usuario : null,
-                    UsuarioModifica = c.IdUsuarioModificaNavigation != null ? c.IdUsuarioModificaNavigation.Usuario : null
-                })
-                .ToList();
+            try
+            {
+                var ProveedoresInsumos = await _ProveedoresInsumosService.ObtenerTodos();
 
-            return Ok(lista);
+                var lista = ProveedoresInsumos
+                    .Where(c => IdProveedor == -1 || c.IdProveedor == IdProveedor)
+                    .Select(c => new VMProveedoresInsumos
+                    {
+                        Id = c.Id,
+                        Descripcion = c.Descripcion,
+                        CostoUnitario = c.CostoUnitario,
+                        Codigo = c.Codigo,
+                        FechaActualizacion = c.FechaActualizacion,
+                        IdProveedor = c.IdProveedor,
+                        Proveedor = c.IdProveedorNavigation != null ? c.IdProveedorNavigation.Nombre : "",
+                        IdUsuarioRegistra = (int)c.IdUsuarioRegistra,
+                        FechaRegistra = (DateTime)c.FechaRegistra,
+                        IdUsuarioModifica = c.IdUsuarioModifica,
+                        FechaModifica = c.FechaModifica,
+                        UsuarioRegistra = c.IdUsuarioRegistraNavigation != null ? c.IdUsuarioRegistraNavigation.Usuario : null,
+                        UsuarioModifica = c.IdUsuarioModificaNavigation != null ? c.IdUsuarioModificaNavigation.Usuario : null,
+                        Cantidad = c.Cantidad,
+                        Costo = c.Costo
+                    })
+                    .ToList();
+
+                return Ok(lista);
+            }
+            catch (ArgumentException ex) // errores de dominio/validación → 400
+            {
+                // Opcional: _logger.LogWarning(ex, "Argumento inválido en Lista(IdProveedor={IdProveedor})", IdProveedor);
+                return Problem(
+                    detail: ex.Message,
+                    title: "Solicitud inválida",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
+            }
+            catch (Exception ex) // errores inesperados → 500
+            {
+                return Problem(
+                    detail: "Ocurrió un error interno al procesar la solicitud.",
+                    title: "Error interno del servidor",
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
         }
+
 
         [HttpPost]
         public async Task<IActionResult> Comparar([FromBody] VMImportacionProveedoresInsumos model)
@@ -106,7 +143,9 @@ namespace SistemaKyoGroup.Application.Controllers
                 FechaActualizacion = DateTime.Now,
                 IdProveedor = model.IdProveedor,
                 IdUsuarioRegistra = userId ?? model.IdUsuarioRegistra, // fallback si hicieras pruebas sin token
-                FechaRegistra = DateTime.Now
+                FechaRegistra = DateTime.Now,
+                Cantidad = 1,
+                Costo = model.Costo
             };
 
             bool respuesta = await _ProveedoresInsumosService.Insertar(ProveedoresInsumos);
@@ -130,7 +169,9 @@ namespace SistemaKyoGroup.Application.Controllers
                 FechaActualizacion = DateTime.Now,
                 IdProveedor = model.IdProveedor,
                 IdUsuarioModifica = (int)userId, // fallback si hicieras pruebas sin token
-                FechaModifica = DateTime.Now
+                FechaModifica = DateTime.Now,
+                Cantidad = model.Cantidad,
+                Costo = model.Costo
             };
 
             bool respuesta = await _ProveedoresInsumosService.Actualizar(ProveedoresInsumos);
@@ -155,7 +196,8 @@ namespace SistemaKyoGroup.Application.Controllers
                 IdProveedor = model.IdProveedor,
                 FechaActualizacion = DateTime.Now,
                 IdUsuarioRegistra = (int)userId, // fallback si hicieras pruebas sin token
-                FechaRegistra = DateTime.Now
+                FechaRegistra = DateTime.Now,
+               
             }).ToList();
 
             var resultado = await _ProveedoresInsumosService.ImportarDesdeLista(model.IdProveedor, listaProcesada);
@@ -186,12 +228,14 @@ namespace SistemaKyoGroup.Application.Controllers
                 FechaActualizacion = ProveedoresInsumos.FechaActualizacion,
                 IdProveedor = ProveedoresInsumos.IdProveedor,
                 Codigo = ProveedoresInsumos.Codigo,
-                IdUsuarioRegistra = ProveedoresInsumos.IdUsuarioRegistra,
-                FechaRegistra = ProveedoresInsumos.FechaRegistra,
+                IdUsuarioRegistra = (int)ProveedoresInsumos.IdUsuarioRegistra,
+                FechaRegistra = (DateTime)ProveedoresInsumos.FechaRegistra,
                 IdUsuarioModifica = ProveedoresInsumos.IdUsuarioModifica,
                 FechaModifica = ProveedoresInsumos.FechaModifica,
                 UsuarioRegistra = ProveedoresInsumos.IdUsuarioRegistraNavigation != null ? ProveedoresInsumos.IdUsuarioRegistraNavigation.Usuario : null,
-                UsuarioModifica = ProveedoresInsumos.IdUsuarioModificaNavigation != null ? ProveedoresInsumos.IdUsuarioModificaNavigation.Usuario : null
+                UsuarioModifica = ProveedoresInsumos.IdUsuarioModificaNavigation != null ? ProveedoresInsumos.IdUsuarioModificaNavigation.Usuario : null,
+                Cantidad = ProveedoresInsumos.Cantidad,
+                Costo = ProveedoresInsumos.Costo
             };
 
             return Ok(vm);

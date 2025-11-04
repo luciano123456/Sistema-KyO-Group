@@ -164,7 +164,7 @@ body {
     padding-top: 56px;
 }
 
-.tabla-controls-top {
+.tabla-contRoles-top {
     position: absolute;
     top: 8px;
     right: 8px;
@@ -709,7 +709,7 @@ select.is-valid + .select2 .select2-selection {
     color: #e8eef7;
 }
 .tabla-wrap{ position:relative; padding-top:56px; }
-.tabla-controls-top{ position:absolute; top:8px; right:8px; z-index:2; }
+.tabla-contRoles-top{ position:absolute; top:8px; right:8px; z-index:2; }
 
 .filter-bar{
   background: rgba(17,24,39,.65);
@@ -749,7 +749,7 @@ select.is-valid + .select2 .select2-selection {
 
 /* ——— Misma “malla” y tono del panel que Ventas ——— */
 .tabla-wrap{ position:relative; padding-top:56px; }
-.tabla-controls-top{ position:absolute; top:8px; right:8px; z-index:2; }
+.tabla-contRoles-top{ position:absolute; top:8px; right:8px; z-index:2; }
 
 /* Panel (filter-bar) idéntico */
 .filter-bar{
@@ -791,7 +791,7 @@ select.is-valid + .select2 .select2-selection {
     padding-top: 56px;
 }
 
-.tabla-controls-top {
+.tabla-contRoles-top {
     position: absolute;
     top: 8px;
     right: 8px;
@@ -1277,7 +1277,7 @@ table.dataTable tbody tr.selected {
         padding-top: 0; /* ya no necesitamos “techo” */
     }
 
-    .page-99 .tabla-controls-top {
+    .page-99 .tabla-contRoles-top {
         position: static; /* quita absolute */
         display: grid; /* apilar */
         grid-template-columns: 1fr; /* una columna */
@@ -1286,16 +1286,16 @@ table.dataTable tbody tr.selected {
     }
 
         /* 2) Botones y dropdown ocupan ancho completo */
-        .page-99 .tabla-controls-top .btn,
-        .page-99 .tabla-controls-top .dropdown,
-        .page-99 .tabla-controls-top .dropdown > .btn {
+        .page-99 .tabla-contRoles-top .btn,
+        .page-99 .tabla-contRoles-top .dropdown,
+        .page-99 .tabla-contRoles-top .dropdown > .btn {
             width: 100%;
             min-height: 44px;
             border-radius: 12px;
             font-weight: 800;
         }
         /* Menú del dropdown igual de ancho que el botón */
-        .page-99 .tabla-controls-top .dropdown-menu {
+        .page-99 .tabla-contRoles-top .dropdown-menu {
             width: 100%;
             min-width: 0;
             border-radius: 12px;

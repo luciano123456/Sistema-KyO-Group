@@ -2,15 +2,15 @@
 
 namespace SistemaKyoGroup.BLL.Service
 {
-    public interface ISubrecetasCategoriaService
+    public interface ISubRecetasCategoriaService
     {
         Task<bool> Eliminar(int id);
-        Task<bool> Actualizar(SubrecetasCategoria model);
-        Task<bool> Insertar(SubrecetasCategoria model);
+        Task<bool> Actualizar(SubRecetasCategoria model);
+        Task<bool> Insertar(SubRecetasCategoria model);
 
-        Task<SubrecetasCategoria> Obtener(int id);
+        Task<SubRecetasCategoria> Obtener(int id);
 
-        Task<IQueryable<SubrecetasCategoria>> ObtenerTodos();
+        Task<IQueryable<SubRecetasCategoria>> ObtenerTodos();
     }
 
 }

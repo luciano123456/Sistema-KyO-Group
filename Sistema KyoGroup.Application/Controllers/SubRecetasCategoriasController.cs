@@ -9,22 +9,22 @@ using System.Diagnostics;
 namespace SistemaKyoGroup.Application.Controllers
 {
     [Authorize]
-    public class SubrecetasCategoriaController : Controller
+    public class SubRecetasCategoriaController : Controller
     {
-        private readonly ISubrecetasCategoriaService _SubrecetasCategoriaService;
+        private readonly ISubRecetasCategoriaService _SubRecetasCategoriaService;
 
-        public SubrecetasCategoriaController(ISubrecetasCategoriaService SubrecetasCategoriaService)
+        public SubRecetasCategoriaController(ISubRecetasCategoriaService SubRecetasCategoriaService)
         {
-            _SubrecetasCategoriaService = SubrecetasCategoriaService;
+            _SubRecetasCategoriaService = SubRecetasCategoriaService;
         }
 
         [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> Lista()
         {
-            var SubrecetasCategoria = await _SubrecetasCategoriaService.ObtenerTodos();
+            var SubRecetasCategoria = await _SubRecetasCategoriaService.ObtenerTodos();
 
-            var lista = SubrecetasCategoria.Select(c => new VMSubrecetasCategoria
+            var lista = SubRecetasCategoria.Select(c => new VMSubRecetasCategoria
             {
                 Id = c.Id,
                 Nombre = c.Nombre,
@@ -35,29 +35,29 @@ namespace SistemaKyoGroup.Application.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Insertar([FromBody] VMSubrecetasCategoria model)
+        public async Task<IActionResult> Insertar([FromBody] VMSubRecetasCategoria model)
         {
-            var SubrecetasCategoria = new SubrecetasCategoria
+            var SubRecetasCategoria = new SubRecetasCategoria
             {
                 Id = model.Id,
                 Nombre = model.Nombre,
             };
 
-            bool respuesta = await _SubrecetasCategoriaService.Insertar(SubrecetasCategoria);
+            bool respuesta = await _SubRecetasCategoriaService.Insertar(SubRecetasCategoria);
 
             return Ok(new { valor = respuesta });
         }
 
         [HttpPut]
-        public async Task<IActionResult> Actualizar([FromBody] VMSubrecetasCategoria model)
+        public async Task<IActionResult> Actualizar([FromBody] VMSubRecetasCategoria model)
         {
-            var SubrecetasCategoria = new SubrecetasCategoria
+            var SubRecetasCategoria = new SubRecetasCategoria
             {
                 Id = model.Id,
                 Nombre = model.Nombre,
             };
 
-            bool respuesta = await _SubrecetasCategoriaService.Actualizar(SubrecetasCategoria);
+            bool respuesta = await _SubRecetasCategoriaService.Actualizar(SubRecetasCategoria);
 
             return Ok(new { valor = respuesta });
         }
@@ -65,7 +65,7 @@ namespace SistemaKyoGroup.Application.Controllers
         [HttpDelete]
         public async Task<IActionResult> Eliminar(int id)
         {
-            bool respuesta = await _SubrecetasCategoriaService.Eliminar(id);
+            bool respuesta = await _SubRecetasCategoriaService.Eliminar(id);
 
             return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
         }
@@ -73,7 +73,7 @@ namespace SistemaKyoGroup.Application.Controllers
         [HttpGet]
         public async Task<IActionResult> EditarInfo(int id)
         {
-            var EstadosUsuario = await _SubrecetasCategoriaService.Obtener(id);
+            var EstadosUsuario = await _SubRecetasCategoriaService.Obtener(id);
 
             if (EstadosUsuario != null)
             {

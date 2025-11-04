@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace SistemaKyoGroup.DAL.Repository
 {
-    public interface ISubrecetasCategoriaRepository<TEntityModel> where TEntityModel : class
+    public interface ISubRecetasCategoriaRepository<TEntityModel> where TEntityModel : class
     {
         Task<bool> Eliminar(int id);
-        Task<bool> Actualizar(SubrecetasCategoria model);
-        Task<bool> Insertar(SubrecetasCategoria model);
-        Task<SubrecetasCategoria> Obtener(int id);
-        Task<IQueryable<SubrecetasCategoria>> ObtenerTodos();
+        Task<bool> Actualizar(SubRecetasCategoria model);
+        Task<bool> Insertar(SubRecetasCategoria model);
+        Task<SubRecetasCategoria> Obtener(int id);
+        Task<IQueryable<SubRecetasCategoria>> ObtenerTodos();
     }
 }

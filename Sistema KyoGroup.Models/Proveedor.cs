@@ -19,9 +19,9 @@ public partial class Proveedor
 
     public string? Cuit { get; set; }
 
-    public int IdUsuarioRegistra { get; set; }
+    public int? IdUsuarioRegistra { get; set; }
 
-    public DateTime FechaRegistra { get; set; }
+    public DateTime? FechaRegistra { get; set; }
 
     public int? IdUsuarioModifica { get; set; }
 
@@ -31,7 +31,7 @@ public partial class Proveedor
 
     public virtual User? IdUsuarioModificaNavigation { get; set; }
 
-    public virtual User IdUsuarioRegistraNavigation { get; set; } = null!;
+    public virtual User? IdUsuarioRegistraNavigation { get; set; }
 
     public virtual ICollection<InsumosProveedor> InsumosProveedores { get; set; } = new List<InsumosProveedor>();
 

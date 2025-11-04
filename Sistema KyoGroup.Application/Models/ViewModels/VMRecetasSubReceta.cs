@@ -19,7 +19,7 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
 
         public virtual Receta IdRecetaNavigation { get; set; } = null!;
 
-        public virtual Subreceta IdSubRecetaNavigation { get; set; } = null!;
+        public virtual SubReceta IdSubRecetaNavigation { get; set; } = null!;
     }
 
 

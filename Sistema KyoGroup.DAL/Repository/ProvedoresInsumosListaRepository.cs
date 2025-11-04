@@ -158,13 +158,15 @@ namespace SistemaKyoGroup.DAL.Repository
                     if (existente != null)
                     {
                         existente.Descripcion = item.Descripcion?.Trim() ?? "";
-                        existente.CostoUnitario = item.CostoUnitario;
+                        existente.CostoUnitario = (decimal)(item.CostoUnitario / existente.Cantidad);
                         existente.FechaActualizacion = DateTime.Now;
                     }
                     else
                     {
                         item.IdProveedor = idProveedor;
                         item.FechaActualizacion = DateTime.Now;
+                        item.Cantidad = 1;
+                        item.Costo = item.CostoUnitario;
                         _dbcontext.ProveedoresInsumosListas.Add(item);
                     }
                 }

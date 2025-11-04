@@ -2,7 +2,7 @@
 
 namespace SistemaKyoGroup.Application.Models.ViewModels
 {
-    public class VMSubreceta
+    public class VMSubReceta
 
     {
 
@@ -20,7 +20,7 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
 
         public decimal CostoPorcion { get; set; }
 
-        public decimal? CostoSubrecetas { get; set; }
+        public decimal? CostoSubRecetas { get; set; }
 
         public decimal? CostoInsumos { get; set; }
 
@@ -38,7 +38,7 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
 
         public DateTime? FechaModifica { get; set; }
 
-        public virtual SubrecetasCategoria IdCategoriaNavigation { get; set; } = null!;
+        public virtual SubRecetasCategoria IdCategoriaNavigation { get; set; } = null!;
 
         public virtual UnidadesMedida IdUnidadMedidaNavigation { get; set; } = null!;
 
@@ -48,15 +48,15 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
 
         public virtual User IdUsuarioRegistraNavigation { get; set; } = null!;
 
-        public virtual ICollection<RecetasSubreceta> RecetasSubreceta { get; set; } = new List<RecetasSubreceta>();
+        public virtual ICollection<RecetasSubReceta> RecetasSubReceta { get; set; } = new List<RecetasSubReceta>();
 
-        public virtual ICollection<SubrecetasInsumo> SubrecetasInsumos { get; set; } = new List<SubrecetasInsumo>();
+        public virtual ICollection<SubRecetasInsumo> SubRecetasInsumos { get; set; } = new List<SubRecetasInsumo>();
 
-        public virtual ICollection<SubrecetasSubreceta> SubrecetasSubrecetaIdSubrecetaHijaNavigations { get; set; } = new List<SubrecetasSubreceta>();
+        public virtual ICollection<SubRecetasSubReceta> SubRecetasSubRecetaIdSubRecetaHijaNavigations { get; set; } = new List<SubRecetasSubReceta>();
 
-        public virtual ICollection<SubrecetasSubreceta> SubrecetasSubrecetaIdSubrecetaPadreNavigations { get; set; } = new List<SubrecetasSubreceta>();
+        public virtual ICollection<SubRecetasSubReceta> SubRecetasSubRecetaIdSubRecetaPadreNavigations { get; set; } = new List<SubRecetasSubReceta>();
 
-        public virtual ICollection<SubrecetasUnidadesNegocio> SubrecetasUnidadesNegocios { get; set; } = new List<SubrecetasUnidadesNegocio>();
+        public virtual ICollection<SubRecetasUnidadesNegocio> SubRecetasUnidadesNegocios { get; set; } = new List<SubRecetasUnidadesNegocio>();
 
         public string Categoria { get; set; }
             public string UnidadMedida { get; set; }

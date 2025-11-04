@@ -1427,7 +1427,7 @@ label {
         border-radius: 8px;
     }
 
-/* Responsive: controles de DT en pila y botones no full-width */
+/* Responsive: contRoles de DT en pila y botones no full-width */
 @media (max-width: 992px) {
     #productos .dataTables_wrapper .dataTables_length,
     #productos .dataTables_wrapper .dataTables_filter,
@@ -2141,7 +2141,7 @@ table.dataTable thead th {
         border-radius: 8px;
     }
 
-/* Responsive: controles de DT en pila y botones no full-width */
+/* Responsive: contRoles de DT en pila y botones no full-width */
 @media (max-width: 992px) {
     #productos .dataTables_wrapper .dataTables_length,
     #productos .dataTables_wrapper .dataTables_filter,
@@ -2247,7 +2247,7 @@ table.dataTable thead th {
         content: "" !important;
     }
 
-/* Controles de DT con el mismo look del modal */
+/* ContRoles de DT con el mismo look del modal */
 #productos .dataTables_wrapper .dataTables_length select,
 #productos .dataTables_wrapper .dataTables_filter input {
     background: var(--panel2) !important;

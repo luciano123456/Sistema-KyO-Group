@@ -45,5 +45,5 @@ public partial class ImportacionesReceta
 
     public virtual ICollection<ImportacionesInsumo> ImportacionesInsumos { get; set; } = new List<ImportacionesInsumo>();
 
-    public virtual ICollection<ImportacionesSubreceta> ImportacionesSubreceta { get; set; } = new List<ImportacionesSubreceta>();
+    public virtual ICollection<ImportacionesSubReceta> ImportacionesSubReceta { get; set; } = new List<ImportacionesSubReceta>();
 }

@@ -15,8 +15,8 @@ namespace SistemaKyoGroup.BLL.Service
         Task<List<RecetasInsumo>> ObtenerInsumos(int idReceta);
         Task<bool> ActualizarInsumos(List<RecetasInsumo> insumos);
 
-        //Task<bool> InsertarSubrecetas(List<RecetasSubreceta> insumos);
-        //Task<List<RecetasSubreceta>> ObtenerSubrecetas(int idReceta);
-        //Task<bool> ActualizarSubrecetas(List<RecetasSubreceta> insumos);
+        //Task<bool> InsertarSubRecetas(List<RecetasSubReceta> insumos);
+        //Task<List<RecetasSubReceta>> ObtenerSubRecetas(int idReceta);
+        //Task<bool> ActualizarSubRecetas(List<RecetasSubReceta> insumos);
     }
 }

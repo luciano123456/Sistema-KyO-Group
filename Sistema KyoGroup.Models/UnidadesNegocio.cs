@@ -29,9 +29,9 @@ public partial class UnidadesNegocio
 
     public virtual ICollection<RecetasUnidadesNegocio> RecetasUnidadesNegocios { get; set; } = new List<RecetasUnidadesNegocio>();
 
-    public virtual ICollection<Subreceta> Subreceta { get; set; } = new List<Subreceta>();
+    public virtual ICollection<SubReceta> SubReceta { get; set; } = new List<SubReceta>();
 
-    public virtual ICollection<SubrecetasUnidadesNegocio> SubrecetasUnidadesNegocios { get; set; } = new List<SubrecetasUnidadesNegocio>();
+    public virtual ICollection<SubRecetasUnidadesNegocio> SubRecetasUnidadesNegocios { get; set; } = new List<SubRecetasUnidadesNegocio>();
 
     public virtual ICollection<UsuariosUnidadesNegocio> UsuariosUnidadesNegocios { get; set; } = new List<UsuariosUnidadesNegocio>();
 }

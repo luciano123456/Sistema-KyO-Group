@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace SistemaKyoGroup.Models;
 
-public partial class SubrecetasInsumo
+public partial class SubRecetasInsumo
 {
     public int Id { get; set; }
 
-    public int IdSubreceta { get; set; }
+    public int IdSubReceta { get; set; }
 
     public int IdInsumo { get; set; }
 
@@ -27,7 +27,7 @@ public partial class SubrecetasInsumo
 
     public virtual Insumo IdInsumoNavigation { get; set; } = null!;
 
-    public virtual Subreceta IdSubrecetaNavigation { get; set; } = null!;
+    public virtual SubReceta IdSubRecetaNavigation { get; set; } = null!;
 
     public virtual User? IdUsuarioModificaNavigation { get; set; }
 

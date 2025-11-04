@@ -1,4 +1,4 @@
-﻿/********************  RECETAS.JS (COMPLETO)  ********************/
+﻿/********************  RecetaS.JS (COMPLETO)  ********************/
 let gridRecetas;
 let isEditing = false;
 
@@ -25,7 +25,7 @@ const columnConfig = [
     { index: 3, filterType: 'select', fetchDataFunc: listaUnidadesNegocioFilter }, // Unidad Negocio
     { index: 4, filterType: 'select', fetchDataFunc: listaUnidadesMedidaFilter },  // Unidad Medida
     { index: 5, filterType: 'select', fetchDataFunc: listaRecetasCategoriaFilter },// Categoría
-    { index: 6, filterType: 'text' },                                       // Costo Subrecetas
+    { index: 6, filterType: 'text' },                                       // Costo SubRecetas
     { index: 7, filterType: 'text' },                                       // Costo Insumos
     { index: 8, filterType: 'text' },                                       // Rendimiento
     { index: 9, filterType: 'text' },                                       // Costo Unitario
@@ -38,7 +38,7 @@ const fmtARS = v => new Intl.NumberFormat('es-AR', { style: 'currency', currency
 const fmtDec = v => new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(_num(v));
 function formatNumber(v) { return fmtDec(v); }
 
-// KPIs (Cantidad, Costo Subrecetas total, Costo Insumos total)
+// KPIs (Cantidad, Costo SubRecetas total, Costo Insumos total)
 function renderKpis(rows) {
     try {
         const data = Array.isArray(rows) ? rows : [];
@@ -48,13 +48,13 @@ function renderKpis(rows) {
         const $ = id => document.getElementById(id);
 
         if ($('kpiCantidad')) $('kpiCantidad').textContent = fmtDec(cant);
-        if ($('kpiCostoSubrecetas')) $('kpiCostoSubrecetas').textContent = fmtARS(totSub);
+        if ($('kpiCostoSubRecetas')) $('kpiCostoSubRecetas').textContent = fmtARS(totSub);
         if ($('kpiCostoInsumos')) $('kpiCostoInsumos').textContent = fmtARS(totIns);
     } catch { /* no romper si no están los elementos */ }
 }
 
 /* ================== TOGGLE FILTROS (panel + thead .filters) ================== */
-// Igual que Subrecetas.js. Si tu Index usa otro id, hay fallback.
+// Igual que SubRecetas.js. Si tu Index usa otro id, hay fallback.
 const LS_FILTROS_VISIBLE_REC = 'Recetas_FiltrosVisible';
 function setFiltrosStateRec(show) {
     const panel = document.getElementById('formFiltrosRec') || document.getElementById('Filtros');
@@ -239,7 +239,7 @@ async function configurarDataTable(data) {
                 { data: 'UnidadNegocio', title: 'Unidad Negocio' },
                 { data: 'UnidadMedida', title: 'Unidad Medida' },
                 { data: 'Categoria', title: 'Categoría' },
-                { data: 'CostoSubRecetas', title: 'Costo Subrecetas' },
+                { data: 'CostoSubRecetas', title: 'Costo SubRecetas' },
                 { data: 'CostoInsumos', title: 'Costo Insumos' },
                 { data: 'Rendimiento', title: 'Rendimiento' },
                 { data: 'CostoUnitario', title: 'Costo Unitario' },
@@ -439,4 +439,4 @@ async function listaUnidadesNegocioFiltro() {
         });
     }
 }
-/********************  FIN RECETAS.JS  ********************/
+/********************  FIN RecetaS.JS  ********************/
