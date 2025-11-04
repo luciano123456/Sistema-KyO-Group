@@ -18,7 +18,7 @@ const columnConfig = [
 ];
 
 let unidadesNegocioSeleccionados = [];
-let proveedoresAsignados = [];
+let ProveedoresAsignados = [];
 
 /* ==========================
  * Helpers formateo / num
@@ -113,7 +113,7 @@ function guardarCambios() {
         IdUnidadMedida: parseInt($("#UnidadesMedida").val()),
         IdCategoria: parseInt($("#Categorias").val()),
         InsumosUnidadesNegocios: unidadesNegocioSeleccionados.map(id => ({ IdUnidadNegocio: id })),
-        InsumosProveedores: proveedoresAsignados.map(p => ({
+        InsumosProveedores: ProveedoresAsignados.map(p => ({
             IdProveedor: p.IdProveedor,
             IdListaProveedor: p.IdListaProveedor
         }))
@@ -217,7 +217,7 @@ async function mostrarModal(modelo) {
     actualizarTextoUnidadesNegocio();
 
     // Proveedores asignados
-    proveedoresAsignados = modelo.InsumosProveedores?.map(x => ({
+    ProveedoresAsignados = modelo.InsumosProveedores?.map(x => ({
         IdInsumo: x.IdInsumo,
         IdProveedor: x.IdProveedor,
         IdListaProveedor: x.IdListaProveedor
@@ -752,7 +752,7 @@ function abrirModalProveedoresAsignados() {
             const idI = parseInt($("#txtId").val());
 
             data.forEach(item => {
-                const isChecked = proveedoresAsignados.some(x =>
+                const isChecked = ProveedoresAsignados.some(x =>
                     x.IdInsumo === idI &&
                     x.IdProveedor === parseInt(item.IdProveedor) &&
                     x.IdListaProveedor === parseInt(item.Id)
@@ -786,14 +786,14 @@ function abrirModalProveedoresAsignados() {
 
 function guardarAsignacionesProveedores() {
     const checks = document.querySelectorAll(".chk-asignacion");
-    proveedoresAsignados = []; // reset intencional
+    ProveedoresAsignados = []; // reset intencional
 
     checks.forEach(cb => {
         if (cb.checked) {
             const idProveedor = parseInt(cb.dataset.idproveedor);
             const idListaProveedor = parseInt(cb.dataset.idlistaproveedor);
 
-            proveedoresAsignados.push({
+            ProveedoresAsignados.push({
                 IdProveedor: idProveedor,
                 IdListaProveedor: idListaProveedor
             });
@@ -907,7 +907,7 @@ function limpiarModal() {
     const errorMsg = document.getElementById("errorCampos");
     if (errorMsg) errorMsg.classList.add("d-none");
 
-    proveedoresAsignados = [];
+    ProveedoresAsignados = [];
 }
 
 function validarCampoIndividual(el) {
@@ -1108,7 +1108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             initFiltroUnidadNegocioPersistente();
             // primera carga respetando el valor guardado
-            aplicarFiltrosInsumos();
+            //aplicarFiltrosInsumos();
         }
     })();
 });
@@ -1148,7 +1148,7 @@ async function duplicarInsumo(id) {
             IdUsuarioModifica: null,
             FechaModifica: null,
 
-            // Colecciones: mantenemos UNs y Proveedores (si querés empezar sin proveedores, dejá [] )
+            // Colecciones: mantenemos UNs y Proveedores (si querés empezar sin Proveedores, dejá [] )
             InsumosUnidadesNegocios: Array.isArray(origen.InsumosUnidadesNegocios)
                 ? origen.InsumosUnidadesNegocios.map(u => ({ IdUnidadNegocio: u.IdUnidadNegocio }))
                 : [],
@@ -1168,9 +1168,9 @@ async function duplicarInsumo(id) {
         $("#btnGuardar").text("Registrar");
         $("#modalEdicionLabel").text("Duplicar Insumo");
 
-        // Opcional: si NO querés copiar los proveedores, descomentá:
-        // proveedoresAsignados = [];
-        // (y si querés reflejar visualmente el cambio, cerrá/abra el modal o re-renderizá la tabla de proveedores asignados si aplica)
+        // Opcional: si NO querés copiar los Proveedores, descomentá:
+        // ProveedoresAsignados = [];
+        // (y si querés reflejar visualmente el cambio, cerrá/abra el modal o re-renderizá la tabla de Proveedores asignados si aplica)
 
     } catch (e) {
         console.error(e);

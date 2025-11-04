@@ -48,7 +48,7 @@ namespace SistemaKyoGroup.DAL.Repository
                     .ToList();
 
                 // Proveedores (puede asociarse varias veces en distintos lados: deduplicamos por par clave)
-                var proveedores = (model.InsumosProveedores ?? new List<InsumosProveedor>())
+                var Proveedores = (model.InsumosProveedores ?? new List<InsumosProveedor>())
                     .GroupBy(p => new { p.IdProveedor, p.IdListaProveedor })
                     .Select(g =>
                     {
@@ -90,14 +90,14 @@ namespace SistemaKyoGroup.DAL.Repository
                     _dbcontext.InsumosUnidadesNegocios.AddRange(unidadesNegocio);
                 }
 
-                if (proveedores.Count > 0)
+                if (Proveedores.Count > 0)
                 {
-                    foreach (var pr in proveedores)
+                    foreach (var pr in Proveedores)
                     {
                         pr.Id = 0;
                         pr.IdInsumo = model.Id;
                     }
-                    _dbcontext.InsumosProveedores.AddRange(proveedores);
+                    _dbcontext.InsumosProveedores.AddRange(Proveedores);
                 }
 
                 await _dbcontext.SaveChangesAsync();

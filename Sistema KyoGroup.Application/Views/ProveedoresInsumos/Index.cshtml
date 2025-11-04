@@ -41,8 +41,8 @@
             <div class="card-glass p-3">
                 <div class="tabla-wrap position-relative">
 
-                    <!-- Controles top -->
-                    <div class="tabla-controls-top d-flex gap-2 flex-wrap align-items-center">
+                    <!-- ContRoles top -->
+                    <div class="tabla-contRoles-top d-flex gap-2 flex-wrap align-items-center">
                         <button class="btn btn-new d-flex align-items-center px-3 py-2" onclick="nuevoInsumo()">
                             <i class="fa fa-plus-square me-2"></i> Nuevo Insumo
                         </button>
@@ -97,6 +97,8 @@
                                     <th></th>
                                     <th>Código</th>
                                     <th>Descripción</th>
+                                    <th>Costo</th>
+                                    <th>Cantidad</th>
                                     <th>Costo Unitario</th>
                                     <th>Proveedor</th>
                                     <th>Fecha Actualización</th>
@@ -115,8 +117,8 @@
 </div>
 
 <!-- Modal Edición (igual al tuyo) -->
-<div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
+<div class="modal fade" id="modalEdicion" tabindex="-1" Rol="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-edicion" Rol="document">
         <div class="modal-content">
             <div class="modal-header colorEncabezado">
                 <h5 class="modal-title fw-bold" id="modalEdicionLabel">Nuevo Insumo</h5>
@@ -129,21 +131,15 @@
                         <small id="lblUltimaModif" class="text-new"></small>
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label " for="txtCodigo">Codigo</label>
+                    <div class="col-md-2">
+                        <label class="form-label" for="txtCodigo">Codigo</label>
                         <input type="text" class="form-control" id="txtCodigo" required>
                         <div class="invalid-feedback">Campo obligatorio</div>
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label " for="txtDescripcion">Descripcion</label>
+                    <div class="col-md-4">
+                        <label class="form-label" for="txtDescripcion">Descripcion</label>
                         <input type="text" class="form-control" id="txtDescripcion" required>
-                        <div class="invalid-feedback">Campo obligatorio</div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label " for="txtCostoUnitario">Costo Unitario</label>
-                        <input type="text" class="form-control" id="txtCostoUnitario" required>
                         <div class="invalid-feedback">Campo obligatorio</div>
                     </div>
 
@@ -155,8 +151,28 @@
                         <div class="invalid-feedback">Campo obligatorio</div>
                     </div>
 
-                    <div id="errorCampos" class="alert alert-danger d-none">Debes completar los campos obligatorios.</div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="txtCosto">Costo</label>
+                        <input type="text" class="form-control" id="txtCosto" required>
+                        <div class="invalid-feedback">Campo obligatorio</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label" for="txtCantidad">Cantidad</label>
+                        <input type="text" class="form-control" id="txtCantidad" required>
+                        <div class="invalid-feedback">Campo obligatorio</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label" for="txtCostoUnitario">Costo Unitario</label>
+                        <input type="text" class="form-control" id="txtCostoUnitario" readonly>
+                    </div>
+
+                   
+
+                    <div id="errorCampos" class="alert alert-danger d-none">Debes completar los campos requeridos.</div>
                 </form>
+
             </div>
 
             <div class="modal-footer">
@@ -199,7 +215,7 @@
                         </div>
                         <div class="col-md-12">
                             <div id="comparandoLoader" class="d-none text-center mt-3">
-                                <div class="spinner-border text-primary" role="status"></div>
+                                <div class="spinner-border text-primary" Rol="status"></div>
                                 <p class="mt-2 mb-0 fw-semibold text-primary">Comparando insumos con la base de datos...</p>
                             </div>
                         </div>
@@ -276,5 +292,5 @@
     <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/locale/es.js"></script>
  
-    <script src="~/js/ProvedoresInsumos.js?v=2.1"></script>
+    <script src="~/js/ProvedoresInsumos.js?v=2.2"></script>
 }

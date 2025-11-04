@@ -49,7 +49,7 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
 
         public virtual ICollection<RecetasInsumo> RecetasInsumos { get; set; } = new List<RecetasInsumo>();
 
-        public virtual ICollection<RecetasSubreceta> RecetasSubreceta { get; set; } = new List<RecetasSubreceta>();
+        public virtual ICollection<RecetasSubReceta> RecetasSubReceta { get; set; } = new List<RecetasSubReceta>();
 
         public string Categoria { get; set; }
         public string UnidadMedida { get; set; }

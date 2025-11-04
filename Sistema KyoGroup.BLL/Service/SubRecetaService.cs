@@ -3,16 +3,16 @@ using SistemaKyoGroup.Models;
 
 namespace SistemaKyoGroup.BLL.Service
 {
-    public class SubrecetaService : ISubrecetaService
+    public class SubRecetaService : ISubRecetaService
     {
 
-        private readonly ISubrecetaRepository<Subreceta> _contactRepo;
+        private readonly ISubRecetaRepository<SubReceta> _contactRepo;
 
-        public SubrecetaService(ISubrecetaRepository<Subreceta> contactRepo)
+        public SubRecetaService(ISubRecetaRepository<SubReceta> contactRepo)
         {
             _contactRepo = contactRepo;
         }
-        public async Task<bool> Actualizar(Subreceta model)
+        public async Task<bool> Actualizar(SubReceta model)
         {
             return await _contactRepo.Actualizar(model);
         }
@@ -22,40 +22,40 @@ namespace SistemaKyoGroup.BLL.Service
             return await _contactRepo.Eliminar(id);
         }
 
-        public async Task<bool> Insertar(Subreceta model)
+        public async Task<bool> Insertar(SubReceta model)
         {
             return await _contactRepo.Insertar(model);
         }
 
-        public async Task<Subreceta> Obtener(int id)
+        public async Task<SubReceta> Obtener(int id)
         {
             return await _contactRepo.Obtener(id);
         }
 
 
-        public async Task<IQueryable<Subreceta>> ObtenerTodosUnidadNegocio(int idUnidadNegocio, int userId)
+        public async Task<IQueryable<SubReceta>> ObtenerTodosUnidadNegocio(int idUnidadNegocio, int userId)
         {
             return await _contactRepo.ObtenerTodosUnidadNegocio(idUnidadNegocio, userId);
         }
 
-        public async Task<IQueryable<Subreceta>> ObtenerTodos()
+        public async Task<IQueryable<SubReceta>> ObtenerTodos()
         {
             return await _contactRepo.ObtenerTodos();
         }
 
-        public async Task<bool> InsertarInsumos(List<SubrecetasInsumo> insumos)
+        public async Task<bool> InsertarInsumos(List<SubRecetasInsumo> insumos)
         {
             return await _contactRepo.InsertarInsumos(insumos);
         }
 
-        public async Task<bool> ActualizarInsumos(List<SubrecetasInsumo> productos)
+        public async Task<bool> ActualizarInsumos(List<SubRecetasInsumo> productos)
         {
             return await _contactRepo.ActualizarInsumos(productos);
         }
 
-        public async Task<List<SubrecetasInsumo>> ObtenerInsumos(int idSubreceta)
+        public async Task<List<SubRecetasInsumo>> ObtenerInsumos(int idSubReceta)
         {
-            return await _contactRepo.ObtenerInsumos(idSubreceta);
+            return await _contactRepo.ObtenerInsumos(idSubReceta);
         }
 
 

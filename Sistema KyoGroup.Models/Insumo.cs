@@ -7,7 +7,7 @@ public partial class Insumo
 {
     public int Id { get; set; }
 
-    public string? Sku { get; set; }
+    public string Sku { get; set; } = null!;
 
     public string Descripcion { get; set; } = null!;
 
@@ -17,9 +17,9 @@ public partial class Insumo
 
     public DateTime FechaActualizacion { get; set; }
 
-    public int IdUsuarioRegistra { get; set; }
+    public int? IdUsuarioRegistra { get; set; }
 
-    public DateTime FechaRegistra { get; set; }
+    public DateTime? FechaRegistra { get; set; }
 
     public int? IdUsuarioModifica { get; set; }
 
@@ -33,7 +33,7 @@ public partial class Insumo
 
     public virtual User? IdUsuarioModificaNavigation { get; set; }
 
-    public virtual User IdUsuarioRegistraNavigation { get; set; } = null!;
+    public virtual User? IdUsuarioRegistraNavigation { get; set; }
 
     public virtual ICollection<InsumosProveedor> InsumosProveedores { get; set; } = new List<InsumosProveedor>();
 
@@ -41,5 +41,5 @@ public partial class Insumo
 
     public virtual ICollection<RecetasInsumo> RecetasInsumos { get; set; } = new List<RecetasInsumo>();
 
-    public virtual ICollection<SubrecetasInsumo> SubrecetasInsumos { get; set; } = new List<SubrecetasInsumo>();
+    public virtual ICollection<SubRecetasInsumo> SubRecetasInsumos { get; set; } = new List<SubRecetasInsumo>();
 }

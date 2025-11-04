@@ -587,7 +587,7 @@ var i,
 		return -1;
 	},
 
-	booleans = "checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|" +
+	booleans = "checked|selected|async|autofocus|autoplay|contRoles|defer|disabled|hidden|" +
 		"ismap|loop|multiple|open|readonly|required|scoped",
 
 	// Regular expressions

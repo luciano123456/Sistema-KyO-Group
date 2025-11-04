@@ -11,45 +11,45 @@ using SistemaKyoGroup.DAL.DataContext;
 
 namespace SistemaKyoGroup.DAL.Repository
 {
-    public class SubrecetasCategoriaRepository : ISubrecetasCategoriaRepository<SubrecetasCategoria>
+    public class SubRecetasCategoriaRepository : ISubRecetasCategoriaRepository<SubRecetasCategoria>
     {
 
         private readonly SistemaKyoGroupContext _dbcontext;
 
-        public SubrecetasCategoriaRepository(SistemaKyoGroupContext context)
+        public SubRecetasCategoriaRepository(SistemaKyoGroupContext context)
         {
             _dbcontext = context;
         }
-        public async Task<bool> Actualizar(SubrecetasCategoria model)
+        public async Task<bool> Actualizar(SubRecetasCategoria model)
         {
-            _dbcontext.SubrecetasCategorias.Update(model);
+            _dbcontext.SubRecetasCategorias.Update(model);
             await _dbcontext.SaveChangesAsync();
             return true;
         }
 
         public async Task<bool> Eliminar(int id)
         {
-            SubrecetasCategoria model = _dbcontext.SubrecetasCategorias.First(c => c.Id == id);
-            _dbcontext.SubrecetasCategorias.Remove(model);
+            SubRecetasCategoria model = _dbcontext.SubRecetasCategorias.First(c => c.Id == id);
+            _dbcontext.SubRecetasCategorias.Remove(model);
             await _dbcontext.SaveChangesAsync();
             return true;
         }
 
-        public async Task<bool> Insertar(SubrecetasCategoria model)
+        public async Task<bool> Insertar(SubRecetasCategoria model)
         {
-            _dbcontext.SubrecetasCategorias.Add(model);
+            _dbcontext.SubRecetasCategorias.Add(model);
             await _dbcontext.SaveChangesAsync();
             return true;
         }
 
-        public async Task<SubrecetasCategoria> Obtener(int id)
+        public async Task<SubRecetasCategoria> Obtener(int id)
         {
-            SubrecetasCategoria model = await _dbcontext.SubrecetasCategorias.FindAsync(id);
+            SubRecetasCategoria model = await _dbcontext.SubRecetasCategorias.FindAsync(id);
             return model;
         }
-        public async Task<IQueryable<SubrecetasCategoria>> ObtenerTodos()
+        public async Task<IQueryable<SubRecetasCategoria>> ObtenerTodos()
         {
-            IQueryable<SubrecetasCategoria> query = _dbcontext.SubrecetasCategorias;
+            IQueryable<SubRecetasCategoria> query = _dbcontext.SubRecetasCategorias;
             return await Task.FromResult(query);
         }
 

@@ -17,7 +17,7 @@ public partial class Receta
 
     public int IdCategoria { get; set; }
 
-    public decimal? CostoSubrecetas { get; set; }
+    public decimal? CostoSubRecetas { get; set; }
 
     public decimal CostoInsumos { get; set; }
 
@@ -49,7 +49,7 @@ public partial class Receta
 
     public virtual ICollection<RecetasInsumo> RecetasInsumos { get; set; } = new List<RecetasInsumo>();
 
-    public virtual ICollection<RecetasSubreceta> RecetasSubreceta { get; set; } = new List<RecetasSubreceta>();
+    public virtual ICollection<RecetasSubReceta> RecetasSubReceta { get; set; } = new List<RecetasSubReceta>();
 
     public virtual ICollection<RecetasUnidadesNegocio> RecetasUnidadesNegocios { get; set; } = new List<RecetasUnidadesNegocio>();
 }

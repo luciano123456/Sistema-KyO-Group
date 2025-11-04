@@ -12,13 +12,13 @@ using SistemaKyoGroup.Application.Extensions;
 namespace SistemaKyoGroup.Application.Controllers
 {
     [Authorize]
-    public class recetasController : Controller
+    public class RecetasController : Controller
     {
-        private readonly IRecetaService _recetasService;
+        private readonly IRecetaService _RecetasService;
 
-        public recetasController(IRecetaService recetasService)
+        public RecetasController(IRecetaService RecetasService)
         {
-            _recetasService = recetasService;
+            _RecetasService = RecetasService;
         }
 
         [AllowAnonymous]
@@ -35,9 +35,9 @@ namespace SistemaKyoGroup.Application.Controllers
 
                 var userId = User.GetUserId();
 
-                var recetas = await _recetasService.ObtenerTodosUnidadNegocio(IdUnidadNegocio, (int)userId);
+                var Recetas = await _RecetasService.ObtenerTodosUnidadNegocio(IdUnidadNegocio, (int)userId);
 
-                var lista = recetas
+                var lista = Recetas
                     .Select(c => new VMReceta
                     {
                         Id = c.Id,
@@ -50,7 +50,7 @@ namespace SistemaKyoGroup.Application.Controllers
                         UnidadMedida = c.IdUnidadMedidaNavigation.Nombre,
                         UnidadNegocio = c.IdUnidadNegocioNavigation.Nombre,
                         Descripcion = c.Descripcion,
-                        CostoSubRecetas = c.CostoSubrecetas,
+                        CostoSubRecetas = c.CostoSubRecetas,
                         CostoInsumos = c.CostoInsumos,
                         CostoPorcion = c.CostoPorcion,
                         Rendimiento = c.Rendimiento,
@@ -62,7 +62,7 @@ namespace SistemaKyoGroup.Application.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { error = "Error al obtener las recetas." });
+                return StatusCode(500, new { error = "Error al obtener las Recetas." });
             }
         }
 
@@ -72,14 +72,14 @@ namespace SistemaKyoGroup.Application.Controllers
 
             var userId = User.GetUserId();
 
-            var receta = new Receta
+            var Receta = new Receta
             {
                 IdUnidadNegocio = model.IdUnidadNegocio,
                 Sku = model.Sku,
                 Descripcion = model.Descripcion,
                 IdUnidadMedida = model.IdUnidadMedida,
                 IdCategoria = model.IdCategoria,
-                CostoSubrecetas = model.CostoSubRecetas,
+                CostoSubRecetas = model.CostoSubRecetas,
                 CostoInsumos = model.CostoInsumos,
                 CostoPorcion = (decimal)model.CostoPorcion,
                 CostoUnitario = model.CostoUnitario,
@@ -98,9 +98,9 @@ namespace SistemaKyoGroup.Application.Controllers
                     FechaRegistra = DateTime.Now,
                 }).ToList(),
 
-                RecetasSubreceta = model.RecetasSubreceta?.Select(s => new RecetasSubreceta
+                RecetasSubReceta = model.RecetasSubReceta?.Select(s => new RecetasSubReceta
                 {
-                    IdSubreceta = s.IdSubreceta,
+                    IdSubReceta = s.IdSubReceta,
                     Cantidad = s.Cantidad,
                     CostoUnitario = s.CostoUnitario,
                     SubTotal = s.SubTotal,
@@ -109,7 +109,7 @@ namespace SistemaKyoGroup.Application.Controllers
                 }).ToList()
             };
 
-            var resultado = await _recetasService.Insertar(receta);
+            var resultado = await _RecetasService.Insertar(Receta);
             return Ok(new { valor = resultado });
         }
 
@@ -119,7 +119,7 @@ namespace SistemaKyoGroup.Application.Controllers
 
             var userId = User.GetUserId();
 
-            var receta = new Receta
+            var Receta = new Receta
             {
                 Id = model.Id,
                 IdUnidadNegocio = model.IdUnidadNegocio,
@@ -127,7 +127,7 @@ namespace SistemaKyoGroup.Application.Controllers
                 Descripcion = model.Descripcion,
                 IdUnidadMedida = model.IdUnidadMedida,
                 IdCategoria = model.IdCategoria,
-                CostoSubrecetas = model.CostoSubRecetas,
+                CostoSubRecetas = model.CostoSubRecetas,
                 CostoInsumos = model.CostoInsumos,
                 CostoPorcion = (decimal)model.CostoPorcion,
                 CostoUnitario = model.CostoUnitario,
@@ -146,10 +146,10 @@ namespace SistemaKyoGroup.Application.Controllers
                     FechaModifica = DateTime.Now,
                 }).ToList(),
 
-                RecetasSubreceta = model.RecetasSubreceta?.Select(s => new RecetasSubreceta
+                RecetasSubReceta = model.RecetasSubReceta?.Select(s => new RecetasSubReceta
                 {
                     IdReceta = model.Id,
-                    IdSubreceta = s.IdSubreceta,
+                    IdSubReceta = s.IdSubReceta,
                     Cantidad = s.Cantidad,
                     CostoUnitario = s.CostoUnitario,
                     SubTotal = s.SubTotal,
@@ -158,14 +158,14 @@ namespace SistemaKyoGroup.Application.Controllers
                 }).ToList()
             };
 
-            var resultado = await _recetasService.Actualizar(receta);
+            var resultado = await _RecetasService.Actualizar(Receta);
             return Ok(new { valor = resultado });
         }
 
         [HttpDelete]
         public async Task<IActionResult> Eliminar(int id)
         {
-            bool respuesta = await _recetasService.Eliminar(id);
+            bool respuesta = await _RecetasService.Eliminar(id);
             return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
         }
 
@@ -175,9 +175,9 @@ namespace SistemaKyoGroup.Application.Controllers
             if (id <= 0)
                 return Ok(new { });
 
-            var model = await _recetasService.Obtener(id);
+            var model = await _RecetasService.Obtener(id);
 
-            var receta = new VMReceta
+            var Receta = new VMReceta
             {
                 Id = model.Id,
                 IdUnidadMedida = model.IdUnidadMedida,
@@ -188,7 +188,7 @@ namespace SistemaKyoGroup.Application.Controllers
                 Descripcion = model.Descripcion,
                 CostoUnitario = model.CostoUnitario,
                 CostoInsumos = model.CostoInsumos,
-                CostoSubRecetas = model.CostoSubrecetas,
+                CostoSubRecetas = model.CostoSubRecetas,
                 Rendimiento = model.Rendimiento,
             };
 
@@ -203,23 +203,23 @@ namespace SistemaKyoGroup.Application.Controllers
                 SubTotal = p.SubTotal
             }).ToList();
 
-            var subrecetas = model.RecetasSubreceta.Select(p => new VMRecetasSubReceta
+            var subRecetas = model.RecetasSubReceta.Select(p => new VMRecetasSubReceta
             {
                 Id = p.Id,
                 IdReceta = p.IdReceta,
-                IdSubReceta = p.IdSubreceta,
+                IdSubReceta = p.IdSubReceta,
                 Cantidad = p.Cantidad,
                 CostoUnitario = p.CostoUnitario,
                 SubTotal = p.SubTotal,
-                Nombre = p.IdSubrecetaNavigation?.Descripcion,
-                IdSubRecetaNavigation = p.IdSubrecetaNavigation
+                Nombre = p.IdSubRecetaNavigation?.Descripcion,
+                IdSubRecetaNavigation = p.IdSubRecetaNavigation
             }).ToList();
 
             var result = new Dictionary<string, object>
             {
-                ["receta"] = receta,
+                ["Receta"] = Receta,
                 ["Insumos"] = insumos,
-                ["Subrecetas"] = subrecetas
+                ["SubRecetas"] = subRecetas
             };
 
             var jsonOptions = new JsonSerializerOptions

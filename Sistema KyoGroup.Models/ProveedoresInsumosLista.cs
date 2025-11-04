@@ -13,13 +13,17 @@ public partial class ProveedoresInsumosLista
 
     public string Descripcion { get; set; } = null!;
 
+    public decimal? Costo { get; set; }
+
     public decimal CostoUnitario { get; set; }
+
+    public decimal? Cantidad { get; set; }
 
     public DateTime FechaActualizacion { get; set; }
 
-    public int IdUsuarioRegistra { get; set; }
+    public int? IdUsuarioRegistra { get; set; }
 
-    public DateTime FechaRegistra { get; set; }
+    public DateTime? FechaRegistra { get; set; }
 
     public int? IdUsuarioModifica { get; set; }
 
@@ -31,7 +35,7 @@ public partial class ProveedoresInsumosLista
 
     public virtual User? IdUsuarioModificaNavigation { get; set; }
 
-    public virtual User IdUsuarioRegistraNavigation { get; set; } = null!;
+    public virtual User? IdUsuarioRegistraNavigation { get; set; }
 
     public virtual ICollection<InsumosProveedor> InsumosProveedores { get; set; } = new List<InsumosProveedor>();
 

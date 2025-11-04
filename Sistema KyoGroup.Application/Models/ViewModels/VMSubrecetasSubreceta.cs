@@ -2,13 +2,13 @@
 
 namespace SistemaKyoGroup.Application.Models.ViewModels
 {
-    public class VMSubrecetasSubreceta
+    public class VMSubRecetasSubReceta
     {
         public int Id { get; set; }
 
-        public int IdSubrecetaPadre { get; set; }
+        public int IdSubRecetaPadre { get; set; }
 
-        public int IdSubrecetaHija { get; set; }
+        public int IdSubRecetaHija { get; set; }
 
         public decimal Cantidad { get; set; }
 
@@ -17,9 +17,9 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
         public decimal SubTotal { get; set; }
         public string Nombre { get; set; }
 
-        public virtual Subreceta IdSubrecetaHijaNavigation { get; set; } = null!;
+        public virtual SubReceta IdSubRecetaHijaNavigation { get; set; } = null!;
 
-        public virtual Subreceta IdSubrecetaPadreNavigation { get; set; } = null!;
+        public virtual SubReceta IdSubRecetaPadreNavigation { get; set; } = null!;
 
     }
 }

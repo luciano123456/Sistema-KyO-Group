@@ -1,5 +1,5 @@
-﻿/********************  SubrecetaS.JS (COMPLETO)  ********************/
-let gridSubrecetas;
+﻿/********************  SubRecetaS.JS (COMPLETO)  ********************/
+let gridSubRecetas;
 let isEditing = false;
 
 /* ================== AUTH / FETCH HELPERS ================== */
@@ -24,8 +24,8 @@ const columnConfig = [
     { index: 2, filterType: 'text' },                                   // SKU
     { index: 3, filterType: 'select', fetchDataFunc: listaUnidadesNegocioFilter }, // Unidad Negocio
     { index: 4, filterType: 'select', fetchDataFunc: listaUnidadesMedidaFilter },  // Unidad Medida
-    { index: 5, filterType: 'select', fetchDataFunc: listaSubrecetasCategoriaFilter }, // Categoría
-    { index: 6, filterType: 'text' },                                   // Costo Subrecetas
+    { index: 5, filterType: 'select', fetchDataFunc: listaSubRecetasCategoriaFilter }, // Categoría
+    { index: 6, filterType: 'text' },                                   // Costo SubRecetas
     { index: 7, filterType: 'text' },                                   // Costo Insumos
 ];
 
@@ -35,33 +35,33 @@ const fmtARS = v => new Intl.NumberFormat('es-AR', { style: 'currency', currency
 const fmtDec = v => new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(_num(v));
 function formatNumber(v) { return fmtDec(v); }
 
-// KPIs reducidos (Cantidad, Costo Subrecetas, Costo Insumos)
+// KPIs reducidos (Cantidad, Costo SubRecetas, Costo Insumos)
 function renderKpis(rows) {
     try {
         const data = Array.isArray(rows) ? rows : [];
         const cant = data.length;
-        const totSub = data.reduce((a, r) => a + _num(r.CostoSubrecetas), 0);
+        const totSub = data.reduce((a, r) => a + _num(r.CostoSubRecetas), 0);
         const totIns = data.reduce((a, r) => a + _num(r.CostoInsumos), 0);
         const $ = id => document.getElementById(id);
 
         $('kpiCantidad').textContent = fmtDec(cant);
-        $('kpiCostoSubrecetas').textContent = fmtARS(totSub);
+        $('kpiCostoSubRecetas').textContent = fmtARS(totSub);
         $('kpiCostoInsumos').textContent = fmtARS(totIns);
     } catch { /* si no existen los elementos, no rompe */ }
 }
 
 /* ================== TOGGLE FILTROS (panel + thead .filters) ================== */
 // Misma lógica que Proveedores-Insumos: guarda estado y sincroniza icono.
-const LS_FILTROS_VISIBLE = 'Subrecetas_FiltrosVisible';
+const LS_FILTROS_VISIBLE = 'SubRecetas_FiltrosVisible';
 function setFiltrosState(show) {
     const panel = document.getElementById('formFiltrosSubRec');
     const icon = document.getElementById('iconFiltrosI');
     if (panel) panel.style.display = show ? 'block' : 'none';
-    const row = document.querySelector('#grd_Subrecetas thead tr.filters');
+    const row = document.querySelector('#grd_SubRecetas thead tr.filters');
     if (row) row.style.display = show ? '' : 'none';
     if (icon) icon.className = show ? 'fa fa-arrow-up me-2' : 'fa fa-arrow-down me-2';
     localStorage.setItem(LS_FILTROS_VISIBLE, show ? '1' : '0');
-    setTimeout(() => gridSubrecetas?.columns?.adjust(), 60);
+    setTimeout(() => gridSubRecetas?.columns?.adjust(), 60);
 }
 function initToggleFiltrosI() {
     const btn = document.getElementById('btnToggleFiltrosI');
@@ -77,7 +77,7 @@ function initToggleFiltrosI() {
 /* ================== INIT ================== */
 $(document).ready(() => {
     listaUnidadesNegocioFiltro();
-    listaSubrecetas(-1);
+    listaSubRecetas(-1);
 
     $('#txtDescripcion, #txtCostoUnitario, #txtSku').on('input', function () {
         validarCampos()
@@ -90,9 +90,9 @@ $(document).ready(() => {
 /* ================== CRUD ================== */
 function guardarCambios() {
     if (validarCampos()) {
-        const idSubreceta = $("#txtId").val();
+        const idSubReceta = $("#txtId").val();
         const nuevoModelo = {
-            "Id": idSubreceta !== "" ? idSubreceta : 0,
+            "Id": idSubReceta !== "" ? idSubReceta : 0,
             "Descripcion": $("#txtDescripcion").val(),
             "IdUnidadMedida": $("#UnidadesMedida").val(),
             "IdUnidadNegocio": $("#UnidadesNegocio").val(),
@@ -101,8 +101,8 @@ function guardarCambios() {
             "CostoUnitario": $("#txtCostoUnitario").val(),
         };
 
-        const url = idSubreceta === "" ? "Subrecetas/Insertar" : "Subrecetas/Actualizar";
-        const method = idSubreceta === "" ? "POST" : "PUT";
+        const url = idSubReceta === "" ? "SubRecetas/Insertar" : "SubRecetas/Actualizar";
+        const method = idSubReceta === "" ? "POST" : "PUT";
 
         fetch(url, {
             method: method,
@@ -114,7 +114,7 @@ function guardarCambios() {
                 return response.json();
             })
             .then(_ => {
-                const mensaje = idSubreceta === "" ? "Subreceta registrado correctamente" : "Subreceta modificado correctamente";
+                const mensaje = idSubReceta === "" ? "SubReceta registrado correctamente" : "SubReceta modificado correctamente";
                 $('#modalEdicion').modal('hide');
                 exitoModal(mensaje);
                 aplicarFiltros();
@@ -143,8 +143,8 @@ function validarCampos() {
     return okDesc && okSku && okCosto;
 }
 
-async function nuevoSubreceta() {
-    window.location.href = "/Subrecetas/NuevoModif";
+async function nuevoSubReceta() {
+    window.location.href = "/SubRecetas/NuevoModif";
 }
 
 async function mostrarModal(modelo) {
@@ -153,11 +153,11 @@ async function mostrarModal(modelo) {
 
     listaUnidadesNegocio();
     listaUnidadesMedida();
-    listaSubrecetasCategoria();
+    listaSubRecetasCategoria();
 
     $('#modalEdicion').modal('show');
     $("#btnGuardar").text("Guardar");
-    $("#modalEdicionLabel").text("Editar Subreceta");
+    $("#modalEdicionLabel").text("Editar SubReceta");
 
     $('#lblDescripcion, #txtDescripcion').css('color', '').css('border-color', '');
     $('#lblSku, #txtSku').css('color', '').css('border-color', '');
@@ -176,26 +176,26 @@ function limpiarModal() {
 /* ================== FILTRO SUPERIOR ================== */
 async function aplicarFiltros() {
     const und = document.getElementById("UnidadNegocioFiltro").value;
-    listaSubrecetas(und);
+    listaSubRecetas(und);
 }
 
 /* ================== LISTADO (carga + DT) ================== */
-async function listaSubrecetas(IdUnidadNegocio) {
-    const url = `/Subrecetas/Lista?IdUnidadNegocio=${IdUnidadNegocio}`;
+async function listaSubRecetas(IdUnidadNegocio) {
+    const url = `/SubRecetas/Lista?IdUnidadNegocio=${IdUnidadNegocio}`;
     const data = await fetchJson(url, { headers: authHeaders() });
     renderKpis(data || []);
     await configurarDataTable(data || []);
 }
 
-function editarSubreceta(id) { window.location.href = '/Subrecetas/NuevoModif/' + id; }
+function editarSubReceta(id) { window.location.href = '/SubRecetas/NuevoModif/' + id; }
 
-async function eliminarSubreceta(id) {
-    let resultado = window.confirm("¿Desea eliminar la Subreceta?");
+async function eliminarSubReceta(id) {
+    let resultado = window.confirm("¿Desea eliminar la SubReceta?");
     if (!resultado) return;
 
     try {
-        const response = await fetch("/Subrecetas/Eliminar?id=" + id, { method: "DELETE", headers: authHeaders() });
-        if (!response.ok) throw new Error("Error al eliminar la Subreceta.");
+        const response = await fetch("/SubRecetas/Eliminar?id=" + id, { method: "DELETE", headers: authHeaders() });
+        if (!response.ok) throw new Error("Error al eliminar la SubReceta.");
         const dataJson = await response.json();
         if (dataJson.valor) { aplicarFiltros(); exitoModal(dataJson.mensaje); }
         else { advertenciaModal(dataJson.mensaje); }
@@ -203,11 +203,11 @@ async function eliminarSubreceta(id) {
 }
 
 async function configurarDataTable(data) {
-    if (!gridSubrecetas) {
+    if (!gridSubRecetas) {
         // Clonar fila de filtros por columna
-        $('#grd_Subrecetas thead tr').clone(true).addClass('filters').appendTo('#grd_Subrecetas thead');
+        $('#grd_SubRecetas thead tr').clone(true).addClass('filters').appendTo('#grd_SubRecetas thead');
 
-        gridSubrecetas = $('#grd_Subrecetas').DataTable({
+        gridSubRecetas = $('#grd_SubRecetas').DataTable({
             data: data,
             language: {
                 sLengthMenu: "Mostrar MENU registros",
@@ -228,10 +228,10 @@ async function configurarDataTable(data) {
           <i class='fa fa-ellipsis-v fa-lg text-white'></i>
         </button>
         <div class="acciones-dropdown" style="display:none">
-          <button class='btn btn-sm btneditar' type='button' onclick='editarSubreceta(${data})'>
+          <button class='btn btn-sm btneditar' type='button' onclick='editarSubReceta(${data})'>
             <i class='fa fa-pencil-square-o text-success'></i> Editar
           </button>
-          <button class='btn btn-sm btneliminar' type='button' onclick='eliminarSubreceta(${data})'>
+          <button class='btn btn-sm btneliminar' type='button' onclick='eliminarSubReceta(${data})'>
             <i class='fa fa-trash-o text-danger'></i> Eliminar
           </button>
         </div>
@@ -245,14 +245,14 @@ async function configurarDataTable(data) {
                 { data: 'UnidadNegocio', title: 'Unidad Negocio' },
                 { data: 'UnidadMedida', title: 'Unidad Medida' },
                 { data: 'Categoria', title: 'Categoría' },
-                { data: 'CostoSubrecetas', title: 'Costo Subrecetas' },
+                { data: 'CostoSubRecetas', title: 'Costo SubRecetas' },
                 { data: 'CostoInsumos', title: 'Costo Insumos' },
             ],
 
             dom: 'Bfrtip',
             buttons: [
-                { extend: 'excelHtml5', text: 'Exportar Excel', filename: 'Reporte Subrecetas', title: '', exportOptions: { columns: ':visible' }, className: 'btn-exportar-excel' },
-                { extend: 'pdfHtml5', text: 'Exportar PDF', filename: 'Reporte Subrecetas', title: '', exportOptions: { columns: ':visible' }, className: 'btn-exportar-pdf' },
+                { extend: 'excelHtml5', text: 'Exportar Excel', filename: 'Reporte SubRecetas', title: '', exportOptions: { columns: ':visible' }, className: 'btn-exportar-excel' },
+                { extend: 'pdfHtml5', text: 'Exportar PDF', filename: 'Reporte SubRecetas', title: '', exportOptions: { columns: ':visible' }, className: 'btn-exportar-pdf' },
                 { extend: 'print', text: 'Imprimir', title: '', exportOptions: { columns: ':visible' }, className: 'btn-exportar-print' },
                 'pageLength'
             ],
@@ -303,18 +303,18 @@ async function configurarDataTable(data) {
 
                 configurarOpcionesColumnas();
 
-                setTimeout(() => gridSubrecetas.columns.adjust(), 10);
+                setTimeout(() => gridSubRecetas.columns.adjust(), 10);
 
                 // UX
-                $('#grd_Subrecetas tbody').on('mouseenter', 'tr', function () { $(this).css('cursor', 'pointer'); });
+                $('#grd_SubRecetas tbody').on('mouseenter', 'tr', function () { $(this).css('cursor', 'pointer'); });
 
-                $('#grd_Subrecetas tbody').on('dblclick', 'tr', function () {
-                    var id = gridSubrecetas.row(this).data()?.Id;
-                    if (id) editarSubreceta(id);
+                $('#grd_SubRecetas tbody').on('dblclick', 'tr', function () {
+                    var id = gridSubRecetas.row(this).data()?.Id;
+                    if (id) editarSubReceta(id);
                 });
 
                 let filaSeleccionada = null;
-                $('#grd_Subrecetas tbody').on('click', 'tr', function () {
+                $('#grd_SubRecetas tbody').on('click', 'tr', function () {
                     if (filaSeleccionada) { $(filaSeleccionada).removeClass('seleccionada'); $('td', filaSeleccionada).removeClass('seleccionada'); }
                     filaSeleccionada = $(this);
                     $(filaSeleccionada).addClass('seleccionada');
@@ -328,7 +328,7 @@ async function configurarDataTable(data) {
         });
 
     } else {
-        gridSubrecetas.clear().rows.add(data).draw();
+        gridSubRecetas.clear().rows.add(data).draw();
         renderKpis(data || []);
         // asegurar que la visibilidad de filtros quede aplicada también en refresh
         const visible = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '0') === '1';
@@ -338,11 +338,11 @@ async function configurarDataTable(data) {
 
 /* ================== CONFIGURAR OPCIONES COLUMNAS ================== */
 function configurarOpcionesColumnas() {
-    const grid = $('#grd_Subrecetas').DataTable();
+    const grid = $('#grd_SubRecetas').DataTable();
     const columnas = grid.settings().init().columns;
     const container = $('#configColumnasMenu');
 
-    const storageKey = `Subrecetas_Columnas`;
+    const storageKey = `SubRecetas_Columnas`;
     const savedConfig = JSON.parse(localStorage.getItem(storageKey)) || {};
 
     container.empty();
@@ -394,8 +394,8 @@ async function listaUnidadesMedidaFilter() {
     const data = await fetchJson(url, { headers: authHeaders() });
     return data.map(x => ({ Id: x.Id, Nombre: x.Nombre }));
 }
-async function listaSubrecetasCategoriaFilter() {
-    const url = `/SubrecetasCategoria/Lista`;
+async function listaSubRecetasCategoriaFilter() {
+    const url = `/SubRecetasCategoria/Lista`;
     const data = await fetchJson(url, { headers: authHeaders() });
     return data.map(x => ({ Id: x.Id, Nombre: x.Nombre }));
 }
@@ -418,8 +418,8 @@ async function listaUnidadesMedida() {
         option.value = d.Id; option.text = d.Nombre; select.appendChild(option);
     });
 }
-async function listaSubrecetasCategoria() {
-    const data = await listaSubrecetasCategoriaFilter();
+async function listaSubRecetasCategoria() {
+    const data = await listaSubRecetasCategoriaFilter();
     $('#Categorias').empty();
     const select = document.getElementById("Categorias");
     data.forEach(d => {
@@ -438,4 +438,4 @@ async function listaUnidadesNegocioFiltro() {
         o.value = d.Id; o.text = d.Nombre; select.appendChild(o);
     });
 }
-/********************  FIN SubrecetaS.JS  ********************/
+/********************  FIN SubRecetaS.JS  ********************/

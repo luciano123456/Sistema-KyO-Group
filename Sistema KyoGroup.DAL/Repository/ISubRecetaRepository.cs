@@ -8,16 +8,16 @@ using System.Threading.Tasks;
 
 namespace SistemaKyoGroup.DAL.Repository
 {
-    public interface ISubrecetaRepository<TEntityModel> where TEntityModel : class
+    public interface ISubRecetaRepository<TEntityModel> where TEntityModel : class
     {
         Task<(bool eliminado, string mensaje)> Eliminar(int id);
-        Task<bool> Actualizar(Subreceta model);
-        Task<bool> Insertar(Subreceta model);
-        Task<Subreceta> Obtener(int id);
-        Task<IQueryable<Subreceta>> ObtenerTodos();
-        Task<IQueryable<Subreceta>> ObtenerTodosUnidadNegocio(int idUnidadNegocio, int userId);
-        Task<bool> InsertarInsumos(List<SubrecetasInsumo> insumos);
-        Task<List<SubrecetasInsumo>> ObtenerInsumos(int idSubreceta);
-        Task<bool> ActualizarInsumos(List<SubrecetasInsumo> insumos);
+        Task<bool> Actualizar(SubReceta model);
+        Task<bool> Insertar(SubReceta model);
+        Task<SubReceta> Obtener(int id);
+        Task<IQueryable<SubReceta>> ObtenerTodos();
+        Task<IQueryable<SubReceta>> ObtenerTodosUnidadNegocio(int idUnidadNegocio, int userId);
+        Task<bool> InsertarInsumos(List<SubRecetasInsumo> insumos);
+        Task<List<SubRecetasInsumo>> ObtenerInsumos(int idSubReceta);
+        Task<bool> ActualizarInsumos(List<SubRecetasInsumo> insumos);
     }
 }

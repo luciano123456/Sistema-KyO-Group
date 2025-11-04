@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace SistemaKyoGroup.Models;
 
-public partial class SubrecetasSubreceta
+public partial class SubRecetasSubReceta
 {
     public int Id { get; set; }
 
-    public int IdSubrecetaPadre { get; set; }
+    public int IdSubRecetaPadre { get; set; }
 
-    public int IdSubrecetaHija { get; set; }
+    public int IdSubRecetaHija { get; set; }
 
     public decimal Cantidad { get; set; }
 
@@ -25,9 +25,9 @@ public partial class SubrecetasSubreceta
 
     public DateTime? FechaModifica { get; set; }
 
-    public virtual Subreceta IdSubrecetaHijaNavigation { get; set; } = null!;
+    public virtual SubReceta IdSubRecetaHijaNavigation { get; set; } = null!;
 
-    public virtual Subreceta IdSubrecetaPadreNavigation { get; set; } = null!;
+    public virtual SubReceta IdSubRecetaPadreNavigation { get; set; } = null!;
 
     public virtual User? IdUsuarioModificaNavigation { get; set; }
 

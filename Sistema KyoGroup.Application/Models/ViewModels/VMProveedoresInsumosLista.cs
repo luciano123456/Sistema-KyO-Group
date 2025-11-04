@@ -15,6 +15,8 @@ namespace KyoGroup.Application.Models.ViewModels
         public string Proveedor { get; set; } = null!;
 
         public decimal CostoUnitario { get; set; }
+        public decimal? Cantidad { get; set; }
+        public decimal? Costo { get; set; }
 
         public int IdUsuarioRegistra { get; set; }
         public DateTime FechaRegistra { get; set; }

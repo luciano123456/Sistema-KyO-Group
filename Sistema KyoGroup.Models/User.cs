@@ -63,9 +63,9 @@ public partial class User
 
     public virtual ICollection<ImportacionesReceta> ImportacionesRecetaIdUsuarioRegistraNavigations { get; set; } = new List<ImportacionesReceta>();
 
-    public virtual ICollection<ImportacionesSubreceta> ImportacionesSubrecetaIdUsuarioModificaNavigations { get; set; } = new List<ImportacionesSubreceta>();
+    public virtual ICollection<ImportacionesSubReceta> ImportacionesSubRecetaIdUsuarioModificaNavigations { get; set; } = new List<ImportacionesSubReceta>();
 
-    public virtual ICollection<ImportacionesSubreceta> ImportacionesSubrecetaIdUsuarioRegistraNavigations { get; set; } = new List<ImportacionesSubreceta>();
+    public virtual ICollection<ImportacionesSubReceta> ImportacionesSubRecetaIdUsuarioRegistraNavigations { get; set; } = new List<ImportacionesSubReceta>();
 
     public virtual ICollection<Insumo> InsumoIdUsuarioModificaNavigations { get; set; } = new List<Insumo>();
 
@@ -91,9 +91,9 @@ public partial class User
 
     public virtual ICollection<OrdenesComprasInsumo> OrdenesComprasInsumoIdUsuarioRegistraNavigations { get; set; } = new List<OrdenesComprasInsumo>();
 
-    public virtual ICollection<Proveedor> ProveedoreIdUsuarioModificaNavigations { get; set; } = new List<Proveedor>();
+    public virtual ICollection<Proveedor> ProveedorIdUsuarioModificaNavigations { get; set; } = new List<Proveedor>();
 
-    public virtual ICollection<Proveedor> ProveedoreIdUsuarioRegistraNavigations { get; set; } = new List<Proveedor>();
+    public virtual ICollection<Proveedor> ProveedorIdUsuarioRegistraNavigations { get; set; } = new List<Proveedor>();
 
     public virtual ICollection<ProveedoresInsumosLista> ProveedoresInsumosListaIdUsuarioModificaNavigations { get; set; } = new List<ProveedoresInsumosLista>();
 
@@ -111,21 +111,21 @@ public partial class User
 
     public virtual ICollection<RecetasInsumo> RecetasInsumoIdUsuarioRegistraNavigations { get; set; } = new List<RecetasInsumo>();
 
-    public virtual ICollection<RecetasSubreceta> RecetasSubrecetaIdUsuarioModificaNavigations { get; set; } = new List<RecetasSubreceta>();
+    public virtual ICollection<RecetasSubReceta> RecetasSubRecetaIdUsuarioModificaNavigations { get; set; } = new List<RecetasSubReceta>();
 
-    public virtual ICollection<RecetasSubreceta> RecetasSubrecetaIdUsuarioRegistraNavigations { get; set; } = new List<RecetasSubreceta>();
+    public virtual ICollection<RecetasSubReceta> RecetasSubRecetaIdUsuarioRegistraNavigations { get; set; } = new List<RecetasSubReceta>();
 
-    public virtual ICollection<Subreceta> SubrecetaIdUsuarioModificaNavigations { get; set; } = new List<Subreceta>();
+    public virtual ICollection<SubReceta> SubRecetaIdUsuarioModificaNavigations { get; set; } = new List<SubReceta>();
 
-    public virtual ICollection<Subreceta> SubrecetaIdUsuarioRegistraNavigations { get; set; } = new List<Subreceta>();
+    public virtual ICollection<SubReceta> SubRecetaIdUsuarioRegistraNavigations { get; set; } = new List<SubReceta>();
 
-    public virtual ICollection<SubrecetasInsumo> SubrecetasInsumoIdUsuarioModificaNavigations { get; set; } = new List<SubrecetasInsumo>();
+    public virtual ICollection<SubRecetasInsumo> SubRecetasInsumoIdUsuarioModificaNavigations { get; set; } = new List<SubRecetasInsumo>();
 
-    public virtual ICollection<SubrecetasInsumo> SubrecetasInsumoIdUsuarioRegistraNavigations { get; set; } = new List<SubrecetasInsumo>();
+    public virtual ICollection<SubRecetasInsumo> SubRecetasInsumoIdUsuarioRegistraNavigations { get; set; } = new List<SubRecetasInsumo>();
 
-    public virtual ICollection<SubrecetasSubreceta> SubrecetasSubrecetaIdUsuarioModificaNavigations { get; set; } = new List<SubrecetasSubreceta>();
+    public virtual ICollection<SubRecetasSubReceta> SubRecetasSubRecetaIdUsuarioModificaNavigations { get; set; } = new List<SubRecetasSubReceta>();
 
-    public virtual ICollection<SubrecetasSubreceta> SubrecetasSubrecetaIdUsuarioRegistraNavigations { get; set; } = new List<SubrecetasSubreceta>();
+    public virtual ICollection<SubRecetasSubReceta> SubRecetasSubRecetaIdUsuarioRegistraNavigations { get; set; } = new List<SubRecetasSubReceta>();
 
     public virtual ICollection<UsuariosLocal> UsuariosLocales { get; set; } = new List<UsuariosLocal>();
 

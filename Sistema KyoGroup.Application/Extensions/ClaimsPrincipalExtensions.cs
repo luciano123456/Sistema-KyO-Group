@@ -12,7 +12,7 @@ namespace SistemaKyoGroup.Application.Extensions
             return null;
         }
 
-        public static int? GetRoleId(this ClaimsPrincipal user)
+        public static int? GetRolId(this ClaimsPrincipal user)
         {
             var rid = user?.FindFirst("Rol")?.Value;
             if (int.TryParse(rid, out var val)) return val;

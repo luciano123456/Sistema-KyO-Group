@@ -15,7 +15,7 @@
 
     <!-- SKIN -->
     <link href="~/css/disenopantallas.css?v=1.0" rel="stylesheet" />
-    <link href="~/css/subrecetasnuevomodif.css?v=1.0" rel="stylesheet" />
+    <link href="~/css/subRecetasnuevomodif.css?v=1.0" rel="stylesheet" />
 
     <style>
         /* estilos mínimos para feedback (compatibles con tu skin) */
@@ -64,16 +64,16 @@
 
 <main class="cc-container-xxl">
     <!-- Tabs superiores -->
-    <ul class="nav nav-tabs cc-tabs pestaniasDatos" id="tabs-datos-Receta" role="tablist">
-        <li class="nav-item" role="presentation">
-            <a class="nav-link active" id="Receta-tab" data-bs-toggle="tab" href="#Receta" role="tab"
-               aria-controls="Receta" aria-selected="true">Datos de la Receta</a>
+    <ul class="nav nav-tabs cc-tabs pestaniasDatos" id="tabs-datos-Receta" Rol="tablist">
+        <li class="nav-item" Rol="presentation">
+            <a class="nav-link active" id="Receta-tab" data-bs-toggle="tab" href="#Receta" Rol="tab"
+               aria-contRoles="Receta" aria-selected="true">Datos de la Receta</a>
         </li>
     </ul>
 
     <div class="tab-content mt-4" id="tabs-datos-Receta-content">
         <!-- Datos de la Receta -->
-        <section class="tab-pane fade show active" id="Receta" role="tabpanel" aria-labelledby="Receta-tab">
+        <section class="tab-pane fade show active" id="Receta" Rol="tabpanel" aria-labelledby="Receta-tab">
             <div class="cc-section cc-card">
                 <div class="cc-titlebar">
                     <h3 class="m-0"><i class="fa fa-info-circle me-2"></i>Datos de la Receta</h3>
@@ -131,7 +131,7 @@
                         <div class="invalid-feedback d-none">Campo requerido</div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="costoRecetas">Costo Subrecetas</label>
+                        <label class="form-label" for="costoRecetas">Costo SubRecetas</label>
                         <input type="text" id="costoRecetas" class="form-control" readonly />
                     </div>
 
@@ -166,33 +166,33 @@
         </section>
     </div>
 
-    <!-- Tabs inferiores (Subrecetas / Insumos) -->
-    <ul class="nav nav-tabs cc-tabs mt-4" id="tabs-detalle" role="tablist">
-        <li class="nav-item" role="presentation">
-            <a class="nav-link active" id="Recetas-tab" data-bs-toggle="tab" href="#Recetas" role="tab"
-               aria-controls="Recetas" aria-selected="true">Subrecetas</a>
+    <!-- Tabs inferiores (SubRecetas / Insumos) -->
+    <ul class="nav nav-tabs cc-tabs mt-4" id="tabs-detalle" Rol="tablist">
+        <li class="nav-item" Rol="presentation">
+            <a class="nav-link active" id="Recetas-tab" data-bs-toggle="tab" href="#Recetas" Rol="tab"
+               aria-contRoles="Recetas" aria-selected="true">SubRecetas</a>
         </li>
-        <li class="nav-item" role="presentation">
-            <a class="nav-link" id="insumos-tab" data-bs-toggle="tab" href="#insumos" role="tab"
-               aria-controls="insumos" aria-selected="false">Insumos</a>
+        <li class="nav-item" Rol="presentation">
+            <a class="nav-link" id="insumos-tab" data-bs-toggle="tab" href="#insumos" Rol="tab"
+               aria-contRoles="insumos" aria-selected="false">Insumos</a>
         </li>
     </ul>
 
     <div class="tab-content mt-4" id="tabs-detalle-content">
-        <!-- Subrecetas detalle -->
-        <section class="tab-pane fade show active" id="Recetas" role="tabpanel" aria-labelledby="Recetas-tab">
+        <!-- SubRecetas detalle -->
+        <section class="tab-pane fade show active" id="Recetas" Rol="tabpanel" aria-labelledby="Recetas-tab">
             <div class="cc-section cc-card">
                 <div class="cc-titlebar">
-                    <h3 class="m-0"><i class="fa fa-sitemap me-2"></i>Subrecetas</h3>
+                    <h3 class="m-0"><i class="fa fa-sitemap me-2"></i>SubRecetas</h3>
                     <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-new" onclick="anadirSubreceta()">
+                        <button type="button" class="btn btn-new" onclick="anadirSubReceta()">
                             <i class="fa fa-plus me-1"></i> Añadir
                         </button>
                     </div>
                 </div>
 
                 <div class="cc-table">
-                    <table class="display nowrap table w-100" id="grd_Subrecetas" style="width:100%">
+                    <table class="display nowrap table w-100" id="grd_SubRecetas" style="width:100%">
                         <thead>
                             <tr>
                                 <th>Nombre</th>
@@ -209,7 +209,7 @@
         </section>
 
         <!-- Insumos detalle -->
-        <section class="tab-pane fade" id="insumos" role="tabpanel" aria-labelledby="insumos-tab">
+        <section class="tab-pane fade" id="insumos" Rol="tabpanel" aria-labelledby="insumos-tab">
             <div class="cc-section cc-card">
                 <div class="cc-titlebar">
                     <h3 class="m-0"><i class="fa fa-cubes me-2"></i>Insumos</h3>
@@ -246,7 +246,7 @@
 </main>
 
 <!-- MODAL: INSUMO -->
-<div class="modal fade" id="insumosModal" tabindex="-1" role="dialog" aria-labelledby="insumosModalLabel" aria-hidden="true" data-editing="false">
+<div class="modal fade" id="insumosModal" tabindex="-1" Rol="dialog" aria-labelledby="insumosModalLabel" aria-hidden="true" data-editing="false">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content cc-modal cc-modal--elevated">
             <div class="modal-header cc-modal-header">
@@ -302,31 +302,31 @@
     </div>
 </div>
 
-<!-- MODAL: SUBRECETA -->
-<div class="modal fade" id="RecetasModal" tabindex="-1" role="dialog" aria-labelledby="RecetasModalLabel" aria-hidden="true" data-editing="false">
+<!-- MODAL: SUBReceta -->
+<div class="modal fade" id="RecetasModal" tabindex="-1" Rol="dialog" aria-labelledby="RecetasModalLabel" aria-hidden="true" data-editing="false">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content cc-modal cc-modal--elevated">
             <div class="modal-header cc-modal-header">
                 <div class="d-flex align-items-center gap-2">
                     <span class="cc-badge"><i class="fa fa-sitemap"></i></span>
-                    <h5 class="modal-title fw-bold m-0" id="RecetasModalLabel">Seleccionar Subreceta</h5>
+                    <h5 class="modal-title fw-bold m-0" id="RecetasModalLabel">Seleccionar SubReceta</h5>
                 </div>
                 <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
 
             <div class="modal-body">
-                <form id="formSubreceta" class="cc-form-grid cc-form-2col">
+                <form id="formSubReceta" class="cc-form-grid cc-form-2col">
                     <div class="cc-field full">
-                        <label for="RecetaSelect" class="form-label">Subreceta</label>
+                        <label for="RecetaSelect" class="form-label">SubReceta</label>
                         <select id="RecetaSelect" class="form-select" data-required="true">
-                            <option selected disabled>Seleccionar una Subreceta</option>
+                            <option selected disabled>Seleccionar una SubReceta</option>
                         </select>
                         <div class="invalid-feedback d-none">Campo requerido</div>
                     </div>
 
                     <div class="cc-field">
-                        <label for="precioSubrecetaInput" class="form-label">Precio</label>
-                        <input type="text" id="precioSubrecetaInput" class="form-control" data-required="true" data-min="0.0000001" placeholder="Precio" readonly>
+                        <label for="precioSubRecetaInput" class="form-label">Precio</label>
+                        <input type="text" id="precioSubRecetaInput" class="form-control" data-required="true" data-min="0.0000001" placeholder="Precio" readonly>
                         <div class="invalid-feedback d-none" data-msg-required="Campo requerido" data-msg-min="Debe ser mayor que 0">Debe ser mayor que 0</div>
                     </div>
 
@@ -351,7 +351,7 @@
 
             <div class="modal-footer cc-modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" id="btnGuardarReceta" class="btn btn-new" onclick="guardarSubreceta()">
+                <button type="button" id="btnGuardarReceta" class="btn btn-new" onclick="guardarSubReceta()">
                     <i class="fa fa-check"></i> Añadir
                 </button>
             </div>
@@ -372,7 +372,7 @@
     <script src="~/js/cc.validators.js?v=1.0"></script>
 
     <!-- Página -->
-    <script src="~/js/RecetasNuevoModif.js?v=2.1"></script>
+    <script src="~/js/RecetasNuevoModif.js?v=2.2"></script>
     <script src="~/js/site.js"></script>
 }
 

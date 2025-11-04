@@ -2,12 +2,12 @@
 
 namespace SistemaKyoGroup.Application.Models.ViewModels
 {
-    public class VMSubrecetasInsumo
+    public class VMSubRecetasInsumo
 
     {
         public int Id { get; set; }
 
-        public int IdSubreceta { get; set; }
+        public int IdSubReceta { get; set; }
 
         public int IdInsumo { get; set; }
         public string Nombre { get; set; }
@@ -20,7 +20,7 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
 
         public virtual Insumo IdInsumoNavigation { get; set; } = null!;
 
-        public virtual Subreceta IdSubrecetaNavigation { get; set; } = null!;
+        public virtual SubReceta IdSubRecetaNavigation { get; set; } = null!;
 
 
     }

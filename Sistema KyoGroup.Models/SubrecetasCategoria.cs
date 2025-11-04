@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace SistemaKyoGroup.Models;
 
-public partial class SubrecetasCategoria
+public partial class SubRecetasCategoria
 {
     public int Id { get; set; }
 
     public string Nombre { get; set; } = null!;
 
-    public virtual ICollection<Subreceta> Subreceta { get; set; } = new List<Subreceta>();
+    public virtual ICollection<SubReceta> SubReceta { get; set; } = new List<SubReceta>();
 }

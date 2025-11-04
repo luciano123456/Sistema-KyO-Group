@@ -2,7 +2,7 @@
 
 let gridInsumos = null, gridRecetas = null;
 let insumosCache = [];     // cache del modal Insumos
-let subrecetasCache = [];  // cache del modal Subrecetas
+let subRecetasCache = [];  // cache del modal SubRecetas
 
 /* ===== Helpers de autenticación y UI ===== */
 function authHeaders(extra = {}) {
@@ -52,7 +52,7 @@ $(document).ready(async () => {
         await cargarDatosReceta();
     } else {
         await configurarDataTableInsumos(null);
-        await configurarDataTableSubrecetas(null);
+        await configurarDataTableSubRecetas(null);
         $("#tituloReceta").text("Nueva Receta");
     }
 
@@ -84,9 +84,9 @@ $(document).ready(async () => {
         ccValidators.autoHideOnInput(f, a);
     });
 
-    // — SUBRECETAS — (IDs del HTML actual: #RecetasModal + #formSubreceta)
+    // — SUBRecetaS — (IDs del HTML actual: #RecetasModal + #formSubReceta)
     $('#RecetasModal').on('shown.bs.modal', () => {
-        const f = document.getElementById('formSubreceta');
+        const f = document.getElementById('formSubReceta');
         const a = document.getElementById('modalAlertSub');
         a?.classList.add('d-none');
         ccValidators.clearGroup(f, a);
@@ -104,9 +104,9 @@ async function cargarDatosReceta() {
     const datosReceta = await ObtenerDatosReceta(RecetaData);
     const payload = (typeof datosReceta === 'string') ? JSON.parse(datosReceta) : datosReceta;
 
-    await insertarDatosReceta(payload.receta || payload.receta || {});
+    await insertarDatosReceta(payload.Receta || payload.Receta || {});
     await configurarDataTableInsumos(payload.Insumos || []);
-    await configurarDataTableSubrecetas(payload.Subrecetas || []);
+    await configurarDataTableSubRecetas(payload.SubRecetas || []);
     calcularDatosReceta();
 }
 async function insertarDatosReceta(datos) {
@@ -128,10 +128,10 @@ async function insertarDatosReceta(datos) {
 }
 
 /* ===== TABLAS ===== */
-async function configurarDataTableSubrecetas(data) {
+async function configurarDataTableSubRecetas(data) {
     const rows = data != null && data.$values ? data.$values : (data || []);
     if (!gridRecetas) {
-        gridRecetas = $('#grd_Subrecetas').DataTable({
+        gridRecetas = $('#grd_SubRecetas').DataTable({
             data: rows,
             language: { url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json" },
             scrollX: "100px",
@@ -143,10 +143,10 @@ async function configurarDataTableSubrecetas(data) {
                 { data: 'SubTotal', title: 'SubTotal', render: d => fmtMon(d) },
                 {
                     data: null, title: 'Acciones', orderable: false, searchable: false, render: (_, __, row) => `
-<button class='btn btn-sm btneditar btnacciones' type='button' onclick='editarSubreceta(${row.IdSubReceta})' title='Editar'>
+<button class='btn btn-sm btneditar btnacciones' type='button' onclick='editarSubReceta(${row.IdSubReceta})' title='Editar'>
     <i class='fa fa-pencil-square-o fa-lg text-white'></i>
 </button>
-<button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarSubreceta(${row.IdSubReceta})' title='Eliminar'>
+<button class='btn btn-sm btneditar btnacciones' type='button' onclick='eliminarSubReceta(${row.IdSubReceta})' title='Eliminar'>
     <i class='fa fa-trash-o fa-lg text-danger'></i>
 </button>`
                 }
@@ -350,11 +350,11 @@ function eliminarInsumo(id) {
 }
 
 /* =========================================================================
- * CRUD — SUBRECETAS
+ * CRUD — SUBRecetaS
  * ========================================================================= */
-async function anadirSubreceta() {
+async function anadirSubReceta() {
     const IdUnidadNegocio = $("#UnidadesNegocio").val();
-    subrecetasCache = await obtenerSubrecetasUnidadNegocio(IdUnidadNegocio);
+    subRecetasCache = await obtenerSubRecetasUnidadNegocio(IdUnidadNegocio);
 
     const yaAgregadas = new Set();
     gridRecetas?.rows().every(function () { yaAgregadas.add(Number(this.data().IdSubReceta)); });
@@ -362,26 +362,26 @@ async function anadirSubreceta() {
     const $sel = $("#RecetaSelect").off('change').empty();
 
     let firstId = null;
-    subrecetasCache.forEach(p => {
+    subRecetasCache.forEach(p => {
         if (!yaAgregadas.has(p.Id)) {
             if (firstId === null) firstId = p.Id;
             $sel.append(new Option(p.Descripcion, p.Id));
         }
     });
 
-    if (firstId === null) { advertenciaModal("¡Ya agregaste todas las subrecetas de esta unidad de negocio!"); return; }
+    if (firstId === null) { advertenciaModal("¡Ya agregaste todas las subRecetas de esta unidad de negocio!"); return; }
 
     $sel.val(firstId).trigger('change');
 
     $sel.off('change').on('change', function () {
         const selId = parseInt(this.value);
-        const p = subrecetasCache.find(x => x.Id === selId) || { CostoUnitario: 0 };
+        const p = subRecetasCache.find(x => x.Id === selId) || { CostoUnitario: 0 };
         $("#cantidadRecetaInput").val(1);
-        $("#precioSubrecetaInput").val(fmtMon(p.CostoUnitario));
+        $("#precioSubRecetaInput").val(fmtMon(p.CostoUnitario));
         $("#totalRecetaInput").val(fmtMon(p.CostoUnitario));
     }).trigger('change');
 
-    $("#precioSubrecetaInput").off('input blur').on('input', calcularTotalReceta).on('blur', function () {
+    $("#precioSubRecetaInput").off('input blur').on('input', calcularTotalReceta).on('blur', function () {
         this.value = formatMoneda(convertirMonedaAFloat(this.value));
         calcularTotalReceta();
     });
@@ -392,15 +392,15 @@ async function anadirSubreceta() {
     $modal.data('edit-key', null);
     $('#btnGuardarReceta').text('Añadir');
     $('#modalAlertSub').addClass('d-none');
-    ccValidators.clearGroup($('#formSubreceta')[0], $('#modalAlertSub')[0]);
+    ccValidators.clearGroup($('#formSubReceta')[0], $('#modalAlertSub')[0]);
     $modal.modal('show');
 }
 function calcularTotalReceta() {
-    const precio = toNumberFromMoney($('#precioSubrecetaInput').val());
+    const precio = toNumberFromMoney($('#precioSubRecetaInput').val());
     const cant = fmtN($('#cantidadRecetaInput').val());
     $('#totalRecetaInput').val(fmtMon(precio * cant));
 }
-function upsertSubreceta({ IdSubReceta, Nombre, CostoUnitario, Cantidad }) {
+function upsertSubReceta({ IdSubReceta, Nombre, CostoUnitario, Cantidad }) {
     const idx = findRowIndex(gridRecetas, r => Number(r.IdSubReceta) === Number(IdSubReceta));
     const subTotal = fmtN(CostoUnitario) * fmtN(Cantidad);
 
@@ -423,8 +423,8 @@ function upsertSubreceta({ IdSubReceta, Nombre, CostoUnitario, Cantidad }) {
         }).draw(false);
     }
 }
-async function guardarSubreceta() {
-    const form = document.getElementById('formSubreceta');
+async function guardarSubReceta() {
+    const form = document.getElementById('formSubReceta');
     const alert = document.getElementById('modalAlertSub');
 
     alert?.classList.add('d-none');
@@ -437,7 +437,7 @@ async function guardarSubreceta() {
     }
     const id = Number($('#RecetaSelect').val());
     const nombre = $('#RecetaSelect option:selected').text();
-    const precio = toNumberFromMoney($('#precioSubrecetaInput').val());
+    const precio = toNumberFromMoney($('#precioSubRecetaInput').val());
     const cant = fmtN($('#cantidadRecetaInput').val() || 1);
 
     const modal = $('#RecetasModal');
@@ -464,30 +464,30 @@ async function guardarSubreceta() {
                 merged = true;
             }
         });
-        if (!merged) upsertSubreceta({ IdSubReceta: id, Nombre: nombre, CostoUnitario: precio, Cantidad: cant });
+        if (!merged) upsertSubReceta({ IdSubReceta: id, Nombre: nombre, CostoUnitario: precio, Cantidad: cant });
     }
 
     modal.modal('hide').data({ 'edit-index': '', 'edit-key': '', 'data-editing': false });
     calcularDatosReceta();
 }
-async function editarSubreceta(id) {
+async function editarSubReceta(id) {
     const idx = findRowIndex(gridRecetas, r => Number(r.IdSubReceta) === Number(id));
-    if (idx < 0) { advertenciaModal("No se encontró la subreceta a editar."); return; }
+    if (idx < 0) { advertenciaModal("No se encontró la subReceta a editar."); return; }
 
     const row = gridRecetas.row(idx).data();
     const IdUnidadNegocio = parseInt($("#UnidadesNegocio").val());
-    subrecetasCache = await obtenerSubrecetasUnidadNegocio(IdUnidadNegocio);
+    subRecetasCache = await obtenerSubRecetasUnidadNegocio(IdUnidadNegocio);
 
     const $sel = $("#RecetaSelect").off('change').empty();
-    const actual = subrecetasCache.find(x => x.Id === Number(row.IdSubReceta));
+    const actual = subRecetasCache.find(x => x.Id === Number(row.IdSubReceta));
     if (actual) $sel.append(new Option(actual.Descripcion, actual.Id, true, true));
 
     $("#RecetaSelect").prop("disabled", true);
     $("#cantidadRecetaInput").val(row.Cantidad);
-    $("#precioSubrecetaInput").val(fmtMon(row.CostoUnitario));
+    $("#precioSubRecetaInput").val(fmtMon(row.CostoUnitario));
     $("#totalRecetaInput").val(fmtMon(row.SubTotal));
 
-    $("#precioSubrecetaInput").off('input blur').on('input', calcularTotalReceta).on('blur', function () {
+    $("#precioSubRecetaInput").off('input blur').on('input', calcularTotalReceta).on('blur', function () {
         this.value = formatMoneda(convertirMonedaAFloat(this.value));
         calcularTotalReceta();
     });
@@ -498,10 +498,10 @@ async function editarSubreceta(id) {
     $modal.data('edit-key', row.__keyTempId || null);
     $('#btnGuardarReceta').text('Editar');
     $('#modalAlertSub').addClass('d-none');
-    ccValidators.clearGroup($('#formSubreceta')[0], $('#modalAlertSub')[0]);
+    ccValidators.clearGroup($('#formSubReceta')[0], $('#modalAlertSub')[0]);
     $modal.modal('show');
 }
-function eliminarSubreceta(id) {
+function eliminarSubReceta(id) {
     const idx = findRowIndex(gridRecetas, r => Number(r.IdSubReceta) === Number(id));
     removeRowByIndex(gridRecetas, idx);
     calcularDatosReceta();
@@ -542,8 +542,8 @@ async function obtenerInsumosUnidadNegocio(id) {
     const data = await fetchJson(`/Insumos/Lista?IdUnidadNegocio=${id}`, { headers: authHeaders() });
     return data.map(x => ({ Id: x.Id, Descripcion: x.Descripcion, CostoUnitario: x.CostoUnitario }));
 }
-async function obtenerSubrecetasUnidadNegocio(id) {
-    const data = await fetchJson(`/Subrecetas/Lista?IdUnidadNegocio=${id}`, { headers: authHeaders() });
+async function obtenerSubRecetasUnidadNegocio(id) {
+    const data = await fetchJson(`/SubRecetas/Lista?IdUnidadNegocio=${id}`, { headers: authHeaders() });
     return data.map(x => ({ Id: x.Id, Descripcion: x.Descripcion, CostoUnitario: x.CostoUnitario }));
 }
 
@@ -602,7 +602,7 @@ function guardarCambios() {
         });
         return out;
     }
-    function obtenerSubrecetas(grd) {
+    function obtenerSubRecetas(grd) {
         const out = [];
         grd.rows().every(function () {
             const s = this.data();
@@ -619,10 +619,10 @@ function guardarCambios() {
     }
 
     const insumos = obtenerInsumos(gridInsumos);
-    const subrecetas = obtenerSubrecetas(gridRecetas);
+    const subRecetas = obtenerSubRecetas(gridRecetas);
 
-    if (insumos.length === 0 && subrecetas.length === 0) {
-        advertenciaModal("Debes agregar al menos un insumo o subreceta.");
+    if (insumos.length === 0 && subRecetas.length === 0) {
+        advertenciaModal("Debes agregar al menos un insumo o subReceta.");
         return;
     }
 
@@ -639,7 +639,7 @@ function guardarCambios() {
         "CostoSubRecetas": toNumberFromMoney($("#costoRecetas").val()),
         "CostoInsumos": toNumberFromMoney($("#costoInsumos").val()),
         "RecetasInsumos": insumos,
-        "RecetasSubreceta": subrecetas
+        "RecetasSubReceta": subRecetas
     };
 
     const url = payload.Id ? "/Recetas/Actualizar" : "/Recetas/Insertar";
@@ -667,7 +667,7 @@ function guardarCambios() {
 
 
 
-async function recargarCategoriasSubrecetaYSeleccionar(idSeleccionar = null) {
+async function recargarCategoriasSubRecetaYSeleccionar(idSeleccionar = null) {
     const sel = document.getElementById('Categorias');
     if (!sel) return;
 
@@ -683,7 +683,7 @@ async function recargarCategoriasSubrecetaYSeleccionar(idSeleccionar = null) {
 
     // Normalizo claves: { id, text } (select2) o { Id, Nombre } etc.
     const norm = (data || []).map(x => {
-        const id = x.id ?? x.Id ?? x.ID ?? x.IdCategoria ?? x.IdSubrecetaCategoria ?? x.IdCategoriaSubreceta;
+        const id = x.id ?? x.Id ?? x.ID ?? x.IdCategoria ?? x.IdSubRecetaCategoria ?? x.IdCategoriaSubReceta;
         const texto = x.text ?? x.nombre ?? x.Nombre ?? x.descripcion ?? x.Descripcion ?? '';
         return { id, texto: String(texto) };
     }).filter(x => x.id != null && x.texto?.length);
@@ -714,18 +714,18 @@ async function recargarCategoriasSubrecetaYSeleccionar(idSeleccionar = null) {
 // Botón ➕ de Categorías (abre config y al volver recarga + selecciona último)
 document.getElementById('btnAddCategoria')?.addEventListener('click', async () => {
     try {
-        // Abrí tu pantalla de configuraciones en la sección de categorías de subrecetas
-        await openConfigAndWait({ nombre: 'Categorías de Subrecetas', controller: 'RecetasCategoria' });
+        // Abrí tu pantalla de configuraciones en la sección de categorías de subRecetas
+        await openConfigAndWait({ nombre: 'Categorías de SubRecetas', controller: 'RecetasCategoria' });
     } catch (_) {
         // usuario canceló: no hacemos nada
     } finally {
         // Siempre actualizar lista y seleccionar el último
-        await recargarCategoriasSubrecetaYSeleccionar();
+        await recargarCategoriasSubRecetaYSeleccionar();
     }
 });
 
 
-async function recargarUnidadMedidaSubrecetaYSeleccionar(idSeleccionar = null) {
+async function recargarUnidadMedidaSubRecetaYSeleccionar(idSeleccionar = null) {
     const sel = document.getElementById('UnidadMedidas');
     if (!sel) return;
 
@@ -778,6 +778,6 @@ document.getElementById('btnAddUMSub')?.addEventListener('click', async () => {
     } catch (_) {
         // cancelado: nada
     } finally {
-        await recargarUnidadMedidaSubrecetaYSeleccionar();
+        await recargarUnidadMedidaSubRecetaYSeleccionar();
     }
 });

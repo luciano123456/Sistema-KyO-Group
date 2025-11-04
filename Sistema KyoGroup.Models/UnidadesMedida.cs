@@ -13,5 +13,5 @@ public partial class UnidadesMedida
 
     public virtual ICollection<Receta> Receta { get; set; } = new List<Receta>();
 
-    public virtual ICollection<Subreceta> Subreceta { get; set; } = new List<Subreceta>();
+    public virtual ICollection<SubReceta> SubReceta { get; set; } = new List<SubReceta>();
 }
