@@ -15,6 +15,7 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
         public decimal CostoUnitario { get; set; }
         public decimal Costo { get; set; }
         public decimal Cantidad { get; set; }
+        public decimal PorcDesc { get; set; }
     }
 
 

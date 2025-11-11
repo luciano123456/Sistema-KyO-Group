@@ -18,6 +18,7 @@ public partial class ProveedoresInsumosLista
     public decimal CostoUnitario { get; set; }
 
     public decimal? Cantidad { get; set; }
+    public decimal? PorcDesc { get; set; }
 
     public DateTime FechaActualizacion { get; set; }
 

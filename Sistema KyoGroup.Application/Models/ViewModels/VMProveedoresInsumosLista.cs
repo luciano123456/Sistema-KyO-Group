@@ -17,6 +17,7 @@ namespace KyoGroup.Application.Models.ViewModels
         public decimal CostoUnitario { get; set; }
         public decimal? Cantidad { get; set; }
         public decimal? Costo { get; set; }
+        public decimal? PorcDesc { get; set; }
 
         public int IdUsuarioRegistra { get; set; }
         public DateTime FechaRegistra { get; set; }

@@ -3,7 +3,7 @@
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>D:\Publicaciones Webs\Sistema KyoGroup</_PublishTargetUrl>
-    <History>True|2025-11-04T01:07:52.1429643Z||;True|2025-11-03T22:04:12.3571635-03:00||;True|2025-11-02T00:51:20.5393445-03:00||;</History>
+    <History>True|2025-11-05T05:21:25.1454383Z||;True|2025-11-04T23:44:29.2247568-03:00||;True|2025-11-03T22:07:52.1429643-03:00||;True|2025-11-03T22:04:12.3571635-03:00||;True|2025-11-02T00:51:20.5393445-03:00||;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
@@ -11,22 +11,22 @@
       <publishTime>10/29/2025 19:25:29</publishTime>
     </File>
     <File Include="Views/Insumos/Index.cshtml">
-      <publishTime>11/03/2025 22:02:27</publishTime>
+      <publishTime>11/04/2025 16:16:46</publishTime>
     </File>
     <File Include="Views/Login/Index.cshtml">
       <publishTime>10/30/2025 03:00:52</publishTime>
     </File>
     <File Include="Views/Proveedores/Index.cshtml">
-      <publishTime>11/03/2025 21:30:48</publishTime>
+      <publishTime>11/04/2025 16:16:46</publishTime>
     </File>
     <File Include="Views/ProveedoresInsumos/Index.cshtml">
-      <publishTime>11/03/2025 22:02:34</publishTime>
+      <publishTime>11/05/2025 02:21:09</publishTime>
     </File>
     <File Include="Views/Recetas/Index.cshtml">
-      <publishTime>11/03/2025 22:02:41</publishTime>
+      <publishTime>11/04/2025 16:16:46</publishTime>
     </File>
     <File Include="Views/Recetas/NuevoModif.cshtml">
-      <publishTime>11/03/2025 22:02:47</publishTime>
+      <publishTime>11/04/2025 16:16:46</publishTime>
     </File>
     <File Include="Views/Shared/Error.cshtml">
       <publishTime>11/03/2025 20:18:23</publishTime>
@@ -35,7 +35,7 @@
       <publishTime>10/29/2025 19:25:29</publishTime>
     </File>
     <File Include="Views/Shared/Partials/NavBarLogin.cshtml">
-      <publishTime>11/03/2025 22:03:22</publishTime>
+      <publishTime>11/04/2025 16:16:46</publishTime>
     </File>
     <File Include="Views/Shared/_Layout.cshtml">
       <publishTime>10/30/2025 03:00:52</publishTime>
@@ -47,16 +47,16 @@
       <publishTime>10/29/2025 19:25:29</publishTime>
     </File>
     <File Include="Views/SubRecetas/Index.cshtml">
-      <publishTime>11/03/2025 22:02:53</publishTime>
+      <publishTime>11/04/2025 16:16:46</publishTime>
     </File>
     <File Include="Views/SubRecetas/NuevoModif.cshtml">
-      <publishTime>11/03/2025 22:02:59</publishTime>
+      <publishTime>11/04/2025 16:16:46</publishTime>
     </File>
     <File Include="Views/Usuarios/Configuracion.cshtml">
       <publishTime>10/29/2025 19:25:29</publishTime>
     </File>
     <File Include="Views/Usuarios/Index.cshtml">
-      <publishTime>11/03/2025 21:30:48</publishTime>
+      <publishTime>11/04/2025 16:16:46</publishTime>
     </File>
     <File Include="Views/Utils/Modals.cshtml">
       <publishTime>10/30/2025 10:19:38</publishTime>
@@ -71,7 +71,7 @@
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/css/DisenoPantallas.css">
-      <publishTime>03/11/2025 21:30:48</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/css/Insumos.css">
       <publishTime>03/11/2025 21:24:51</publishTime>
@@ -83,7 +83,7 @@
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/css/ProveedoresInsumos.css">
-      <publishTime>03/11/2025 21:30:48</publishTime>
+      <publishTime>04/11/2025 19:58:56</publishTime>
     </File>
     <File Include="wwwroot/css/RecetasNuevoModif.css">
       <publishTime>01/11/2025 21:43:49</publishTime>
@@ -92,7 +92,7 @@
       <publishTime>03/11/2025 20:18:23</publishTime>
     </File>
     <File Include="wwwroot/css/SubRecetasNuevoModif.css">
-      <publishTime>03/11/2025 21:30:48</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/css/Usuarios.css">
       <publishTime>03/11/2025 20:18:23</publishTime>
@@ -227,7 +227,7 @@
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/js/Insumos.js">
-      <publishTime>03/11/2025 21:24:51</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/js/Login.js">
       <publishTime>01/01/0001 00:00:00</publishTime>
@@ -241,20 +241,23 @@
     <File Include="wwwroot/js/Proveedores.js">
       <publishTime>03/11/2025 21:24:51</publishTime>
     </File>
+    <File Include="wwwroot/js/ProveedoresInsumos.js">
+      <publishTime>05/11/2025 00:35:34</publishTime>
+    </File>
     <File Include="wwwroot/js/Recetas.js">
-      <publishTime>03/11/2025 21:27:00</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/js/RecetasNuevoModif.js">
-      <publishTime>03/11/2025 21:27:00</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/js/site.js">
       <publishTime>03/11/2025 20:18:23</publishTime>
     </File>
     <File Include="wwwroot/js/SubRecetas.js">
-      <publishTime>03/11/2025 21:27:00</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/js/SubRecetasNuevoModif.js">
-      <publishTime>03/11/2025 21:27:00</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/js/Usuarios.js">
       <publishTime>03/11/2025 21:30:48</publishTime>
@@ -293,25 +296,25 @@
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.css.map">
-      <publishTime>03/11/2025 21:30:48</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.min.css">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.min.css.map">
-      <publishTime>03/11/2025 21:30:48</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.css">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.css.map">
-      <publishTime>03/11/2025 21:30:48</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.min.css">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.min.css.map">
-      <publishTime>03/11/2025 21:30:48</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.css">
       <publishTime>01/01/0001 00:00:00</publishTime>
@@ -341,25 +344,25 @@
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap.css.map">
-      <publishTime>03/11/2025 21:30:48</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap.min.css">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap.min.css.map">
-      <publishTime>03/11/2025 21:30:48</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.css">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.css.map">
-      <publishTime>03/11/2025 21:30:48</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.min.css">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.min.css.map">
-      <publishTime>03/11/2025 21:30:48</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js">
       <publishTime>01/01/0001 00:00:00</publishTime>
@@ -425,10 +428,10 @@
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery/dist/jquery.js">
-      <publishTime>03/11/2025 21:30:48</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery/dist/jquery.min.js">
-      <publishTime>03/11/2025 21:30:48</publishTime>
+      <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery/dist/jquery.min.map">
       <publishTime>01/01/0001 00:00:00</publishTime>

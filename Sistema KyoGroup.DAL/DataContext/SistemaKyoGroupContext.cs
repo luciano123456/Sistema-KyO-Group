@@ -857,6 +857,7 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.ToTable("Proveedores_Insumos_Listas");
 
             entity.Property(e => e.Cantidad).HasColumnType("decimal(20, 2)");
+            entity.Property(e => e.PorcDesc).HasColumnType("decimal(20, 2)");
             entity.Property(e => e.Codigo)
                 .HasMaxLength(100)
                 .IsUnicode(false);
