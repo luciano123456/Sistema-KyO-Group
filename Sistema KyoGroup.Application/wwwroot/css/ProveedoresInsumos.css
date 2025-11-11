@@ -36,11 +36,7 @@
     max-height: 400px !important;
 }
 
-.fila-nueva-insumo {
-    background-color: green !important;
-    color: #155724;
-    font-weight: 500;
-}
+
 
 .fila-sin-cambios {
     background-color: var(--dt-row-zebra) !important;
@@ -53,7 +49,7 @@
 }
 
 .fila-nueva-insumo {
-    background-color: green !important;
+    background-color: #063713 !important;
     color: white !important;
     font-weight: bold;
 }
@@ -186,3 +182,63 @@
         background: transparent !important;
         font-weight: bold;
     }
+
+
+/* ===== Vista previa: celdas editables ===== */
+.vp-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+}
+
+.vp-val {
+    min-width: 72px;
+    display: inline-block;
+}
+
+.vp-ctrl {
+    display: inline-flex;
+    gap: .25rem;
+    opacity: .65;
+    transition: opacity .15s ease;
+}
+
+    .vp-ctrl:hover {
+        opacity: 1;
+    }
+
+    .vp-ctrl .btn-ico {
+        border: 0;
+        outline: 0;
+        padding: .15rem .35rem;
+        border-radius: .375rem;
+        background: #142402;
+        color: white;
+        line-height: 1;
+    }
+
+        .vp-ctrl .btn-ico:hover {
+            background: rgba(255,255,255,.12);
+        }
+
+
+.vp-input {
+    width: 110px;
+    padding: .25rem .5rem;
+    border-radius: .375rem;
+    border: 1px solid rgba(255,255,255,.15);
+    background: rgba(10,10,20,.35);
+    color: #e9eef6;
+}
+
+    .vp-input:focus {
+        outline: 0;
+        border-color: rgba(0,170,255,.6);
+        box-shadow: 0 0 0 2px rgba(0,170,255,.15);
+    }
+
+
+.fila-sin-cambios {
+    opacity: .85;
+}

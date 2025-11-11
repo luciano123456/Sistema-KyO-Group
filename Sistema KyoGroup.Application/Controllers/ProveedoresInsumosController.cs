@@ -8,6 +8,8 @@ using SistemaKyoGroup.BLL.Service;
 using SistemaKyoGroup.Models;
 
 using System.Diagnostics;
+using System.Globalization;
+using System.Text;
 
 namespace SistemaKyoGroup.Application.Controllers
 {
@@ -66,8 +68,9 @@ namespace SistemaKyoGroup.Application.Controllers
                         FechaModifica = c.FechaModifica,
                         UsuarioRegistra = c.IdUsuarioRegistraNavigation != null ? c.IdUsuarioRegistraNavigation.Usuario : null,
                         UsuarioModifica = c.IdUsuarioModificaNavigation != null ? c.IdUsuarioModificaNavigation.Usuario : null,
-                        Cantidad = c.Cantidad,
-                        Costo = c.Costo
+                        Cantidad = c.Cantidad != null? c.Cantidad : 1,
+                        Costo = c.Costo != null ? c.Costo : 1,
+                        PorcDesc = c.PorcDesc != null ? c.PorcDesc : 0
                     })
                     .ToList();
 
@@ -96,37 +99,54 @@ namespace SistemaKyoGroup.Application.Controllers
         [HttpPost]
         public async Task<IActionResult> Comparar([FromBody] VMImportacionProveedoresInsumos model)
         {
-            if (model == null || model.IdProveedor == 0 || model.Lista == null || !model.Lista.Any())
+            if (model == null || model.IdProveedor <= 0)
                 return BadRequest("Datos incompletos");
 
-            var insumosExistentes = await _ProveedoresInsumosService.ObtenerPorProveedor(model.IdProveedor);
-
-            var comparacion = model.Lista.Select(item =>
+            try
             {
-                var codigoImportado = item.Codigo?.Trim();
-                var descripcionImportada = item.Descripcion?.Trim().ToUpper();
+                // Debe devolver entidades de ProveedoresInsumosLista para ese proveedor
+                var existentes = await _ProveedoresInsumosService.ObtenerPorProveedor(model.IdProveedor);
 
-                // Comparar solo por código si tiene valor, si no, comparar por descripción
-                var existente = !string.IsNullOrWhiteSpace(codigoImportado)
-                    ? insumosExistentes.FirstOrDefault(x =>
-                        !string.IsNullOrWhiteSpace(x.Codigo) &&
-                        x.Codigo.Trim().ToUpper() == codigoImportado.ToUpper())
-                    : insumosExistentes.FirstOrDefault(x =>
-                        x.Descripcion.Trim().ToUpper() == descripcionImportada);
-
-                return new
+                // Mandamos al front SOLO datos crudos; el front hace el match y la comparación
+                var dto = existentes.Select(x => new
                 {
-                    codigo = item.Codigo,
-                    descripcion = item.Descripcion,
-                    precioNuevo = item.CostoUnitario,
-                    precioAnterior = existente?.CostoUnitario,
-                    nuevo = existente == null
-                };
-            }).ToList();
+                    Codigo = x.Codigo ?? string.Empty,
+                    Descripcion = x.Descripcion ?? string.Empty,
+                    Costo = x.Costo ?? 0m,
+                    Cantidad = x.Cantidad ?? 0m,
+                    PorcDesc = x.PorcDesc ?? 0,
+                    CostoUnitario = x.CostoUnitario
+                }).ToList();
 
-            return Ok(comparacion);
+                return Ok(dto);
+            }
+            catch (Exception)
+            {
+                // TODO: log ex
+                return StatusCode(500, "No se pudo obtener la lista del proveedor.");
+            }
         }
 
+
+
+        // -----------------------
+        // Helpers internos
+        // -----------------------
+        static string Normalizar(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return string.Empty;
+            var norm = s.Trim().ToUpperInvariant()
+                .Normalize(NormalizationForm.FormD);
+            var sb = new StringBuilder();
+            foreach (var c in norm)
+                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                    sb.Append(c);
+            return sb.ToString()
+                     .Replace("  ", " ")
+                     .Trim();
+        }
+
+        static bool Eq(decimal a, decimal b, decimal eps = 0.0001m) => Math.Abs(a - b) <= eps;
 
 
         [HttpPost]
@@ -144,8 +164,9 @@ namespace SistemaKyoGroup.Application.Controllers
                 IdProveedor = model.IdProveedor,
                 IdUsuarioRegistra = userId ?? model.IdUsuarioRegistra, // fallback si hicieras pruebas sin token
                 FechaRegistra = DateTime.Now,
-                Cantidad = 1,
-                Costo = model.Costo
+                Cantidad = model.Cantidad != null ? model.Cantidad : 1,
+                Costo = model.Costo,
+                PorcDesc = model.PorcDesc != null ? model.PorcDesc : 0
             };
 
             bool respuesta = await _ProveedoresInsumosService.Insertar(ProveedoresInsumos);
@@ -171,7 +192,8 @@ namespace SistemaKyoGroup.Application.Controllers
                 IdUsuarioModifica = (int)userId, // fallback si hicieras pruebas sin token
                 FechaModifica = DateTime.Now,
                 Cantidad = model.Cantidad,
-                Costo = model.Costo
+                Costo = model.Costo,
+                PorcDesc = model.PorcDesc
             };
 
             bool respuesta = await _ProveedoresInsumosService.Actualizar(ProveedoresInsumos);
@@ -194,8 +216,11 @@ namespace SistemaKyoGroup.Application.Controllers
                 Descripcion = x.Descripcion,
                 CostoUnitario = x.CostoUnitario,
                 IdProveedor = model.IdProveedor,
+                Costo = x.Costo,
                 FechaActualizacion = DateTime.Now,
                 IdUsuarioRegistra = (int)userId, // fallback si hicieras pruebas sin token
+                Cantidad = x.Cantidad != null ? x.Cantidad : 1,
+                PorcDesc = x.PorcDesc != null ? x.PorcDesc : 0,
                 FechaRegistra = DateTime.Now,
                
             }).ToList();
@@ -235,7 +260,8 @@ namespace SistemaKyoGroup.Application.Controllers
                 UsuarioRegistra = ProveedoresInsumos.IdUsuarioRegistraNavigation != null ? ProveedoresInsumos.IdUsuarioRegistraNavigation.Usuario : null,
                 UsuarioModifica = ProveedoresInsumos.IdUsuarioModificaNavigation != null ? ProveedoresInsumos.IdUsuarioModificaNavigation.Usuario : null,
                 Cantidad = ProveedoresInsumos.Cantidad,
-                Costo = ProveedoresInsumos.Costo
+                Costo = ProveedoresInsumos.Costo,
+                PorcDesc = ProveedoresInsumos.PorcDesc
             };
 
             return Ok(vm);
