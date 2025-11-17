@@ -1,0 +1,232 @@
+﻿@{
+    ViewData["Title"] = "Órdenes de Compra";
+}
+
+@section Estilos {
+    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+
+    <!-- Tus estilos -->
+    <link href="~/css/ProveedoresInsumos.css" rel="stylesheet" />
+    <link href="~/css/disenopantallas.css?v=1.0" rel="stylesheet" />
+}
+
+<div class="container page-99">
+    <!-- Header tipo KPI -->
+    <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="d-flex align-items-center gap-3">
+                <span class="cc-badge"><i class="fa fa-shopping-bag"></i></span>
+                <div>
+                    <h2 class="m-0 fw-800">Órdenes de Compra</h2>
+                    <small class="text-muted-cc">Gestión y análisis</small>
+                </div>
+            </div>
+
+            <!-- KPIs -->
+            <div class="ms-auto d-flex gap-3 flex-wrap">
+                <div class="cc-stat">
+                    <div class="label">Cantidad</div>
+                    <div class="value" id="kpiCantidadOC">0</div>
+                </div>
+                <div class="cc-stat">
+                    <div class="label">Total (ARS)</div>
+                    <div class="value" id="kpiTotalOC">—</div>
+                </div>
+                <div class="cc-stat">
+                    <div class="label">Pendientes</div>
+                    <div class="value" id="kpiPendientesOC">—</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla + Filtros -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card-glass p-3">
+                <div class="tabla-wrap position-relative">
+                    <!-- Controles top -->
+                    <div class="tabla-contRoles-top d-flex gap-2 flex-wrap align-items-center">
+                        <button class="btn btn-new d-flex align-items-center px-3 py-2" onclick="nuevoOrdenCompra()">
+                            <i class="fa fa-plus-square me-2"></i> Nuevo
+                        </button>
+
+                        <!-- Toggle de filtros -->
+                        <button class="btn btn-outline-primary d-flex align-items-center ms-auto" type="button" id="btnToggleFiltrosOC">
+                            <i class="fa fa-arrow-down me-2" id="iconFiltrosOC"></i> Filtros
+                        </button>
+
+                        <!-- Dropdown columnas -->
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button"
+                                    id="dropdownColumnasOC" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa fa-cog me-2"></i> Config. Columnas
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownColumnasOC" id="configColumnasMenuOC"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Panel filtros -->
+                    <form id="formFiltrosOC" class="filter-bar shadow-sm rounded-3 mb-3 p-3">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-12 col-md-3">
+                                <label class="form-label">Unidad de Negocio</label>
+                                <select id="UnidadNegocioFiltro" class="form-select">
+                                    <option value="-1" selected>-</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label">Local</label>
+                                <select id="LocalFiltro" class="form-select">
+                                    <option value="-1" selected>-</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label">Proveedor</label>
+                                <select id="ProveedorFiltro" class="form-select">
+                                    <option value="-1" selected>-</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label">Estado</label>
+                                <select id="EstadoFiltro" class="form-select">
+                                    <option value="-1" selected>-</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-3">
+                                <label class="form-label">Fecha desde</label>
+                                <input type="date" id="FechaDesdeFiltro" class="form-control" />
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label">Fecha hasta</label>
+                                <input type="date" id="FechaHastaFiltro" class="form-control" />
+                            </div>
+
+                            <div class="col-12 col-md-6 d-flex gap-2 mt-2 mt-md-0">
+                                <button type="button" class="btn btn-primary flex-fill" onclick="aplicarFiltrosOC()">
+                                    <i class="fa fa-search me-1"></i> Buscar
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="limpiarFiltrosOC()">
+                                    <i class="fa fa-eraser me-1"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- DataTable -->
+                    <div class="dt-dark-wrap">
+                        <table class="dt-dark display nowrap compact" id="grd_OrdenesCompra" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>N°</th>
+                                    <th>Fecha Emisión</th>
+                                    <th>Unidad Negocio</th>
+                                    <th>Local</th>
+                                    <th>Proveedor</th>
+                                    <th>Fecha Entrega</th>
+                                    <th>Estado</th>
+                                    <th>Costo Total</th>
+                                    <th>Nota Interna</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal edición rápida -->
+<div class="modal fade" id="modalEdicionOC" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-edicion">
+        <div class="modal-content">
+            <div class="modal-header colorEncabezado">
+                <h5 class="modal-title fw-bold">Editar Orden</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="formOrdenCompra" class="row g-3">
+                    <input type="text" id="txtIdOC" hidden>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Fecha Emisión</label>
+                        <input type="date" class="form-control" id="txtFechaEmisionOC">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Unidad Negocio</label>
+                        <select id="UnidadesNegocioOC" class="form-select"></select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Local</label>
+                        <select id="LocalesOC" class="form-select"></select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Proveedor</label>
+                        <select id="ProveedoresOC" class="form-select"></select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Estado</label>
+                        <select id="EstadosOC" class="form-select"></select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Fecha Entrega</label>
+                        <input type="date" class="form-control" id="txtFechaEntregaOC">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Costo Total</label>
+                        <input type="number" step="0.01" class="form-control" id="txtCostoTotalOC">
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Nota Interna</label>
+                        <textarea id="txtNotaInternaOC" class="form-control" rows="2"></textarea>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal"><i class="fa fa-arrow-left"></i> Volver</button>
+                <button id="btnGuardarOC" class="btn btn-new" onclick="guardarCambiosOC()"><i class="fa fa-check"></i> Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="~/Views/Utils/Modals.cshtml" />
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/locale/es.js"></script>
+
+    <!-- Página -->
+    <script src="~/js/OrdenesCompra.js?v=1.0"></script>
+}

@@ -387,7 +387,7 @@ label {
 
     /* Botones: por defecto full width en móviles */
     #btnNuevoModificar {
-    width: 100%;
+        width: 100%;
     }
 
     .dt-buttons .btn, .dataTables_wrapper .btn {
@@ -2406,6 +2406,7 @@ table.dataTable tbody tr.selected {
 
 /* Header con gradiente y badge */
 .cc-modal-header {
+    background: linear-gradient(90deg, rgba(71,97,210,.18), rgba(120,84,255,.18));
     border-bottom: 1px solid rgba(255,255,255,.08);
     padding: 16px 18px;
 }
@@ -2777,3 +2778,43 @@ input[type="date"]::-webkit-calendar-picker-indicator{ filter: invert(1) ... }
     border-start-end-radius: 0px !important;
     border-end-end-radius: 0px !important;
 }
+
+
+.select2-container .select2-selection--single {
+    height: 48px !important;
+    display: flex;
+    align-items: center;
+    background: var(--dt-row-zebra);
+    border: 1px solid var(--b1) !important;
+    border-radius: 12px !important;
+}
+
+/* feedback de validación (igual a Recetas) */
+.is-invalid {
+    border-color: #e55353 !important;
+    box-shadow: 0 0 0 0.1rem rgba(229,83,83,.15)
+}
+
+.invalid-feedback {
+    color: #ff6b6b;
+    font-size: .85rem;
+    margin-top: .35rem
+}
+
+.cc-alert-inline {
+    width: 100%;
+    border: 1px solid rgba(255,255,255,.06);
+    background: linear-gradient(180deg, rgba(255,77,109,.12), rgba(255,77,109,.06));
+    color: #ffb5c3;
+    padding: .9rem 1.1rem;
+    border-radius: .8rem
+}
+
+    .cc-alert-inline i {
+        opacity: .9;
+        margin-right: .45rem
+    }
+
+    .cc-alert-inline.d-none {
+        display: none
+    }

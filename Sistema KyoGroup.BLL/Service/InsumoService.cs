@@ -59,6 +59,11 @@ namespace SistemaKyoGroup.BLL.Service
             return await _contactRepo.ObtenerPorProveedor(idProveedor);
         }
 
+        public async Task<IQueryable<Insumo>> ObtenerPorUnidadYProveedor(int idUnidadNegocio, int idProveedor)
+        {
+            return await _contactRepo.ObtenerPorUnidadYProveedor(idUnidadNegocio, idProveedor);
+        }
+
 
     }
 }

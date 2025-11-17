@@ -42,6 +42,30 @@ namespace SistemaKyoGroup.Application.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ListaPorUnidad(int idUnidadNegocio)
+        {
+            try
+            {
+                var Locales = await _LocalesService.ObtenerPorUnidad(idUnidadNegocio);
+
+                var lista = Locales.Select(c => new VMGenericModelConfCombo
+                {
+                    Id = c.Id,
+                    IdCombo = c.IdUnidadNegocio != null ? (int)c.IdUnidadNegocio : 0,
+                    NombreCombo = c.IdUnidadNegocioNavigation != null ? c.IdUnidadNegocioNavigation.Nombre : null,
+                    Nombre = c.Nombre,
+
+                }).ToList();
+
+                return Ok(lista);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> Insertar([FromBody] VMGenericModelConfCombo model)

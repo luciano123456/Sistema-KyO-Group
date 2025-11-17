@@ -248,6 +248,35 @@ namespace SistemaKyoGroup.DAL.Repository
             return await Task.FromResult(query);
         }
 
+        public async Task<IQueryable<Insumo>> ObtenerPorUnidadYProveedor(int idUnidadNegocio, int idProveedor)
+        {
+            var query =
+                _dbcontext.Insumos
+                .AsNoTracking()
+                .AsSplitQuery()
+                .Include(x => x.InsumosUnidadesNegocios)
+                    .ThenInclude(un => un.IdUnidadNegocioNavigation)
+                .Include(x => x.InsumosProveedores)
+                    .ThenInclude(p => p.IdListaProveedorNavigation)
+                        .ThenInclude(lp => lp.IdProveedorNavigation)
+                .Include(x => x.IdCategoriaNavigation)
+                .Include(x => x.IdUnidadMedidaNavigation)
+                .Include(x => x.IdUsuarioRegistraNavigation)
+                .Include(x => x.IdUsuarioModificaNavigation)
+                .Where(ins =>
+                    // condición 1: pertenece a la UN seleccionada
+                    ins.InsumosUnidadesNegocios.Any(un => un.IdUnidadNegocio == idUnidadNegocio)
+                    &&
+                    // condición 2: asociado al proveedor seleccionado
+                    ins.InsumosProveedores.Any(p =>
+                        p.IdListaProveedorNavigation != null &&
+                        p.IdListaProveedorNavigation.IdProveedor == idProveedor
+                    )
+                );
+
+            return await Task.FromResult(query);
+        }
+
 
 
 

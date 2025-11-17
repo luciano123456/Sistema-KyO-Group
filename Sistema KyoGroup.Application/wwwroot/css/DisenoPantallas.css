@@ -378,7 +378,7 @@ body {
 
 /* ===== Modales (coherentes con Ventas) ===== */
 .colorEncabezado {
-    background: linear-gradient(90deg, var(--dt-row-zebra), var(--dt-row-zebra2));
+    background: linear-gradient(90deg, var(--dt-row-zebra2), var(--dt-row-zebra));
     color: #eaf2ff;
     border-bottom: 1px solid rgba(255,255,255,.08);
 }
@@ -408,7 +408,7 @@ body {
 }
 
 .modal .form-control, .modal .form-select {
-    background: var(--dt-row-zebra) !important;
+    background: var(--dt-row-zebra2) !important;
     border: 1px solid rgba(255,255,255,.12) !important;
     color: #e8eef7 !important;
 }
@@ -1445,7 +1445,7 @@ table.dataTable tbody tr.selected {
 
 /* Fondo para modal-body en general, excepto exito/Error/Advertencia */
 .modal:not(#exitoModal):not(#ErrorModal):not(#AdvertenciaModal) .modal-body {
-    background: var(--dt-row-zebra2) !important;
+    background: var(--dt-row-zebra) !important;
 }
 
 
@@ -1471,7 +1471,7 @@ table.dataTable.display tbody tr.selected td {
         height: 44px !important;
         display: flex;
         align-items: center;
-        background: var(--dt-row-zebra) !important;
+        background: var(--dt-row-zebra2) !important;
         border-radius: 12px !important;
     }
 

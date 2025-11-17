@@ -173,6 +173,47 @@ namespace SistemaKyoGroup.Application.Controllers
         }
 
 
+        [HttpGet]
+        public async Task<IActionResult> ListaPorUnidadYProveedor(int IdUnidadNegocio, int IdProveedor)
+        {
+            try
+            {
+                var insumos = await _InsumosService.ObtenerPorUnidadYProveedor(IdUnidadNegocio, IdProveedor);
+
+                var lista = insumos
+                    .ToList()
+                    .Select(c =>
+                    {
+                        var proveedorActual = c.InsumosProveedores
+                            .Where(p =>
+                                p.IdListaProveedorNavigation != null &&
+                                p.IdListaProveedorNavigation.IdProveedor == IdProveedor
+                            )
+                            .OrderBy(p => p.IdListaProveedorNavigation.CostoUnitario)
+                            .FirstOrDefault();
+
+                        return new VMInsumo
+                        {
+                            Id = c.Id,
+                            Descripcion = c.Descripcion,
+                            Sku = c.Sku,
+                            Categoria = c.IdCategoriaNavigation?.Nombre ?? "",
+                            UnidadMedida = c.IdUnidadMedidaNavigation?.Nombre ?? "",
+                            CostoUnitario = proveedorActual?.IdListaProveedorNavigation?.CostoUnitario ?? 0,
+                            PrecioLista = proveedorActual?.IdListaProveedorNavigation?.CostoUnitario ?? 0,
+                            IdProveedorLista = proveedorActual?.IdListaProveedorNavigation?.Id ?? 0
+                        };
+                    })
+                    .ToList();
+
+                return Ok(lista);
+            }
+            catch
+            {
+                return Ok(null);
+            }
+        }
+
 
 
         [HttpPost]

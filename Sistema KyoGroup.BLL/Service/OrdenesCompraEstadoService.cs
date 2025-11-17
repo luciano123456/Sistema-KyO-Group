@@ -3,16 +3,16 @@ using SistemaKyoGroup.Models;
 
 namespace SistemaKyoGroup.BLL.Service
 {
-    public class LocalesService : ILocalesService
+    public class OrdenesComprasEstadoService : IOrdenesComprasEstadoservice
     {
 
-        private readonly ILocalesRepository<Local> _contactRepo;
+        private readonly IOrdenesComprasEstadoRepository<OrdenesComprasEstado> _contactRepo;
 
-        public LocalesService(ILocalesRepository<Local> contactRepo)
+        public OrdenesComprasEstadoService(IOrdenesComprasEstadoRepository<OrdenesComprasEstado> contactRepo)
         {
             _contactRepo = contactRepo;
         }
-        public async Task<bool> Actualizar(Local model)
+        public async Task<bool> Actualizar(OrdenesComprasEstado model)
         {
             return await _contactRepo.Actualizar(model);
         }
@@ -22,27 +22,21 @@ namespace SistemaKyoGroup.BLL.Service
             return await _contactRepo.Eliminar(id);
         }
 
-        public async Task<bool> Insertar(Local model)
+        public async Task<bool> Insertar(OrdenesComprasEstado model)
         {
             return await _contactRepo.Insertar(model);
         }
 
-        public async Task<Local> Obtener(int id)
+        public async Task<OrdenesComprasEstado> Obtener(int id)
         {
             return await _contactRepo.Obtener(id);
         }
 
 
-        public async Task<IQueryable<Local>> ObtenerTodos()
+        public async Task<IQueryable<OrdenesComprasEstado>> ObtenerTodos()
         {
             return await _contactRepo.ObtenerTodos();
         }
-
-        public async Task<IQueryable<Local>> ObtenerPorUnidad(int idUnidadNegocio)
-        {
-            return await _contactRepo.ObtenerPorUnidad(idUnidadNegocio);
-        }
-
 
 
 
