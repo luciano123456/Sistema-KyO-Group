@@ -14,6 +14,7 @@ namespace SistemaKyoGroup.DAL.Repository
         Task<bool> Actualizar(Local model);
         Task<bool> Insertar(Local model);
         Task<Local> Obtener(int id);
+        Task<IQueryable<Local>> ObtenerPorUnidad(int idUnidadNegocio);
         Task<IQueryable<Local>> ObtenerTodos();
     }
 }

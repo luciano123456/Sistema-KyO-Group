@@ -47,6 +47,18 @@ namespace SistemaKyoGroup.DAL.Repository
             Local model = await _dbcontext.Locales.FindAsync(id);
             return model;
         }
+
+
+        public Task<IQueryable<Local>> ObtenerPorUnidad(int idUnidadNegocio)
+        {
+            IQueryable<Local> query = _dbcontext.Locales
+                .Where(x => x.IdUnidadNegocio == idUnidadNegocio);
+
+            return Task.FromResult(query);
+        }
+
+
+
         public async Task<IQueryable<Local>> ObtenerTodos()
         {
             IQueryable<Local> query = _dbcontext.Locales;

@@ -33,6 +33,10 @@
                     <a class="nav-link" href="@Url.Action("Index", "Recetas")">Recetas</a>
                 </li>
 
+                <li class="nav-item" id="seccionOrdenesCompra">
+                    <a class="nav-link" href="@Url.Action("Index", "OrdenesCompras")">Órdenes de Compra</a>
+                </li>
+
 
                 <li class="nav-item dropdown" id="seccionConfiguraciones" hidden>
                     <a class="nav-link dropdown-toggle" href="#" id="configDropdownLink" Rol="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -216,6 +220,27 @@
                             <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
                             <span class="config-card__title">Recetas Categorias</span>
                             <span class="config-card__subtitle">Platos finales</span>
+                        </button>
+                    </div>
+
+                    <div class="col">
+                        <button type="button" class="config-card w-100"
+                                onclick="abrirConfiguracion('Ordenes de Compra - Estados', 'OrdenesComprasEstado')"
+                                data-label="Ordenes de Compra - Estados" data-table="OrdenesCompraEstado">
+                            <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
+                            <span class="config-card__title">OC - Estados</span>
+                            <span class="config-card__subtitle">Estados de la orden</span>
+                        </button>
+                    </div>
+
+                    <!-- ===== NUEVOS: Ordenes de Compra Insumos - Estados ===== -->
+                    <div class="col">
+                        <button type="button" class="config-card w-100"
+                                onclick="abrirConfiguracion('OC Insumos - Estados', 'OrdenesComprasInsumosEstado')"
+                                data-label="OC Insumos - Estados" data-table="OrdenesComprasInsumosEstado">
+                            <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
+                            <span class="config-card__title">OC Insumos - Estados</span>
+                            <span class="config-card__subtitle">Estados de ítems</span>
                         </button>
                     </div>
 

@@ -11,6 +11,7 @@ namespace SistemaKyoGroup.BLL.Service
         Task<Local> Obtener(int id);
 
         Task<IQueryable<Local>> ObtenerTodos();
+        Task<IQueryable<Local>> ObtenerPorUnidad(int idUnidadNegocio);
     }
 
 }

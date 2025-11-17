@@ -11,5 +11,7 @@ namespace SistemaKyoGroup.BLL.Service
         Task<IQueryable<Insumo>> ObtenerTodos();
         Task<IQueryable<Insumo>> ObtenerPorProveedor(int idProveedor);
         Task<IQueryable<Insumo>> ObtenerPorUnidadNegocio(int IdUnidadNegocio);
+        Task<IQueryable<Insumo>> ObtenerPorUnidadYProveedor(int idUnidadNegocio, int idProveedor);
+
     }
 }
