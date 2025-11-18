@@ -1,0 +1,456 @@
+﻿:root {
+    --bg: #0a111f;
+    --panel: #141c2b;
+    --panel2: #101726;
+    --soft: rgba(255,255,255,.06);
+    --b1: rgba(255,255,255,.12);
+    --head: #1b2740;
+    --primary: #4c8dff;
+    --accent: #7b5cff;
+    --ok: #1ecf93;
+    --warn: #ffb200;
+    --danger: #ff5a6a;
+    --txt: #eaf1ff;
+    --muted: #9db1d2;
+    --dt-row-hover: #152037;
+    --dt-row-zebra: rgba(24, 28, 52, .9);
+    --dt-row-zebra2: rgba(17, 22, 44, .78);
+    --dt-row-zebra3: #0e1024;
+}
+
+
+/* -------- PASOS -------- */
+.cc-step-label {
+    font-size: 0.7rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted, #9fb2df);
+    margin-bottom: .2rem;
+}
+
+/* -------- Detalle de Insumos -------- */
+.cc-table-detalle {
+    margin-top: 0.75rem;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.detalle-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+    .detalle-table thead th {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        border-bottom: 1px solid rgba(255,255,255,.06);
+        text-align: center;
+    }
+
+    .detalle-table tbody tr:nth-child(odd) {
+        background: rgba(0,0,0,.06);
+    }
+
+    .detalle-table tbody tr:nth-child(even) {
+        background: rgba(0,0,0,.12);
+    }
+
+    .detalle-table tbody td {
+        padding: 0.55rem 0.45rem;
+        vertical-align: middle;
+        font-size: 0.82rem;
+    }
+
+.col-insumo {
+    width: 20%;
+    text-align: left;
+}
+
+.col-cant {
+    width: 8%;
+    text-align: center;
+}
+
+.col-precio {
+    width: 11%;
+    text-align: center;
+}
+
+.col-estado {
+    width: 12%;
+    text-align: center;
+}
+
+.cell-insumo .insumo-main {
+    font-weight: 600;
+}
+
+.cell-insumo .insumo-sub {
+    font-size: 0.7rem;
+    opacity: .7;
+}
+
+/* Números centrados */
+.cell-number {
+    text-align: center;
+}
+
+/* Inputs inline */
+.cell-editable {
+    text-align: center;
+}
+
+    .cell-editable .edit-view {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        justify-content: center;
+    }
+
+    .cell-editable .view-text {
+        min-width: 3rem;
+    }
+
+    .cell-editable .edit-inline {
+        display: inline-flex;
+        align-items: center;
+        gap: .25rem;
+        justify-content: center;
+    }
+
+    .cell-editable .edit-input {
+        max-width: 6rem;
+        border-radius: 999px;
+        background: rgba(0,0,0,.3);
+        border: 1px solid rgba(255,255,255,.1);
+        color: var(--txt, #f0f3ff);
+        text-align: center;
+        font-size: 0.8rem;
+        padding-inline: .5rem;
+    }
+
+/* Botones mini (lapiz / check / X) */
+.btn-icon {
+    border: 0;
+    background: transparent;
+    color: var(--muted, #9fb2df);
+    padding: 0;
+    width: 1.4rem;
+    height: 1.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+    .btn-icon:hover {
+        background: rgba(255,255,255,.06);
+        color: #fff;
+    }
+
+    .btn-icon i {
+        font-size: 0.75rem;
+    }
+
+/* Estado OC chip */
+.cell-estado {
+    text-align: center;
+}
+
+.estado-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+}
+
+.estado-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.estado-pendiente {
+    background: rgba(148, 163, 184, 0.2);
+    color: #e5e7eb;
+}
+
+.estado-entregado {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+}
+
+.estado-incompleto {
+    background: rgba(251, 146, 60, 0.15);
+    color: #fdba74;
+}
+
+.estado-editor {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+}
+
+    .estado-editor .estado-select {
+        max-width: 7rem;
+        font-size: 0.78rem;
+        border-radius: 999px;
+        background: rgba(0,0,0,.3);
+        border: 1px solid rgba(255,255,255,.1);
+        color: var(--txt, #f0f3ff);
+    }
+
+/* Diferencias en verde/rojo */
+.cell-dif-cant,
+.cell-dif-precio {
+    font-weight: 600;
+}
+
+    .cell-dif-cant.dif-pos,
+    .cell-dif-precio.dif-pos {
+        color: #4ade80;
+    }
+
+    .cell-dif-cant.dif-neg,
+    .cell-dif-precio.dif-neg {
+        color: #f97373;
+    }
+
+/* Chip de origen OC */
+.cc-chip-origin {
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.10);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted, #9fb2df);
+}
+
+
+/* =================== ComprasNuevoModif.css =================== */
+
+.compras-wrapper {
+    margin-bottom: 3rem;
+}
+
+.compras-step {
+    margin-top: 1.5rem;
+}
+
+.compras-step-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: #9fb2ff;
+    background: rgba(159,178,255,.08);
+    border-radius: 999px;
+    padding: .15rem .7rem;
+    margin-right: .75rem;
+}
+
+.compras-grid-cabecera .form-group {
+    position: relative;
+}
+
+.compras-readonly {
+    background: rgba(9, 12, 37, 0.65);
+    border-color: rgba(160, 178, 255, 0.4);
+    cursor: default;
+}
+
+.compras-importes {
+    text-align: right;
+}
+
+.compras-total-final {
+    font-weight: 700;
+    color: #a5ffb6;
+}
+
+/* ---------- Detalle ---------- */
+
+.compras-detalle-wrapper .cc-titlebar {
+    align-items: center;
+}
+
+.compras-oc-badge {
+    margin-left: auto;
+    font-size: .85rem;
+    padding: .2rem .9rem;
+    border-radius: 999px;
+    background: rgba(148, 204, 120, .12);
+    color: #c2f9a8;
+    border: 1px solid rgba(148, 204, 120, .4);
+}
+
+.compras-table-responsive {
+    overflow-x: auto;
+}
+
+.compras-detalle-table {
+    min-width: 980px;
+    border-collapse: collapse;
+}
+
+.table thead th {
+    background: var(--dt-row-zebra2);
+}
+
+    .compras-detalle-table thead th {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        white-space: nowrap;
+        padding: .55rem .4rem;
+        border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+
+    .compras-detalle-table tbody td {
+        padding: .45rem .4rem;
+        vertical-align: middle;
+        border-top: 1px solid rgba(255,255,255,.03);
+    }
+
+    .compras-detalle-table tbody tr:nth-child(odd) {
+        background-color: var(--dt-row-zebra);
+    }
+
+    .compras-detalle-table tbody tr:nth-child(even) {
+        background-color: var(--dt-row-zebra2);
+    }
+
+    .compras-detalle-table .col-insumo {
+        min-width: 210px;
+    }
+
+.compras-insumo-nombre {
+    font-weight: 600;
+}
+
+.compras-insumo-extra {
+    font-size: .75rem;
+    color: #a3b5e0;
+}
+
+/* editable cells */
+
+.compras-cell-editable {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .25rem;
+}
+
+.compras-cell-text {
+    min-width: 2.5rem;
+    text-align: center;
+}
+
+.compras-cell-text-right {
+    text-align: right;
+}
+
+.compras-edit-btn,
+.compras-edit-accept,
+.compras-edit-cancel {
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    font-size: .8rem;
+    line-height: 1;
+}
+
+    .compras-edit-btn i {
+        color: #ffd166;
+    }
+
+    .compras-edit-accept i {
+        color: #22c55e;
+    }
+
+    .compras-edit-cancel i {
+        color: #f97373;
+    }
+
+.compras-edit-input {
+    width: 4.2rem;
+    font-size: .8rem;
+    text-align: right;
+    padding: .15rem .25rem;
+    border-radius: .65rem;
+    border: 1px solid rgba(148,163,255,.7);
+    background: rgba(15,23,42,.9);
+    color: #e5edff;
+}
+
+/* diferencias */
+
+.badge-dif-pos {
+    color: #4ade80;
+}
+
+.badge-dif-neg {
+    color: #f97373;
+}
+
+/* Estado */
+
+.badge-estado {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: .15rem .7rem;
+    border-radius: 999px;
+    font-size: .73rem;
+    min-width: 5.5rem;
+}
+
+.estado-pendiente {
+    background: rgba(148, 163, 184, .25);
+    color: #e5e7eb;
+}
+
+.estado-entregado {
+    background: rgba(22, 163, 74, .22);
+    color: #bbf7d0;
+}
+
+.estado-incompleto {
+    background: rgba(249, 115, 22, .22);
+    color: #fed7aa;
+}
+
+/* responsive */
+
+@media (max-width: 992px) {
+    .compras-detalle-table {
+        font-size: .78rem;
+        min-width: 800px;
+    }
+
+        .compras-detalle-table thead th,
+        .compras-detalle-table tbody td {
+            padding: .35rem .3rem;
+        }
+}
+
+@media (max-width: 576px) {
+    .compras-detalle-table {
+        font-size: .74rem;
+        min-width: 720px;
+    }
+
+    .compras-step-label {
+        display: none;
+    }
+}

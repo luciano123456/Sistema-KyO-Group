@@ -81,6 +81,9 @@ builder.Services.AddScoped<IOrdenesComprasEstadoservice, OrdenesComprasEstadoSer
 builder.Services.AddScoped<IOrdenesComprasInsumoEstadoRepository<OrdenesComprasInsumosEstado>, OrdenesComprasInsumosEstadoRepository>();
 builder.Services.AddScoped<IOrdenesComprasInsumosEstadoservice, OrdenesComprasInsumosEstadoService>();
 
+builder.Services.AddScoped<ICompraRepository<Compra>, CompraRepository>();
+builder.Services.AddScoped<ICompraService, CompraService>();
+
 
 
 builder.Services.AddControllersWithViews()

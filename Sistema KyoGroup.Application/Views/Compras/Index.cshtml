@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Órdenes de Compra";
+    ViewData["Title"] = "Compras";
 }
 
 @section Estilos {
@@ -20,9 +20,9 @@
     <div class="cc-header shadow-lg rounded-4 p-4 mb-4">
         <div class="d-flex align-items-center gap-3 flex-wrap">
             <div class="d-flex align-items-center gap-3">
-                <span class="cc-badge"><i class="fa fa-shopping-bag"></i></span>
+                <span class="cc-badge"><i class="fa fa-cart-arrow-down"></i></span>
                 <div>
-                    <h2 class="m-0 fw-800">Órdenes de Compra</h2>
+                    <h2 class="m-0 fw-800">Compras</h2>
                     <small class="text-muted-cc">Gestión y análisis</small>
                 </div>
             </div>
@@ -31,15 +31,15 @@
             <div class="ms-auto d-flex gap-3 flex-wrap">
                 <div class="cc-stat">
                     <div class="label">Cantidad</div>
-                    <div class="value" id="kpiCantidadOC">0</div>
+                    <div class="value" id="kpiCantidadCompras">0</div>
                 </div>
                 <div class="cc-stat">
-                    <div class="label">Total (ARS)</div>
-                    <div class="value" id="kpiTotalOC">—</div>
+                    <div class="label">Subtotal Final</div>
+                    <div class="value" id="kpiSubtotalFinalCompras">—</div>
                 </div>
                 <div class="cc-stat">
                     <div class="label">Pendientes</div>
-                    <div class="value" id="kpiPendientesOC">—</div>
+                    <div class="value" id="kpiPendientesCompras">—</div>
                 </div>
             </div>
         </div>
@@ -52,27 +52,27 @@
                 <div class="tabla-wrap position-relative">
                     <!-- Controles top -->
                     <div class="tabla-contRoles-top d-flex gap-2 flex-wrap align-items-center">
-                        <button class="btn btn-new d-flex align-items-center px-3 py-2" onclick="nuevoOrdenCompra()">
-                            <i class="fa fa-plus-square me-2"></i> Nuevo
+                        <button class="btn btn-new d-flex align-items-center px-3 py-2" onclick="nuevaCompra()">
+                            <i class="fa fa-plus-square me-2"></i> Nueva
                         </button>
 
                         <!-- Toggle de filtros -->
-                        <button class="btn btn-outline-primary d-flex align-items-center ms-auto" type="button" id="btnToggleFiltrosOC">
-                            <i class="fa fa-arrow-down me-2" id="iconFiltrosOC"></i> Filtros
+                        <button class="btn btn-outline-primary d-flex align-items-center ms-auto" type="button" id="btnToggleFiltrosCompras">
+                            <i class="fa fa-arrow-down me-2" id="iconFiltrosCompras"></i> Filtros
                         </button>
 
                         <!-- Dropdown columnas -->
                         <div class="dropdown">
                             <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button"
-                                    id="dropdownColumnasOC" data-bs-toggle="dropdown" aria-expanded="false">
+                                    id="dropdownColumnasCompras" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fa fa-cog me-2"></i> Config. Columnas
                             </button>
-                            <ul class="dropdown-menu" aria-labelledby="dropdownColumnasOC" id="configColumnasMenuOC"></ul>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownColumnasCompras" id="configColumnasMenuCompras"></ul>
                         </div>
                     </div>
 
                     <!-- Panel filtros -->
-                    <form id="formFiltrosOC" class="filter-bar shadow-sm rounded-3 mb-3 p-3">
+                    <form id="formFiltrosCompras" class="filter-bar shadow-sm rounded-3 mb-3 p-3">
                         <div class="row g-2 align-items-end">
                             <div class="col-12 col-md-3">
                                 <label class="form-label">Unidad de Negocio</label>
@@ -92,12 +92,6 @@
                                     <option value="-1" selected>-</option>
                                 </select>
                             </div>
-                            <div class="col-12 col-md-3">
-                                <label class="form-label">Estado</label>
-                                <select id="EstadoFiltro" class="form-select">
-                                    <option value="-1" selected>-</option>
-                                </select>
-                            </div>
 
                             <div class="col-12 col-md-3">
                                 <label class="form-label">Fecha desde</label>
@@ -109,10 +103,10 @@
                             </div>
 
                             <div class="col-12 col-md-6 d-flex gap-2 mt-2 mt-md-0">
-                                <button type="button" class="btn btn-primary flex-fill" onclick="aplicarFiltrosOC()">
+                                <button type="button" class="btn btn-primary flex-fill" onclick="aplicarFiltrosCompras()">
                                     <i class="fa fa-search me-1"></i> Buscar
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary" onclick="limpiarFiltrosOC()">
+                                <button type="button" class="btn btn-outline-secondary" onclick="limpiarFiltrosCompras()">
                                     <i class="fa fa-eraser me-1"></i> Limpiar
                                 </button>
                             </div>
@@ -121,19 +115,18 @@
 
                     <!-- DataTable -->
                     <div class="dt-dark-wrap">
-                        <table class="dt-dark display nowrap compact" id="grd_OrdenesCompra" style="width:100%">
+                        <table class="dt-dark display nowrap compact" id="grd_Compras" style="width:100%">
                             <thead>
                                 <tr>
                                     <th></th>
                                     <th>N°</th>
-                                    <th>Fecha Emisión</th>
+                                    <th>Fecha</th>
                                     <th>Unidad Negocio</th>
                                     <th>Local</th>
                                     <th>Proveedor</th>
-                                    <th>Fecha Entrega</th>
-                                    <th>Estado</th>
-                                    <th>Compra</th>
-                                    <th>Costo Total</th>
+                                    <th>O.C.</th>
+                                    <th>Subtotal</th>
+                                    <th>Subtotal Final</th>
                                     <th>Nota Interna</th>
                                 </tr>
                             </thead>
@@ -147,65 +140,24 @@
     </div>
 </div>
 
-<!-- Modal edición rápida -->
-<div class="modal fade" id="modalEdicionOC" tabindex="-1" aria-hidden="true">
+<!-- Modal edición rápida (stub) -->
+<div class="modal fade" id="modalEdicionCompras" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-edicion">
         <div class="modal-content">
             <div class="modal-header colorEncabezado">
-                <h5 class="modal-title fw-bold">Editar Orden</h5>
+                <h5 class="modal-title fw-bold">Editar Compra</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
-                <form id="formOrdenCompra" class="row g-3">
-                    <input type="text" id="txtIdOC" hidden>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Fecha Emisión</label>
-                        <input type="date" class="form-control" id="txtFechaEmisionOC">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Unidad Negocio</label>
-                        <select id="UnidadesNegocioOC" class="form-select"></select>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Local</label>
-                        <select id="LocalesOC" class="form-select"></select>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Proveedor</label>
-                        <select id="ProveedoresOC" class="form-select"></select>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Estado</label>
-                        <select id="EstadosOC" class="form-select"></select>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Fecha Entrega</label>
-                        <input type="date" class="form-control" id="txtFechaEntregaOC">
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Costo Total</label>
-                        <input type="number" step="0.01" class="form-control" id="txtCostoTotalOC">
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label">Nota Interna</label>
-                        <textarea id="txtNotaInternaOC" class="form-control" rows="2"></textarea>
-                    </div>
-
-                </form>
+                <p class="text-muted mb-0">
+                    La edición rápida está desactivada. Usá el botón <strong>"Editar"</strong> en la grilla.
+                </p>
             </div>
 
             <div class="modal-footer">
                 <button class="btn btn-secondary" data-bs-dismiss="modal"><i class="fa fa-arrow-left"></i> Volver</button>
-                <button id="btnGuardarOC" class="btn btn-new" onclick="guardarCambiosOC()"><i class="fa fa-check"></i> Guardar</button>
+                <button id="btnGuardarCompras" class="btn btn-new" disabled><i class="fa fa-check"></i> Guardar</button>
             </div>
         </div>
     </div>
@@ -229,5 +181,5 @@
     <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/locale/es.js"></script>
 
     <!-- Página -->
-    <script src="~/js/OrdenesCompra.js?v=1.0"></script>
+    <script src="~/js/Compras.js?v=1.0"></script>
 }

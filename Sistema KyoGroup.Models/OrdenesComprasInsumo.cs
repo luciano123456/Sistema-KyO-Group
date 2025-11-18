@@ -9,7 +9,7 @@ public partial class OrdenesComprasInsumo
 
     public int IdOrdenCompra { get; set; }
 
-    public string IdInsumo { get; set; } = null!;
+    public int IdInsumo { get; set; }
 
     public int? IdProveedorLista { get; set; }
 
@@ -36,6 +36,8 @@ public partial class OrdenesComprasInsumo
     public DateTime? FechaModifica { get; set; }
 
     public virtual OrdenesComprasInsumosEstado IdEstadoNavigation { get; set; } = null!;
+
+    public virtual Insumo IdInsumoNavigation { get; set; } = null!;
 
     public virtual OrdenesCompra IdOrdenCompraNavigation { get; set; } = null!;
 
