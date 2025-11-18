@@ -737,13 +737,32 @@ async function cargarDesdeOrdenCompraData() {
     const raw = window.OrdenCompraData;
 
     let cab = {};
+    let detalleServer = [];
+
     if (typeof raw === 'number' && raw > 0) {
         // igual que SubRecetas: si viene el Id, voy a EditarInfo
-        cab = await ObtenerDatosOrdenCompra(raw);
+        const resp = await ObtenerDatosOrdenCompra(raw);
+
+        if (resp && (resp.OrdenCompra || resp.ordenCompra)) {
+            cab = resp.OrdenCompra ?? resp.ordenCompra ?? {};
+            detalleServer = resp.OrdenesComprasInsumos ?? resp.ordenesComprasInsumos ?? [];
+        } else {
+            // compatibilidad por si la API devuelve plano
+            cab = resp || {};
+            detalleServer = cab.OrdenesComprasInsumos ?? cab.ordenesComprasInsumos ?? [];
+        }
     } else if (raw && typeof raw === 'object') {
-        cab = raw;
+        // Puede venir ya serializado desde la vista
+        if (raw.OrdenCompra || raw.ordenCompra) {
+            cab = raw.OrdenCompra ?? raw.ordenCompra ?? {};
+            detalleServer = raw.OrdenesComprasInsumos ?? raw.ordenesComprasInsumos ?? [];
+        } else {
+            cab = raw;
+            detalleServer = cab.OrdenesComprasInsumos ?? cab.ordenesComprasInsumos ?? [];
+        }
     } else {
         cab = {};
+        detalleServer = [];
     }
 
     const id = _num(cab.Id ?? cab.id ?? 0);
@@ -812,8 +831,7 @@ async function cargarDesdeOrdenCompraData() {
         if (costoTotal) $('#CostoTotal').val(fmtARS(costoTotal));
 
         // ---- Detalle ----
-        const detRaw = cab.OrdenesComprasInsumos ?? cab.ordenesComprasInsumos ?? [];
-        const detArray = Array.isArray(detRaw) ? detRaw : [];
+        const detArray = Array.isArray(detalleServer) ? detalleServer : [];
 
         detalleOC = detArray.map(d => ({
             id: _num(d.Id ?? d.id ?? 0),
@@ -839,9 +857,11 @@ async function cargarDesdeOrdenCompraData() {
             ),
             idProveedorLista: _num(d.IdProveedorLista ?? d.idProveedorLista ?? 0),
             cantidadEntregada: _num(d.CantidadEntregada ?? d.cantidadEntregada ?? 0),
-            cantidadRestante: _num(d.CantidadRestante ?? d.cantidadRestante ??
+            cantidadRestante: _num(
+                d.CantidadRestante ?? d.cantidadRestante ??
                 (d.CantidadPedida ?? d.cantidadPedida ?? 0) -
-                (d.CantidadEntregada ?? d.cantidadEntregada ?? 0)),
+                (d.CantidadEntregada ?? d.cantidadEntregada ?? 0)
+            ),
             idEstado: _num(d.IdEstado ?? d.idEstado ?? 1),
             nota: d.NotaInterna ?? d.notaInterna ?? ''
         }));
@@ -885,7 +905,7 @@ async function cargarDesdeOrdenCompraData() {
         $('#FechaEmision').val(`${yyyy}-${mm}-${dd}`);
 
         // === ESTADO PENDIENTE por defecto y bloqueado ===
-        if (ESTADO_PENDIENTE_ID != null) {
+        if (typeof ESTADO_PENDIENTE_ID !== 'undefined' && ESTADO_PENDIENTE_ID != null) {
             $('#Estados').val(ESTADO_PENDIENTE_ID).trigger('change');
         }
         $('#Estados').prop('disabled', true).trigger('change.select2');
@@ -976,7 +996,7 @@ async function guardarOC() {
         // - Si es MODIFICACIÓN: vuelve al listado de Ordenes de Compra
         if (id === 0) {
             if (nuevoId && nuevoId > 0) {
-                window.location.href = '/OrdenesCompras/NuevoModif/' + nuevoId;
+                window.location.href = '/OrdenesCompras';
             } else {
                 window.location.href = '/OrdenesCompras';
             }

@@ -13,6 +13,7 @@ namespace SistemaKyoGroup.BLL.Service
         public Task<(bool eliminado, string mensaje)> Eliminar(int id) => _repo.Eliminar(id);
         public Task<OrdenesCompra> Obtener(int id) => _repo.Obtener(id);
         public Task<IQueryable<OrdenesCompra>> ObtenerTodos() => _repo.ObtenerTodos();
+        public Task<IQueryable<OrdenesCompra>> ObtenerPendientes() => _repo.ObtenerPendientes();
         public Task<IQueryable<OrdenesCompra>> ObtenerTodosUnidadNegocio(int idUnidadNegocio, int userId, int? idEstado)
             => _repo.ObtenerTodosUnidadNegocio(idUnidadNegocio, userId, idEstado);
         public async Task<List<OrdenesCompra>> ObtenerTodosConFiltros(

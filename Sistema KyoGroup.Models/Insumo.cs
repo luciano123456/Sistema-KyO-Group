@@ -39,7 +39,9 @@ public partial class Insumo
 
     public virtual ICollection<InsumosUnidadesNegocio> InsumosUnidadesNegocios { get; set; } = new List<InsumosUnidadesNegocio>();
 
+    public virtual ICollection<OrdenesComprasInsumo> OrdenesComprasInsumos { get; set; } = new List<OrdenesComprasInsumo>();
+
     public virtual ICollection<RecetasInsumo> RecetasInsumos { get; set; } = new List<RecetasInsumo>();
 
-    public virtual ICollection<SubRecetasInsumo> SubRecetasInsumos { get; set; } = new List<SubRecetasInsumo>();
+    public virtual ICollection<SubRecetasInsumo> SubrecetasInsumos { get; set; } = new List<SubRecetasInsumo>();
 }

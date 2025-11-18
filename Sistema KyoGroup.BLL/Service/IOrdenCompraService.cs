@@ -9,6 +9,7 @@ namespace SistemaKyoGroup.BLL.Service
         Task<(bool eliminado, string mensaje)> Eliminar(int id);
         Task<OrdenesCompra> Obtener(int id);
         Task<IQueryable<OrdenesCompra>> ObtenerTodos();
+        Task<IQueryable<OrdenesCompra>> ObtenerPendientes();
         Task<IQueryable<OrdenesCompra>> ObtenerTodosUnidadNegocio(int idUnidadNegocio, int userId, int? idEstado);
         Task<List<OrdenesCompra>> ObtenerTodosConFiltros(
     int? idUnidadNegocio = null,

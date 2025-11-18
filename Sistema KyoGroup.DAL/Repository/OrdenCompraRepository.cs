@@ -32,20 +32,23 @@ namespace SistemaKyoGroup.DAL.Repository
             {
                 model.OrdenesComprasInsumos ??= new List<OrdenesComprasInsumo>();
 
-                // ----------- Normalizo detalle EN MEMORIA -----------
+                // ----------- Normalizo detalle EN MEMORIA ----------- 
                 foreach (var d in model.OrdenesComprasInsumos)
                 {
                     d.Id = 0;                    // identity
-                    d.IdOrdenCompra = 0;         // se setea luego
-                    d.CantidadPedida = d.CantidadPedida; // por las dudas
+                    d.IdOrdenCompra = 0;         // EF lo setea luego automáticamente
+
+                    d.CantidadPedida = d.CantidadPedida;
                     d.CantidadEntregada = d.CantidadEntregada;
                     d.CantidadRestante = d.CantidadPedida - d.CantidadEntregada;
+
+                    d.IdProveedorLista = d.IdProveedorLista;
 
                     d.Subtotal = d.PrecioLista * d.CantidadPedida;
 
                     // Estado por defecto (si viene en 0)
                     if (d.IdEstado == 0)
-                        d.IdEstado = 1;
+                        d.IdEstado = 1;          // Pendiente
 
                     // Auditoría de registro en detalle
                     if (d.FechaRegistra == default)
@@ -55,27 +58,16 @@ namespace SistemaKyoGroup.DAL.Repository
                         d.IdUsuarioRegistra = model.IdUsuarioRegistra;
                 }
 
-                // ----------- Costo total cabecera -----------
+                // ----------- Costo total cabecera ----------- 
                 model.CostoTotal = model.OrdenesComprasInsumos.Sum(x => x.Subtotal);
 
                 // IMPORTANTE: Id = 0 para que EF lo trate como nuevo
                 model.Id = 0;
 
+                // SOLO agregamos la cabecera con sus hijos. EF inserta todo de una.
                 _dbcontext.OrdenesCompras.Add(model);
-                await _dbcontext.SaveChangesAsync();  // => model.Id disponible
 
-                // ----------- Detalle: vinculo al padre e inserto -----------
-                if (model.OrdenesComprasInsumos.Count > 0)
-                {
-                    foreach (var d in model.OrdenesComprasInsumos)
-                    {
-                        d.Id = 0;
-                        d.IdOrdenCompra = model.Id;
-                    }
-
-                    await _dbcontext.OrdenesComprasInsumos.AddRangeAsync(model.OrdenesComprasInsumos);
-                    await _dbcontext.SaveChangesAsync();
-                }
+                await _dbcontext.SaveChangesAsync();  // Inserta cabecera + detalle
 
                 await tx.CommitAsync();
                 return true;
@@ -86,6 +78,7 @@ namespace SistemaKyoGroup.DAL.Repository
                 return false;
             }
         }
+
 
         /* ============================================================
          * ACTUALIZAR (con DIFF en detalle)
@@ -158,7 +151,7 @@ namespace SistemaKyoGroup.DAL.Repository
                         // ===== Modificación de un detalle existente =====
                         bool mod = false;
 
-                        if (cur.IdProveedorLista != inc.IdProveedorLista) { cur.IdProveedorLista = inc.IdProveedorLista; mod = true; }
+                        
                         if (cur.IdInsumo != inc.IdInsumo) { cur.IdInsumo = inc.IdInsumo; mod = true; }
                         if (cur.CantidadPedida != inc.CantidadPedida) { cur.CantidadPedida = inc.CantidadPedida; mod = true; }
                         if (cur.CantidadEntregada != inc.CantidadEntregada) { cur.CantidadEntregada = inc.CantidadEntregada; mod = true; }
@@ -291,28 +284,60 @@ namespace SistemaKyoGroup.DAL.Repository
          * ============================================================ */
         public async Task<OrdenesCompra?> Obtener(int id)
         {
-            try
-            {
-                return await _dbcontext.OrdenesCompras
-                    .Include(o => o.IdUnidadNegocioNavigation)
-                    .Include(o => o.IdLocalNavigation)
-                    .Include(o => o.IdProveedorNavigation)
-                    .Include(o => o.IdEstadoNavigation)
-                    .Include(o => o.OrdenesComprasInsumos)
-                        .ThenInclude(d => d.IdProveedorListaNavigation)
-                    .FirstOrDefaultAsync(o => o.Id == id);
-            }
-            catch
-            {
-                return null;
-            }
+            return await _dbcontext.OrdenesCompras
+                .Where(o => o.Id == id)
+
+                // Cabecera
+                .Include(o => o.IdUnidadNegocioNavigation)
+                .Include(o => o.IdLocalNavigation)
+                .Include(o => o.IdProveedorNavigation)
+                .Include(o => o.IdEstadoNavigation)
+
+                // Detalle
+                .Include(o => o.OrdenesComprasInsumos)
+                    .ThenInclude(d => d.IdInsumoNavigation)
+                .Include(o => o.OrdenesComprasInsumos)
+                    .ThenInclude(d => d.IdEstadoNavigation)
+                .Include(o => o.OrdenesComprasInsumos)
+                    .ThenInclude(d => d.IdProveedorListaNavigation)
+
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
         }
+
 
         public async Task<IQueryable<OrdenesCompra>> ObtenerTodos()
         {
             IQueryable<OrdenesCompra> q = _dbcontext.OrdenesCompras.AsNoTracking();
             return await Task.FromResult(q);
         }
+
+        public async Task<IQueryable<OrdenesCompra>> ObtenerPendientes()
+        {
+            IQueryable<OrdenesCompra> q = _dbcontext.OrdenesCompras
+                .Where(x => x.IdEstado == 1)
+
+                // --- Navegaciones de cabecera ---
+                .Include(o => o.IdUnidadNegocioNavigation)
+                .Include(o => o.IdLocalNavigation)
+                .Include(o => o.IdProveedorNavigation)
+                .Include(o => o.IdEstadoNavigation)
+
+                // --- Detalle + navegaciones del detalle ---
+                .Include(o => o.OrdenesComprasInsumos)
+                    .ThenInclude(d => d.IdInsumoNavigation)
+                .Include(o => o.OrdenesComprasInsumos)
+                    .ThenInclude(d => d.IdEstadoNavigation)
+                .Include(o => o.OrdenesComprasInsumos)
+                    .ThenInclude(d => d.IdProveedorListaNavigation)
+
+                .AsNoTracking()
+                .AsQueryable();
+
+            return await Task.FromResult(q);
+        }
+
+
 
         public async Task<List<OrdenesCompra>> ObtenerTodosConFiltros(
             int? idUnidadNegocio = null,
@@ -329,6 +354,7 @@ namespace SistemaKyoGroup.DAL.Repository
                 .Include(o => o.IdProveedorNavigation)
                 .Include(o => o.IdEstadoNavigation)
                 .Include(o => o.OrdenesComprasInsumos)
+                .Include(o => o.Compras)
                 .AsQueryable();
 
             if (idUnidadNegocio.HasValue && idUnidadNegocio > 0)
