@@ -5,6 +5,11 @@ let detalleOC = []; // líneas de OrdenesComprasInsumo
 // === ESTADO PENDIENTE ===
 let ESTADO_PENDIENTE_ID = null;
 
+// === MODO BLOQUEADO POR COMPRAS ASOCIADAS ===
+let OC_BLOQUEADA = false;
+let OC_ResumenCompras = [];   // array que TIENE que venir del backend con precios reales
+let OC_DetalleOriginal = [];  // detalle crudo de la OC (OrdenesComprasInsumos)
+
 const _num = v => Number(v ?? 0);
 const fmtARS = v => new Intl.NumberFormat('es-AR', {
     style: 'currency',
@@ -90,16 +95,19 @@ $(document).ready(async () => {
             const idUN = Number(this.value || 0);
             await poblarLocales(idUN);
 
-            // al cambiar UN se limpia el detalle
-            detalleOC = [];
-            refrescarTablaDetalle();
+            if (!OC_BLOQUEADA) {
+                detalleOC = [];
+                refrescarTablaDetalle();
+            }
             actualizarEstadoBotonDetalle();
         });
 
         // cambio de Proveedor → limpia detalle + controla botón
         $('#Proveedores').on('change', function () {
-            detalleOC = [];
-            refrescarTablaDetalle();
+            if (!OC_BLOQUEADA) {
+                detalleOC = [];
+                refrescarTablaDetalle();
+            }
             actualizarEstadoBotonDetalle();
         });
 
@@ -124,6 +132,8 @@ $(document).ready(async () => {
         });
 
         actualizarEstadoBotonDetalle();
+        actualizarVisibilidadPanelDetalle();
+
     } catch (e) {
         console.error('Error en init OrdenesComprasNuevoModif:', e);
     }
@@ -141,6 +151,12 @@ function obtenerBotonDetalle() {
 function actualizarEstadoBotonDetalle() {
     const btn = obtenerBotonDetalle();
     if (!btn) return;
+
+    if (OC_BLOQUEADA) {
+        btn.disabled = true;
+        btn.classList.add('disabled');
+        return;
+    }
 
     const idUN = Number($('#UnidadesNegocio').val() || 0);
     const idProv = Number($('#Proveedores').val() || 0);
@@ -175,7 +191,6 @@ async function listaOrdenesComprasEstadoFilter() {
     return data.map(x => ({ Id: x.Id, Nombre: x.Nombre }));
 }
 
-// Insumos por Unidad de Negocio + Proveedor
 async function listaInsumosFilter(idUnidadNegocio, idProveedor) {
     if (!(idUnidadNegocio > 0) || !(idProveedor > 0)) return [];
 
@@ -244,7 +259,6 @@ async function cargarCombosCabecera() {
             selEst.appendChild(o);
         });
 
-        // === ESTADO PENDIENTE: guardo el Id para usarlo luego ===
         const pendiente = estados.find(e =>
             (e.Nombre || '').toLowerCase().trim() === 'pendiente'
         );
@@ -277,7 +291,6 @@ async function poblarLocales(idUnidadNegocio) {
     });
 
     $('#Locales').val(null).trigger('change');
-
     suspendValidacionCabeceraChange = false;
 }
 
@@ -316,6 +329,11 @@ async function inicializarTablaDetalle() {
                 searchable: false,
                 render: function (data, type, row, meta) {
                     const idx = meta.row;
+
+                    if (OC_BLOQUEADA) {
+                        return `<span class="badge bg-secondary">Bloqueado</span>`;
+                    }
+
                     return `
                         <button class="btn btn-sm btn-outline-light me-1" type="button" onclick="editarDetalle(${idx})" title="Editar">
                             <i class="fa fa-pencil"></i>
@@ -357,6 +375,8 @@ function getDetalleIndexInput() {
 }
 
 async function abrirModalDetalle(indice = null) {
+    if (OC_BLOQUEADA) return;
+
     const idUN = Number($('#UnidadesNegocio').val() || 0);
     const idProv = Number($('#Proveedores').val() || 0);
 
@@ -373,7 +393,6 @@ async function abrirModalDetalle(indice = null) {
         const alert = document.getElementById('modalAlert');
         alert?.classList.add('d-none');
 
-        // limpiar errores del modal
         $('#formDetalle .is-invalid').removeClass('is-invalid');
         $('#formDetalle .invalid-feedback').addClass('d-none');
 
@@ -411,13 +430,14 @@ async function abrirModalDetalle(indice = null) {
 
         suspendValidacionDetalleChange = false;
 
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('detalleModal'));
-        modal.show();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('detalleModal')).show();
+
     } catch (e) {
         console.error('Error abrirModalDetalle:', e);
     }
 }
 
+/* ================== POPULAR INSUMOS MODAL ================== */
 async function poblarInsumosModal(idUnidadNegocio, idProveedor) {
     const sel = document.getElementById('InsumoSelect');
     if (!sel) return;
@@ -426,7 +446,6 @@ async function poblarInsumosModal(idUnidadNegocio, idProveedor) {
 
     suspendValidacionDetalleChange = true;
 
-    // limpiamos y agregamos placeholder
     sel.innerHTML = '';
     const placeholder = document.createElement('option');
     placeholder.value = '';
@@ -435,7 +454,6 @@ async function poblarInsumosModal(idUnidadNegocio, idProveedor) {
     placeholder.selected = true;
     sel.appendChild(placeholder);
 
-    // opciones
     insumos.forEach(i => {
         const o = document.createElement('option');
         o.value = i.Id;
@@ -445,8 +463,6 @@ async function poblarInsumosModal(idUnidadNegocio, idProveedor) {
         sel.appendChild(o);
     });
 
-    const $precio = $('#PrecioUnitario');
-
     $('#InsumoSelect')
         .off('change.OC')
         .on('change.OC', function () {
@@ -454,9 +470,8 @@ async function poblarInsumosModal(idUnidadNegocio, idProveedor) {
 
             const opt = this.options[this.selectedIndex];
             const costo = _num(opt?.dataset?.costo || 0);
-
             if (costo > 0) {
-                $precio.val(fmtARS(costo));
+                $('#PrecioUnitario').val(fmtARS(costo));
 
                 if (!_num($('#Cantidad').val())) {
                     $('#Cantidad').val('1');
@@ -468,7 +483,6 @@ async function poblarInsumosModal(idUnidadNegocio, idProveedor) {
             actualizarEstadoAlertDetalleModal();
         });
 
-    // mostrar placeholder
     $('#InsumoSelect').val('').trigger('change');
 
     suspendValidacionDetalleChange = false;
@@ -481,11 +495,11 @@ function recalcularSubTotalModal() {
     $('#SubTotal').val(sub ? fmtARS(sub) : '');
 }
 
-/* ===== Validación modal detalle (en vivo) ===== */
+/* ================== VALIDACIÓN MODAL DETALLE ================== */
 function inicializarValidacionEnVivoDetalleModal() {
     $('#formDetalle [data-required="true"]').each(function () {
         const el = this;
-        const ev = (el.tagName === 'SELECT' || el.type === 'date' || el.type === 'number' || el.type === 'text') ? 'change' : 'input';
+        const ev = 'change';
         $(el).on(ev, function () {
             if (suspendValidacionDetalleChange) return;
             validarCampoDetalleIndividual(el);
@@ -495,27 +509,22 @@ function inicializarValidacionEnVivoDetalleModal() {
 }
 
 function validarCampoDetalleIndividual(el) {
-    const val = (el.value ?? '').toString().trim();
+    const val = (el.value ?? '').trim();
     const fb = el.parentElement.querySelector('.invalid-feedback');
     const min = parseFloat(el.getAttribute('data-min') || '0');
     let msg = '';
 
-    if (!val) {
-        msg = fb?.getAttribute('data-msg-required') || fb?.dataset.msgRequired || 'Campo requerido';
-    } else if (!Number.isNaN(min) && min > 0) {
+    if (!val)
+        msg = 'Campo requerido';
+    else if (!Number.isNaN(min) && min > 0) {
         let numericVal = Number(val);
         if (el.id === 'PrecioUnitario') numericVal = parseMoneda(val);
-        if (numericVal <= 0) {
-            msg = fb?.getAttribute('data-msg-min') || fb?.dataset.msgMin || 'Debe ser mayor que 0';
-        }
+        if (numericVal <= 0) msg = 'Debe ser mayor que 0';
     }
 
     if (msg) {
         el.classList.add('is-invalid');
-        if (fb) {
-            fb.textContent = msg;
-            fb.classList.remove('d-none');
-        }
+        if (fb) { fb.textContent = msg; fb.classList.remove('d-none'); }
         return false;
     } else {
         el.classList.remove('is-invalid');
@@ -528,16 +537,13 @@ function camposDetalleModalValidos() {
     let ok = true;
     $('#formDetalle [data-required="true"]').each(function () {
         const el = this;
-        const val = (el.value ?? '').toString().trim();
-        const min = parseFloat(el.getAttribute('data-min') || '0');
+        let v = (el.value ?? '').trim();
+        let min = parseFloat(el.getAttribute('data-min') || '0');
 
-        if (!val) { ok = false; return false; }
-
-        if (!Number.isNaN(min) && min > 0) {
-            let numericVal = Number(val);
-            if (el.id === 'PrecioUnitario') numericVal = parseMoneda(val);
-            if (numericVal <= 0) { ok = false; return false; }
-        }
+        if (!v) { ok = false; return false; }
+        let n = Number(v);
+        if (el.id === 'PrecioUnitario') n = parseMoneda(v);
+        if (!Number.isNaN(min) && min > 0 && n <= 0) { ok = false; return false; }
     });
     return ok;
 }
@@ -545,25 +551,22 @@ function camposDetalleModalValidos() {
 function actualizarEstadoAlertDetalleModal() {
     const alert = document.getElementById('modalAlert');
     if (!alert) return;
-    if (camposDetalleModalValidos()) {
-        alert.classList.add('d-none');
-    }
+    if (camposDetalleModalValidos()) alert.classList.add('d-none');
 }
 
 function validarDetalleModal() {
     let ok = true;
-
     $('#formDetalle [data-required="true"]').each(function () {
         if (!validarCampoDetalleIndividual(this)) ok = false;
     });
-
     const alert = document.getElementById('modalAlert');
     if (!ok) alert?.classList.remove('d-none'); else alert?.classList.add('d-none');
-
     return ok;
 }
 
+/* ================== GUARDAR DETALLE ================== */
 function guardarDetalle() {
+    if (OC_BLOQUEADA) return;
     if (!validarDetalleModal()) return;
 
     const idxInput = getDetalleIndexInput();
@@ -575,90 +578,73 @@ function guardarDetalle() {
     const cant = _num($('#Cantidad').val());
     const sub = precio * cant;
 
-    // IdProveedorLista del option seleccionado
     let idProveedorLista = 0;
     const opt = document.querySelector('#InsumoSelect option:checked');
-    if (opt) {
-        idProveedorLista = _num(opt.dataset.idprovlista || 0);
-    }
-    if (!idProveedorLista && idx !== '' && detalleOC[idx]) {
+    if (opt) idProveedorLista = _num(opt.dataset.idprovlista || 0);
+
+    if (!idProveedorLista && idx !== '' && detalleOC[idx])
         idProveedorLista = detalleOC[idx].idProveedorLista || 0;
-    }
 
     const item = {
-        id: (idx !== '' && detalleOC[idx]) ? (detalleOC[idx].id || 0) : 0,
+        id: (idx !== '' && detalleOC[idx]) ? detalleOC[idx].id : 0,
         idInsumo,
         nombreInsumo,
         precioUnitario: precio,
         cantidad: cant,
         subTotal: sub,
         idProveedorLista,
-        // campos para el repo (si no se cargan acá quedan en 0)
-        cantidadEntregada: (idx !== '' && detalleOC[idx]) ? _num(detalleOC[idx].cantidadEntregada) : 0,
-        cantidadRestante: (idx !== '' && detalleOC[idx]) ? _num(detalleOC[idx].cantidadRestante) : cant,
-        idEstado: (idx !== '' && detalleOC[idx]) ? _num(detalleOC[idx].idEstado) : 1,
-        nota: (idx !== '' && detalleOC[idx]) ? (detalleOC[idx].nota || '') : ''
+        cantidadEntregada: (idx !== '' && detalleOC[idx]) ? detalleOC[idx].cantidadEntregada : 0,
+        cantidadRestante: (idx !== '' && detalleOC[idx])
+            ? detalleOC[idx].cantidadRestante
+            : cant,
+        idEstado: (idx !== '' && detalleOC[idx]) ? detalleOC[idx].idEstado : 1,
+        nota: (idx !== '' && detalleOC[idx]) ? detalleOC[idx].nota : ''
     };
 
     if (idx !== '' && detalleOC[idx]) {
-        // EDITAR: reemplazamos sólo esa fila
         detalleOC[idx] = item;
     } else {
-        // NUEVO: si ya existe una línea con ese insumo, sumamos cantidades
-        const existingIndex = detalleOC.findIndex(d =>
-            String(d.idInsumo) === String(idInsumo)
-        );
-
+        const existingIndex = detalleOC.findIndex(d => String(d.idInsumo) === String(idInsumo));
         if (existingIndex >= 0) {
-            const existente = detalleOC[existingIndex];
-
-            const cantidadAnterior = _num(existente.cantidad);
-            const nuevaCantidad = cantidadAnterior + cant;
-
-            existente.cantidad = nuevaCantidad;
-            existente.precioUnitario = precio;          // dejamos el último precio
-            existente.subTotal = precio * nuevaCantidad; // recalculamos subtotal
+            const ex = detalleOC[existingIndex];
+            const nuevaCant = _num(ex.cantidad) + cant;
+            ex.cantidad = nuevaCant;
+            ex.precioUnitario = precio;
+            ex.subTotal = precio * nuevaCant;
         } else {
             detalleOC.push(item);
         }
     }
 
     refrescarTablaDetalle();
-
-    const modal = bootstrap.Modal.getInstance(document.getElementById('detalleModal'));
-    modal?.hide();
+    bootstrap.Modal.getInstance(document.getElementById('detalleModal')).hide();
 }
 
-function editarDetalle(indice) {
-    abrirModalDetalle(indice);
+/* ================== EDITAR / ELIMINAR DETALLE ================== */
+function editarDetalle(i) {
+    if (OC_BLOQUEADA) return;
+    abrirModalDetalle(i);
 }
 
-function eliminarDetalle(indice) {
-    if (!detalleOC[indice]) return;
-    const ok = window.confirm('¿Desea eliminar este insumo del detalle?');
-    if (!ok) return;
-    detalleOC.splice(indice, 1);
+function eliminarDetalle(i) {
+    if (OC_BLOQUEADA) return;
+    if (!detalleOC[i]) return;
+    if (!confirm('¿Desea eliminar este insumo?')) return;
+    detalleOC.splice(i, 1);
     refrescarTablaDetalle();
 }
 
 /* ================== VALIDACIÓN CABECERA ================== */
-
-// valida 1 campo de cabecera (input/select) y muestra/oculta el mensaje del campo
 function validarCampoCabeceraIndividual(el) {
-    const val = (el.value ?? '').toString().trim();
+    const val = (el.value ?? '').trim();
     const fb = el.parentElement.querySelector('.invalid-feedback');
     let msg = '';
 
-    if (!val) {
-        msg = fb?.getAttribute('data-msg-required') || fb?.dataset.msgRequired || 'Campo requerido';
-    }
+    if (!val) msg = 'Campo requerido';
 
     if (msg) {
         el.classList.add('is-invalid');
-        if (fb) {
-            fb.textContent = msg;
-            fb.classList.remove('d-none');
-        }
+        if (fb) { fb.textContent = msg; fb.classList.remove('d-none'); }
         return false;
     } else {
         el.classList.remove('is-invalid');
@@ -667,9 +653,8 @@ function validarCampoCabeceraIndividual(el) {
     }
 }
 
-// sólo chequea si lógicamente está bien (para saber si ocultar alerta global)
 function campoCabeceraLogicamenteValido(el) {
-    const val = (el.value ?? '').toString().trim();
+    const val = (el.value ?? '').trim();
     if (!val) return false;
     const min = parseFloat(el.getAttribute('data-min') || '0');
     if (!Number.isNaN(min) && min > 0 && Number(val) <= 0) return false;
@@ -677,117 +662,148 @@ function campoCabeceraLogicamenteValido(el) {
 }
 
 function camposCabeceraValidos() {
-    const root = document.getElementById('frmCabeceraOC') || document;
     let ok = true;
-    $(root).find('[data-required="true"]').each(function () {
+    $('#frmCabeceraOC [data-required="true"]').each(function () {
         if (!campoCabeceraLogicamenteValido(this)) { ok = false; return false; }
     });
     return ok;
 }
 
 function inicializarValidacionEnVivoCabecera() {
-    const root = document.getElementById('frmCabeceraOC') || document;
-    $(root).find('[data-required="true"]').each(function () {
+    $('#frmCabeceraOC [data-required="true"]').each(function () {
         const el = this;
-        const ev = (el.tagName === 'SELECT' || el.type === 'date' || el.type === 'number' || el.type === 'text') ? 'change' : 'input';
-        $(el).on(ev, function () {
+        $(el).on('change', function () {
             if (suspendValidacionCabeceraChange) return;
             validarCampoCabeceraIndividual(el);
-            if (camposCabeceraValidos()) {
-                const alert = document.getElementById('alertRequeridos');
-                alert?.classList.add('d-none');
-            }
+            if (camposCabeceraValidos())
+                $('#alertRequeridos').addClass('d-none');
         });
     });
 }
 
 function validarCabeceraOC() {
     let ok = true;
-    const root = document.getElementById('frmCabeceraOC') || document;
-
-    $(root).find('[data-required="true"]').each(function () {
+    $('#frmCabeceraOC [data-required="true"]').each(function () {
         if (!validarCampoCabeceraIndividual(this)) ok = false;
     });
-
-    const alert = document.getElementById('alertRequeridos');
-    if (!ok) alert?.classList.remove('d-none'); else alert?.classList.add('d-none');
-
+    if (!ok) $('#alertRequeridos').removeClass('d-none');
+    else $('#alertRequeridos').addClass('d-none');
     return ok;
 }
 
 function validarDetalleOC() {
-    const alert = document.getElementById('alertDetalle');
     if (!detalleOC.length) {
-        alert?.classList.remove('d-none');
+        $('#alertDetalle').removeClass('d-none');
         return false;
     }
-    alert?.classList.add('d-none');
+    $('#alertDetalle').addClass('d-none');
     return true;
 }
 
-/* ================== CARGA INICIAL DESDE EditarInfo ================== */
+/* ================== BLOQUEO POR COMPRAS ================== */
 
+function aplicarBloqueoSiCorresponde(cab, detalle, resumenCompras) {
+
+    const tieneCompras =
+        Number(cab.CantCompras || 0) > 0 &&
+        Number(cab.IdCompraPrimera || 0) > 0;
+
+    window.OC_IdCompraPrimera = Number(cab.IdCompraPrimera || 0);
+
+    OC_ResumenCompras = Array.isArray(resumenCompras) ? resumenCompras : [];
+    OC_DetalleOriginal = Array.isArray(detalle) ? detalle : [];
+
+    if (!tieneCompras) {
+
+        OC_BLOQUEADA = false;
+        mostrarCartelSinCompras();
+
+        $('#panelDetalleNormal').removeClass('d-none');
+        $('#panelComprasOcTarjetas').addClass('d-none');
+        $('#btnExportarOcPdf').addClass('d-none');
+        return;
+    }
+
+    OC_BLOQUEADA = true;
+
+    mostrarCartelConCompras(window.OC_IdCompraPrimera, cab.FechaEntrega);
+
+    $('#btnNuevoModificarOC').addClass('d-none');
+    $('#btnAddDetalle').prop('disabled', true).addClass('disabled');
+    $('#UnidadesNegocio, #Locales, #Proveedores, #FechaEmision, #FechaEntrega, #NotaInterna').prop('disabled', true);
+
+    const base = OC_ResumenCompras.length ? OC_ResumenCompras : OC_DetalleOriginal;
+    renderTarjetasResumen(base);
+
+    $('#panelDetalleNormal').addClass('d-none');
+    $('#panelComprasOcTarjetas').removeClass('d-none');
+    $('#btnExportarOcPdf').removeClass('d-none');
+}
+
+
+/* Versión “placeholder” conservada para no romper referencias antiguas */
+function mostrarPanelResumenCompras(detalleOriginalOC) {
+    // ahora no se usa directamente; la lógica está en renderTarjetasResumen
+}
+
+/* Helper: muestra/oculta tabla vs tarjetas según OC_BLOQUEADA */
+function actualizarVisibilidadPanelDetalle() {
+    const panelTabla = document.getElementById('panelDetalleNormal');
+    const panelTarjetas = document.getElementById('panelComprasOcTarjetas');
+    const btnPDF = document.getElementById('btnExportarOcPdf');
+
+    if (!panelTabla || !panelTarjetas) return;
+
+    if (OC_BLOQUEADA) {
+        panelTabla.classList.add('d-none');
+        panelTarjetas.classList.remove('d-none');
+        if (btnPDF) btnPDF.classList.remove('d-none');
+    } else {
+        panelTabla.classList.remove('d-none');
+        panelTarjetas.classList.add('d-none');
+        if (btnPDF) btnPDF.classList.add('d-none');
+    }
+}
+
+/* ================== CARGA INICIAL DESDE EditarInfo ================== */
 async function ObtenerDatosOrdenCompra(id) {
     return await fetchJson(`/OrdenesCompras/EditarInfo?id=${id}`);
 }
 
 async function cargarDesdeOrdenCompraData() {
-    // En la vista tenés:
-    // var OrdenCompraData = ...;
     const raw = window.OrdenCompraData;
 
     let cab = {};
     let detalleServer = [];
+    let resumenCompras = [];
 
     if (typeof raw === 'number' && raw > 0) {
-        // igual que SubRecetas: si viene el Id, voy a EditarInfo
         const resp = await ObtenerDatosOrdenCompra(raw);
-
-        if (resp && (resp.OrdenCompra || resp.ordenCompra)) {
-            cab = resp.OrdenCompra ?? resp.ordenCompra ?? {};
-            detalleServer = resp.OrdenesComprasInsumos ?? resp.ordenesComprasInsumos ?? [];
-        } else {
-            // compatibilidad por si la API devuelve plano
-            cab = resp || {};
-            detalleServer = cab.OrdenesComprasInsumos ?? cab.ordenesComprasInsumos ?? [];
-        }
+        cab = resp.OrdenCompra || resp.ordenCompra || {};
+        detalleServer = resp.OrdenesComprasInsumos || resp.ordenesComprasInsumos || [];
+        resumenCompras = resp.ResumenCompras || [];
     } else if (raw && typeof raw === 'object') {
-        // Puede venir ya serializado desde la vista
-        if (raw.OrdenCompra || raw.ordenCompra) {
-            cab = raw.OrdenCompra ?? raw.ordenCompra ?? {};
-            detalleServer = raw.OrdenesComprasInsumos ?? raw.ordenesComprasInsumos ?? [];
-        } else {
-            cab = raw;
-            detalleServer = cab.OrdenesComprasInsumos ?? cab.ordenesComprasInsumos ?? [];
-        }
-    } else {
-        cab = {};
-        detalleServer = [];
+        cab = raw.OrdenCompra || raw.ordenCompra || raw;
+        detalleServer = raw.OrdenesComprasInsumos || raw.ordenesComprasInsumos || [];
+        resumenCompras = raw.ResumenCompras || [];
     }
 
-    const id = _num(cab.Id ?? cab.id ?? 0);
-
-    const titulo = document.getElementById('tituloOC');
-    const btn = document.getElementById('btnNuevoModificarOC');
+    const id = _num(cab.Id || 0);
 
     if (id > 0) {
-        // ---- Modo EDICIÓN ----
         $('#IdOC').val(id);
+        $('#tituloOC').text(`Editar Orden de Compra #${id}`);
+        $('#btnNuevoModificarOC').html(`<i class="fa fa-save me-1"></i> Guardar`);
 
-        if (titulo) titulo.textContent = `Editar Orden de Compra #${id}`;
-        if (btn) btn.innerHTML = `<i class="fa fa-save me-1"></i> Guardar`;
-
-        // Cabecera (VMOrdenCompra)
-        const idUN = _num(cab.IdUnidadNegocio ?? cab.idUnidadNegocio ?? 0);
-        const idLocal = _num(cab.IdLocal ?? cab.idLocal ?? 0);
-        const idProv = _num(cab.IdProveedor ?? cab.idProveedor ?? 0);
-        const idEst = _num(cab.IdEstado ?? cab.idEstado ?? 0);
+        const idUN = _num(cab.IdUnidadNegocio);
+        const idLocal = _num(cab.IdLocal);
+        const idProv = _num(cab.IdProveedor);
+        const idEst = _num(cab.IdEstado);
 
         if (idUN) {
             $('#UnidadesNegocio').val(idUN);
             await poblarLocales(idUN);
         }
-
         if (idLocal) $('#Locales').val(idLocal);
         if (idProv) $('#Proveedores').val(idProv);
         if (idEst) $('#Estados').val(idEst);
@@ -797,121 +813,60 @@ async function cargarDesdeOrdenCompraData() {
         $('#Proveedores').trigger('change');
         $('#Estados').trigger('change');
 
-        // === ESTADO PENDIENTE: bloquear siempre el combo, mostrando el valor real ===
-        $('#Estados').prop('disabled', true).trigger('change.select2');
+        $('#Estados').prop('disabled', true);
 
-        // Fechas
-        const fechaEmision = cab.FechaEmision ?? cab.fechaEmision;
-        const fechaEntrega = cab.FechaEntrega ?? cab.fechaEntrega;
-
-        if (fechaEmision) {
-            const d = new Date(fechaEmision);
-            if (!isNaN(d)) {
-                const yyyy = d.getFullYear();
-                const mm = String(d.getMonth() + 1).padStart(2, '0');
-                const dd = String(d.getDate()).padStart(2, '0');
-                $('#FechaEmision').val(`${yyyy}-${mm}-${dd}`);
-            }
+        const fechaE = cab.FechaEmision ? new Date(cab.FechaEmision) : null;
+        if (fechaE) {
+            $('#FechaEmision').val(fechaE.toISOString().split('T')[0]);
         }
 
-        if (fechaEntrega) {
-            const d2 = new Date(fechaEntrega);
-            if (!isNaN(d2)) {
-                const yyyy = d2.getFullYear();
-                const mm = String(d2.getMonth() + 1).padStart(2, '0');
-                const dd = String(d2.getDate()).padStart(2, '0');
-                $('#FechaEntrega').val(`${yyyy}-${mm}-${dd}`);
-            }
+        if (cab.FechaEntrega) {
+            const fe = new Date(cab.FechaEntrega);
+            $('#FechaEntrega').val(fe.toISOString().split('T')[0]);
         }
 
-        const nota = cab.NotaInterna ?? cab.notaInterna ?? '';
-        if (nota) $('#NotaInterna').val(nota);
+        $('#NotaInterna').val(cab.NotaInterna || '');
+        $('#CostoTotal').val(fmtARS(cab.CostoTotal || 0));
 
-        const costoTotal = cab.CostoTotal ?? cab.costoTotal ?? 0;
-        if (costoTotal) $('#CostoTotal').val(fmtARS(costoTotal));
+        OC_DetalleOriginal = Array.isArray(detalleServer) ? detalleServer : [];
 
-        // ---- Detalle ----
-        const detArray = Array.isArray(detalleServer) ? detalleServer : [];
-
-        detalleOC = detArray.map(d => ({
-            id: _num(d.Id ?? d.id ?? 0),
-            idInsumo: d.IdInsumo ?? d.idInsumo ?? '',
-            nombreInsumo:
-                d.Nombre ?? d.nombre ??
-                d.NombreInsumo ?? d.nombreInsumo ??
-                d.Insumo ?? d.insumo ??
-                d.DescripcionInsumo ?? d.descripcionInsumo ?? '',
-            precioUnitario: _num(
-                d.PrecioLista ?? d.precioLista ??
-                d.PrecioUnitario ?? d.precioUnitario ??
-                d.Precio ?? d.precio ?? 0
-            ),
-            cantidad: _num(
-                d.CantidadPedida ?? d.cantidadPedida ??
-                d.Cantidad ?? d.cantidad ?? 0
-            ),
-            subTotal: _num(
-                d.SubTotal ?? d.subTotal ??
-                d.Subtotal ?? d.subtotal ??
-                d.CostoTotal ?? d.costoTotal ?? 0
-            ),
-            idProveedorLista: _num(d.IdProveedorLista ?? d.idProveedorLista ?? 0),
-            cantidadEntregada: _num(d.CantidadEntregada ?? d.cantidadEntregada ?? 0),
-            cantidadRestante: _num(
-                d.CantidadRestante ?? d.cantidadRestante ??
-                (d.CantidadPedida ?? d.cantidadPedida ?? 0) -
-                (d.CantidadEntregada ?? d.cantidadEntregada ?? 0)
-            ),
-            idEstado: _num(d.IdEstado ?? d.idEstado ?? 1),
-            nota: d.NotaInterna ?? d.notaInterna ?? ''
+        detalleOC = detalleServer.map(d => ({
+            id: d.Id,
+            idInsumo: d.IdInsumo,
+            nombreInsumo: d.Nombre || d.Descripcion || '',
+            precioUnitario: d.PrecioLista,
+            cantidad: d.CantidadPedida,
+            subTotal: d.SubTotal || d.Subtotal,
+            idProveedorLista: d.IdProveedorLista,
+            cantidadEntregada: d.CantidadEntregada,
+            cantidadRestante: d.CantidadRestante,
+            idEstado: d.IdEstado,
+            nota: d.NotaInterna
         }));
 
-        // Si vino sin nombre (o vino el Id como texto), intento resolverlo
-        // con la lista de insumos por UN + Proveedor:
-        if (idUN > 0 && idProv > 0 && detalleOC.length) {
-            try {
-                const listaInsumos = await listaInsumosFilter(idUN, idProv);
-                const mapNombres = new Map();
-                listaInsumos.forEach(i => {
-                    mapNombres.set(String(i.Id), i.Nombre);
-                });
-
-                detalleOC.forEach(d => {
-                    const nombreActual = (d.nombreInsumo || '').trim();
-                    if (!nombreActual || nombreActual === String(d.idInsumo)) {
-                        const nom = mapNombres.get(String(d.idInsumo));
-                        if (nom) {
-                            d.nombreInsumo = nom;
-                        } else if (!nombreActual) {
-                            d.nombreInsumo = String(d.idInsumo || '');
-                        }
-                    }
-                });
-            } catch (e) {
-                console.warn('No se pudo mapear nombre de insumos desde listaInsumosFilter:', e);
-            }
-        }
-
         refrescarTablaDetalle();
+
+        aplicarBloqueoSiCorresponde(cab, detalleServer, resumenCompras);
+
     } else {
-        // ---- Modo NUEVA OC ----
-        if (titulo) titulo.textContent = 'Nueva Orden de Compra';
-        if (btn) btn.innerHTML = `<i class="fa fa-save me-1"></i> Registrar`;
+        $('#tituloOC').text('Nueva Orden de Compra');
+        $('#btnNuevoModificarOC').html(`<i class="fa fa-save me-1"></i> Registrar`);
 
         const hoy = new Date();
-        const yyyy = hoy.getFullYear();
-        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-        const dd = String(hoy.getDate()).padStart(2, '0');
-        $('#FechaEmision').val(`${yyyy}-${mm}-${dd}`);
+        $('#FechaEmision').val(hoy.toISOString().split('T')[0]);
 
-        // === ESTADO PENDIENTE por defecto y bloqueado ===
-        if (typeof ESTADO_PENDIENTE_ID !== 'undefined' && ESTADO_PENDIENTE_ID != null) {
-            $('#Estados').val(ESTADO_PENDIENTE_ID).trigger('change');
-        }
-        $('#Estados').prop('disabled', true).trigger('change.select2');
+        if (ESTADO_PENDIENTE_ID != null)
+            $('#Estados').val(ESTADO_PENDIENTE_ID);
+
+        $('#Estados').prop('disabled', true);
+
+        OC_BLOQUEADA = false;
+        OC_ResumenCompras = [];
+        OC_DetalleOriginal = [];
 
         detalleOC = [];
         refrescarTablaDetalle();
+        actualizarVisibilidadPanelDetalle();
     }
 
     actualizarEstadoBotonDetalle();
@@ -920,12 +875,11 @@ async function cargarDesdeOrdenCompraData() {
 /* ================== GUARDAR (Insertar / Actualizar) ================== */
 async function guardarOC() {
     try {
+        if (OC_BLOQUEADA) return;
         if (!validarCabeceraOC()) return;
         if (!validarDetalleOC()) return;
 
-        const idOC = $('#IdOC').val();
-        const id = idOC ? Number(idOC) : 0;
-
+        const id = Number($('#IdOC').val() || 0);
         const idUN = _num($('#UnidadesNegocio').val());
         const idLocal = _num($('#Locales').val());
         const idProv = _num($('#Proveedores').val());
@@ -947,17 +901,17 @@ async function guardarOC() {
             IdEstado: idEstado,
             NotaInterna: notaInterna,
             OrdenesComprasInsumos: detalleOC.map(d => ({
-                Id: d.id || 0,
-                IdOrdenCompra: id || 0,
+                Id: d.id,
+                IdOrdenCompra: id,
                 IdInsumo: d.idInsumo,
-                IdProveedorLista: d.idProveedorLista || null,
+                IdProveedorLista: d.idProveedorLista,
                 CantidadPedida: d.cantidad,
-                CantidadEntregada: d.cantidadEntregada || 0,
-                CantidadRestante: d.cantidadRestante || (d.cantidad - (d.cantidadEntregada || 0)),
+                CantidadEntregada: d.cantidadEntregada,
+                CantidadRestante: d.cantidadRestante,
                 PrecioLista: d.precioUnitario,
                 Subtotal: d.subTotal,
-                IdEstado: d.idEstado || idEstado || 1,
-                NotaInterna: d.nota || ''
+                IdEstado: d.idEstado,
+                NotaInterna: d.nota
             }))
         };
 
@@ -965,49 +919,287 @@ async function guardarOC() {
         const method = id === 0 ? "POST" : "PUT";
 
         const r = await fetch(url, {
-            method: method,
+            method,
             headers: authHeaders({ 'Content-Type': 'application/json;charset=utf-8' }),
             body: JSON.stringify(modelo)
         });
 
-        if (!r.ok) throw new Error(await r.text().catch(() => 'Error HTTP'));
-        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(await r.text());
+        const j = await r.json();
 
-        const mensajeOK = id === 0
-            ? "Orden de compra registrada correctamente"
-            : "Orden de compra modificada correctamente";
-
-        if (j && j.valor === false) {
-            if (typeof advertenciaModal === 'function') advertenciaModal(j.mensaje || 'No se pudo guardar la orden de compra.');
-            else alert(j.mensaje || 'No se pudo guardar la orden de compra.');
+        if (j.valor === false) {
+            advertenciaModal?.(j.mensaje || 'No se pudo guardar');
             return;
         }
 
-        if (typeof exitoModal === 'function') {
-            exitoModal(j.mensaje || mensajeOK);
-        } else {
-            alert(mensajeOK);
-        }
-
-        const nuevoId = j.id || j.Id || id;
-
-        // Navegación post-guardar:
-        // - Si es NUEVA OC: mantiene comportamiento anterior (queda en NuevoModif del nuevo Id)
-        // - Si es MODIFICACIÓN: vuelve al listado de Ordenes de Compra
-        if (id === 0) {
-            if (nuevoId && nuevoId > 0) {
-                window.location.href = '/OrdenesCompras';
-            } else {
-                window.location.href = '/OrdenesCompras';
-            }
-        } else {
-            window.location.href = '/OrdenesCompras';
-        }
+        exitoModal?.(j.mensaje || 'Guardado correctamente');
+        window.location.href = "/OrdenesCompras";
 
     } catch (e) {
-        console.error('Error al guardar orden de compra:', e);
-        if (typeof errorModal === 'function') errorModal('Error al guardar la orden de compra.');
-        else alert('Error al guardar la orden de compra.');
+        console.error('Error guardando OC:', e);
+        errorModal?.('Error al guardar la orden de compra.');
     }
 }
-/********************  FIN OrdenesComprasNuevoModif.js  ********************/
+
+/* ================== TARJETAS RESUMEN + PDF ================== */
+
+function obtenerEstadoNombreYClase(d) {
+    const idEstado = _num(d.IdEstado ?? d.idEstado ?? d.IdEstadoOcInsumo ?? d.idEstadoOcInsumo ?? 0);
+    const nombre = d.Estado || d.estado || d.EstadoOcNombre || d.estadoOcNombre ||
+        (idEstado === 1 ? 'Pendiente' :
+            idEstado === 2 ? 'Entregado' :
+                idEstado === 3 ? 'Incompleto' : 'Sin estado');
+
+    let clase = 'oc-badge-estado--default';
+    if (idEstado === 1) clase = 'oc-badge-estado--pendiente';
+    else if (idEstado === 2) clase = 'oc-badge-estado--entregado';
+    else if (idEstado === 3) clase = 'oc-badge-estado--incompleto';
+
+    return { nombre, clase };
+}
+
+function renderTarjetasResumen(detalleBase) {
+    const panel = document.getElementById("panelComprasOcTarjetas");
+    const grid = document.getElementById("ocResumenGrid");
+    if (!panel || !grid) return;
+
+    // Preferimos siempre ResumenCompras si existe
+    const data = (Array.isArray(OC_ResumenCompras) && OC_ResumenCompras.length)
+        ? OC_ResumenCompras
+        : (Array.isArray(detalleBase) ? detalleBase : []);
+
+    grid.innerHTML = "";
+
+    if (!data.length) {
+        grid.innerHTML = `<div class="oc-empty">No hay información de compras asociadas.</div>`;
+        return;
+    }
+
+    data.forEach(d => {
+        const nombre = d.Nombre || d.Descripcion || d.nombreInsumo || d.InsumoNombre || 'Insumo';
+        const idInsumo = d.IdInsumo ?? d.idInsumo ?? d.Sku ?? d.sku ?? '-';
+
+        // CANTIDADES
+        const cantPedida =
+            _num(d.CantidadPedida ?? d.CantidadPedidaOc ?? d.CantidadOc ?? d.cantidad ?? 0);
+        const cantEnt =
+            _num(d.CantidadEntregada ?? d.CantidadEntregadaOc ?? d.CantidadRecibida ?? d.cantidadEntregada ?? 0);
+        const cantRest =
+            _num(d.CantidadRestante ?? d.CantidadPendienteOc ?? d.cantidadRestante ?? (cantPedida - cantEnt));
+
+        // PRECIOS ORDEN / COMPRA
+        const precioOrden =
+            _num(d.PrecioLista ?? d.PrecioOrden ?? d.precioUnitario ?? d.precioOrden ?? 0);
+
+        const precioCompra =
+            _num(d.PrecioCompra ?? d.PrecioFactura ?? d.PrecioFinal ?? d.precioCompra ?? d.precioFactura ?? d.precioFinal ?? precioOrden);
+
+        const subtotalOrden =
+            _num(d.SubTotalOrden ?? d.SubTotalOc ?? d.SubTotal ?? d.Subtotal ?? d.subTotal ?? (precioOrden * cantPedida));
+
+        const subtotalCompra =
+            _num(
+                d.SubTotalCompra ?? d.SubtotalCompra ??
+                d.SubtotalFinal ?? d.SubtotalConDescuento ??
+                d.subTotalCompra ?? d.subtotalFinal ?? (precioCompra * cantEnt)
+            );
+
+        // DIFERENCIAS (Orden - Compra) => positivo = ahorraste, negativo = pagaste más
+        const difPrecio = precioOrden - precioCompra;
+        const difSubtotal = subtotalOrden - subtotalCompra;
+
+        const difPrecioClass =
+            difPrecio > 0 ? 'oc-dif-pos' :
+                difPrecio < 0 ? 'oc-dif-neg' : '';
+
+        const difSubClass =
+            difSubtotal > 0 ? 'oc-dif-pos' :
+                difSubtotal < 0 ? 'oc-dif-neg' : '';
+
+        const est = obtenerEstadoNombreYClase(d);
+
+        const card = document.createElement("article");
+        card.className = "oc-card-item";
+
+        card.innerHTML = `
+            <header class="oc-card-header">
+                <div class="oc-card-icon">
+                    <i class="fa fa-cube"></i>
+                </div>
+                <div class="oc-card-main">
+                    <div class="oc-card-title-row">
+                        <h4 class="oc-card-title">${nombre}</h4>
+                        <span class="oc-badge-estado ${est.clase}">${est.nombre}</span>
+                    </div>
+                    <div class="oc-card-sub">
+                        ID: ${idInsumo}
+                    </div>
+                </div>
+            </header>
+
+            <div class="oc-card-body">
+                <div class="oc-row">
+                    <div class="oc-col">
+                        <span class="oc-label">Pedida</span>
+                        <span class="oc-value">${fmtDec(cantPedida)}</span>
+                    </div>
+                    <div class="oc-col">
+                        <span class="oc-label">Entregada</span>
+                        <span class="oc-value">${fmtDec(cantEnt)}</span>
+                    </div>
+                    <div class="oc-col">
+                        <span class="oc-label">Restante</span>
+                        <span class="oc-value oc-restante">${fmtDec(cantRest)}</span>
+                    </div>
+                </div>
+
+                <div class="oc-row oc-row-prices">
+                    <div class="oc-col">
+                        <span class="oc-label">Precio Orden</span>
+                        <span class="oc-value">${fmtARS(precioOrden)}</span>
+                        <span class="oc-label mt-1">Subtotal Orden</span>
+                        <span class="oc-value-small">${fmtARS(subtotalOrden)}</span>
+                    </div>
+                    <div class="oc-col">
+                        <span class="oc-label">Precio Compra</span>
+                        <span class="oc-value">${fmtARS(precioCompra)}</span>
+                        <span class="oc-label mt-1">Subtotal Compra</span>
+                        <span class="oc-value-small">${fmtARS(subtotalCompra)}</span>
+                    </div>
+                    <div class="oc-col">
+                        <span class="oc-label">Dif. Precio (Orden - Compra)</span>
+                        <span class="oc-value ${difPrecioClass}">${fmtARS(difPrecio)}</span>
+                        <span class="oc-label mt-1">Dif. Subtotal</span>
+                        <span class="oc-value-small ${difSubClass}">${fmtARS(difSubtotal)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        grid.appendChild(card);
+    });
+
+    panel.classList.remove("d-none");
+}
+
+/* ================== EXPORTAR PDF ================== */
+
+document.addEventListener("click", e => {
+    if (e.target.closest("#btnExportarOcPdf")) {
+        exportarOcPdf();
+    }
+});
+
+function exportarOcPdf() {
+    const { jsPDF } = window.jspdf || {};
+    if (!jsPDF) {
+        alert("No se encontró jsPDF.");
+        return;
+    }
+
+    const doc = new jsPDF("p", "pt", "a4");
+
+    const idOC = $("#IdOC").val();
+    const proveedor = $("#Proveedores option:selected").text() || "-";
+    const un = $("#UnidadesNegocio option:selected").text() || "-";
+    const local = $("#Locales option:selected").text() || "-";
+    const fecha = $("#FechaEmision").val() || "-";
+    const nota = $("#NotaInterna").val() || "-";
+
+    // Encabezado
+    doc.setFontSize(22);
+    doc.text(`Orden de Compra #${idOC}`, 40, 40);
+
+    doc.setFontSize(12);
+    doc.text(`Proveedor: ${proveedor}`, 40, 70);
+    doc.text(`Unidad de Negocio: ${un}`, 40, 90);
+    doc.text(`Local: ${local}`, 40, 110);
+    doc.text(`Fecha Emisión: ${fecha}`, 40, 130);
+    doc.text(`Nota Interna: ${nota}`, 40, 150);
+
+    // Fuente de detalle para el PDF:
+    const base = (Array.isArray(OC_ResumenCompras) && OC_ResumenCompras.length)
+        ? OC_ResumenCompras
+        : ((OC_BLOQUEADA ? OC_DetalleOriginal : detalleOC) || []);
+
+    const rows = base.map(d => {
+        const nombre = d.Nombre || d.Descripcion || d.nombreInsumo || d.InsumoNombre || 'Insumo';
+
+        const cantPedida =
+            _num(d.CantidadPedida ?? d.CantidadPedidaOc ?? d.CantidadOc ?? d.cantidad ?? 0);
+        const cantEnt =
+            _num(d.CantidadEntregada ?? d.CantidadEntregadaOc ?? d.CantidadRecibida ?? d.cantidadEntregada ?? 0);
+        const cantRest =
+            _num(d.CantidadRestante ?? d.CantidadPendienteOc ?? d.cantidadRestante ?? (cantPedida - cantEnt));
+
+        const precioOrden =
+            _num(d.PrecioLista ?? d.PrecioOrden ?? d.precioUnitario ?? d.precioOrden ?? 0);
+
+        const precioCompra =
+            _num(d.PrecioCompra ?? d.PrecioFactura ?? d.PrecioFinal ?? d.precioCompra ?? d.precioFactura ?? d.precioFinal ?? precioOrden);
+
+        const subtotalOrden =
+            _num(d.SubTotalOrden ?? d.SubTotalOc ?? d.SubTotal ?? d.Subtotal ?? d.subTotal ?? (precioOrden * cantPedida));
+
+        const subtotalCompra =
+            _num(
+                d.SubTotalCompra ?? d.SubtotalCompra ??
+                d.SubtotalFinal ?? d.SubtotalConDescuento ??
+                d.subTotalCompra ?? d.subtotalFinal ?? (precioCompra * cantEnt)
+            );
+
+        return [
+            nombre,
+            fmtDec(cantPedida),
+            fmtDec(cantEnt),
+            fmtDec(cantRest),
+            fmtARS(precioOrden),
+            fmtARS(precioCompra),
+            fmtARS(subtotalOrden),
+            fmtARS(subtotalCompra)
+        ];
+    });
+
+    doc.autoTable({
+        head: [["Insumo", "Pedida", "Entregada", "Restante", "Precio Ord.", "Precio Comp.", "Subt. Ord.", "Subt. Comp."]],
+        body: rows,
+        startY: 180,
+        theme: "striped",
+        headStyles: { fillColor: [76, 141, 255] },
+        styles: { fontSize: 9 }
+    });
+
+    doc.save(`OC_${idOC}.pdf`);
+}
+
+/********************  FIN COMPLETO OrdenesComprasNuevoModif.js  ********************/
+
+
+function mostrarCartelSinCompras() {
+    $('#ocAlertSinCompras').removeClass('d-none');
+    $('#ocAlertConCompras').addClass('d-none');
+}
+
+function mostrarCartelConCompras(idCompra, fechaEntrega) {
+
+    $('#ocAlertSinCompras').addClass('d-none');
+    $('#ocAlertConCompras').removeClass('d-none');
+
+    const fechaTxt = fechaEntrega
+        ? new Date(fechaEntrega).toLocaleDateString('es-AR')
+        : 'sin fecha';
+
+    $('#ocBannerCompraTexto').html(`
+        Orden de compra entregada el día 
+        <strong>${fechaTxt}</strong>, en la 
+        <button type="button" class="btn btn-link p-0" onclick="irACompraDesdeOC()">
+            Compra #${idCompra}
+        </button>
+    `);
+}
+
+
+function irACompraDesdeOC() {
+    if (!window.OC_IdCompraPrimera) return;
+    window.location.href = `/Compras/NuevoModif/${window.OC_IdCompraPrimera}`;
+}

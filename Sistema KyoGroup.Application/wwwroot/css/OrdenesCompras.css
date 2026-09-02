@@ -1,0 +1,108 @@
+/* ====== Órdenes de Compra – decoraciones columnas importantes ====== */
+
+/* N° OC */
+.oc-pill-id {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    font-variant-numeric: tabular-nums;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+/* Fechas */
+.oc-fecha-emi {
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+.oc-fecha-entrega {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.oc-fecha-atrasada {
+    background: rgba(220, 53, 69, 0.12);
+    border-color: rgba(220, 53, 69, 0.5);
+    color: #ff9ca4;
+}
+
+.oc-fecha-hoy {
+    background: rgba(255, 193, 7, 0.14);
+    border-color: rgba(255, 193, 7, 0.6);
+    color: #ffe28a;
+}
+
+.oc-fecha-futura {
+    background: rgba(25, 135, 84, 0.14);
+    border-color: rgba(25, 135, 84, 0.6);
+    color: #8ee3b1;
+}
+
+/* Estado */
+.oc-badge-estado {
+    display: inline-block;
+    padding: 0.15rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: capitalize;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 12px rgba(0, 0, 0, 0.55);
+}
+
+.oc-estado-default {
+    background: rgba(108, 117, 125, 0.18);
+    color: #ced4da;
+}
+
+.oc-estado-pendiente {
+    background: rgba(148, 163, 184, .25);
+    color: #e5e7eb;
+}
+
+.oc-estado-parcial {
+    background: rgba(249, 115, 22, .22);
+    color: #fed7aa;
+}
+
+.oc-estado-completa {
+    background: rgba(22, 163, 74, .22);
+    color: #bbf7d0;
+}
+
+.oc-estado-cancelada {
+     background: rgba(249, 115, 22, .22);
+    color: #fed7aa;
+}
+
+/* Monto */
+.oc-monto {
+    font-weight: 600;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* Ojito compra */
+.oc-btn-ojito {
+    padding: 0.1rem 0.35rem;
+    border-radius: 999px;
+}
+
+    .oc-btn-ojito i {
+        color: #4fc3f7;
+    }

@@ -109,7 +109,6 @@ namespace SistemaKyoGroup.DAL.Repository
                 entryCab.Property(nameof(OrdenesCompra.IdUsuarioRegistra)).IsModified = false;
                 entryCab.Property(nameof(OrdenesCompra.FechaRegistra)).IsModified = false;
 
-                // Detectar si hubo cambios simples (sin contar auditoría de registro)
                 bool cambiosCabeceraSimples = entryCab.Properties.Any(p =>
                     p.IsModified &&
                     p.Metadata.Name != nameof(OrdenesCompra.IdUsuarioRegistra) &&
@@ -121,23 +120,14 @@ namespace SistemaKyoGroup.DAL.Repository
                 // ================== 3) DETALLE ==================
                 model.OrdenesComprasInsumos ??= new List<OrdenesComprasInsumo>();
 
-                // Snapshot de los detalles ORIGINALES (tal como estaban en DB)
                 var detallesOriginales = existente.OrdenesComprasInsumos.ToList();
-
-                // Diccionario por Id (solo los que ya existían en DB)
                 var originalesPorId = detallesOriginales.ToDictionary(d => d.Id, d => d);
-
-                // Conjunto de Ids que vienen en el modelo (solo > 0 = existentes)
                 var idsEntrantes = new HashSet<int>(
-                    model.OrdenesComprasInsumos
-                         .Where(d => d.Id > 0)
-                         .Select(d => d.Id)
+                    model.OrdenesComprasInsumos.Where(d => d.Id > 0).Select(d => d.Id)
                 );
 
-                // -------- 3.a) Actualizar existentes + insertar nuevos --------
                 foreach (var inc in model.OrdenesComprasInsumos)
                 {
-                    // Normalización de cantidades y subtotal
                     var cantPedida = inc.CantidadPedida;
                     var cantEntregada = inc.CantidadEntregada;
                     inc.CantidadRestante = cantPedida - cantEntregada;
@@ -148,10 +138,8 @@ namespace SistemaKyoGroup.DAL.Repository
 
                     if (inc.Id > 0 && originalesPorId.TryGetValue(inc.Id, out var cur))
                     {
-                        // ===== Modificación de un detalle existente =====
                         bool mod = false;
 
-                        
                         if (cur.IdInsumo != inc.IdInsumo) { cur.IdInsumo = inc.IdInsumo; mod = true; }
                         if (cur.CantidadPedida != inc.CantidadPedida) { cur.CantidadPedida = inc.CantidadPedida; mod = true; }
                         if (cur.CantidadEntregada != inc.CantidadEntregada) { cur.CantidadEntregada = inc.CantidadEntregada; mod = true; }
@@ -165,11 +153,9 @@ namespace SistemaKyoGroup.DAL.Repository
                         {
                             var eDet = _dbcontext.Entry(cur);
 
-                            // Preservar auditoría de registro
                             eDet.Property(nameof(OrdenesComprasInsumo.IdUsuarioRegistra)).IsModified = false;
                             eDet.Property(nameof(OrdenesComprasInsumo.FechaRegistra)).IsModified = false;
 
-                            // Auditoría de modificación
                             if (model.IdUsuarioModifica.HasValue)
                             {
                                 cur.IdUsuarioModifica = model.IdUsuarioModifica;
@@ -181,7 +167,6 @@ namespace SistemaKyoGroup.DAL.Repository
                     }
                     else
                     {
-                        // ===== Alta de un nuevo detalle (Id == 0 en el modelo) =====
                         var nuevo = new OrdenesComprasInsumo
                         {
                             Id = 0,
@@ -204,7 +189,6 @@ namespace SistemaKyoGroup.DAL.Repository
                     }
                 }
 
-                // -------- 3.b) Bajas: SOLO los que estaban originalmente y ya no vienen en el modelo --------
                 var bajas = detallesOriginales
                     .Where(d => !idsEntrantes.Contains(d.Id))
                     .ToList();
@@ -215,14 +199,12 @@ namespace SistemaKyoGroup.DAL.Repository
                     hayCambios = true;
                 }
 
-                // ================== 4) Recalcular costo total ==================
-                await _dbcontext.SaveChangesAsync(); // asegura que Subtotal de cada detalle esté actualizado
+                await _dbcontext.SaveChangesAsync();
 
                 existente.CostoTotal = await _dbcontext.OrdenesComprasInsumos
                     .Where(d => d.IdOrdenCompra == existente.Id)
                     .SumAsync(d => d.Subtotal);
 
-                // Auditoría de modificación de cabecera (solo si hubo cambios en algo)
                 if (hayCambios && model.IdUsuarioModifica.HasValue)
                 {
                     existente.IdUsuarioModifica = model.IdUsuarioModifica;
@@ -249,7 +231,6 @@ namespace SistemaKyoGroup.DAL.Repository
             await using var tx = await _dbcontext.Database.BeginTransactionAsync();
             try
             {
-                // ¿Hay compras asociadas?
                 var tieneCompras = await _dbcontext.Compras
                     .AsNoTracking()
                     .AnyAsync(c => c.IdOrdenCompra == id);
@@ -269,6 +250,7 @@ namespace SistemaKyoGroup.DAL.Repository
 
                 _dbcontext.OrdenesCompras.Remove(cab);
                 await _dbcontext.SaveChangesAsync();
+
                 await tx.CommitAsync();
                 return (true, "Orden de compra eliminada correctamente.");
             }
@@ -293,13 +275,20 @@ namespace SistemaKyoGroup.DAL.Repository
                 .Include(o => o.IdProveedorNavigation)
                 .Include(o => o.IdEstadoNavigation)
 
-                // Detalle
+                // Detalle OC
                 .Include(o => o.OrdenesComprasInsumos)
                     .ThenInclude(d => d.IdInsumoNavigation)
                 .Include(o => o.OrdenesComprasInsumos)
                     .ThenInclude(d => d.IdEstadoNavigation)
                 .Include(o => o.OrdenesComprasInsumos)
                     .ThenInclude(d => d.IdProveedorListaNavigation)
+
+                // Compras asociadas + su detalle
+                .Include(o => o.Compras)
+                    .ThenInclude(c => c.ComprasInsumos)
+                .Include(o => o.Compras)
+                    .ThenInclude(c => c.ComprasInsumos)
+                        .ThenInclude(ci => ci.IdInsumoNavigation)
 
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -317,13 +306,11 @@ namespace SistemaKyoGroup.DAL.Repository
             IQueryable<OrdenesCompra> q = _dbcontext.OrdenesCompras
                 .Where(x => x.IdEstado == 1)
 
-                // --- Navegaciones de cabecera ---
                 .Include(o => o.IdUnidadNegocioNavigation)
                 .Include(o => o.IdLocalNavigation)
                 .Include(o => o.IdProveedorNavigation)
                 .Include(o => o.IdEstadoNavigation)
 
-                // --- Detalle + navegaciones del detalle ---
                 .Include(o => o.OrdenesComprasInsumos)
                     .ThenInclude(d => d.IdInsumoNavigation)
                 .Include(o => o.OrdenesComprasInsumos)
@@ -336,8 +323,6 @@ namespace SistemaKyoGroup.DAL.Repository
 
             return await Task.FromResult(q);
         }
-
-
 
         public async Task<List<OrdenesCompra>> ObtenerTodosConFiltros(
             int? idUnidadNegocio = null,
@@ -383,9 +368,6 @@ namespace SistemaKyoGroup.DAL.Repository
                 .ToListAsync();
         }
 
-        /* ============================================================
-         * OBTENER TODOS por Unidad de Negocio / Usuario
-         * ============================================================ */
         public async Task<IQueryable<OrdenesCompra>> ObtenerTodosUnidadNegocio(
             int idUnidadNegocio,
             int userId,
@@ -425,6 +407,28 @@ namespace SistemaKyoGroup.DAL.Repository
             {
                 return Enumerable.Empty<OrdenesCompra>().AsQueryable();
             }
+        }
+
+        public async Task ActualizarEstadosDetalle(int idOrdenCompra, IDictionary<int, int> estadosPorDetalle)
+        {
+            if (estadosPorDetalle == null || !estadosPorDetalle.Any())
+                return;
+
+            var ids = estadosPorDetalle.Keys.ToList();
+
+            var detalles = await _dbcontext.OrdenesComprasInsumos
+                .Where(d => d.IdOrdenCompra == idOrdenCompra && ids.Contains(d.Id))
+                .ToListAsync();
+
+            foreach (var det in detalles)
+            {
+                if (estadosPorDetalle.TryGetValue(det.Id, out var nuevoEstado) && nuevoEstado > 0)
+                {
+                    det.IdEstado = nuevoEstado;
+                }
+            }
+
+            await _dbcontext.SaveChangesAsync();
         }
     }
 }

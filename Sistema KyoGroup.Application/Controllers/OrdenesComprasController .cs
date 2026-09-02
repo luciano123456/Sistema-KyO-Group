@@ -12,7 +12,7 @@ namespace SistemaKyoGroup.Application.Controllers
     [Authorize]
     public class OrdenesComprasController : Controller
     {
-        private readonly IOrdenCompraService _svc; // <- tu service para OCs (similar a SubRecetasService)
+        private readonly IOrdenCompraService _svc;
 
         public OrdenesComprasController(IOrdenCompraService svc)
         {
@@ -23,6 +23,10 @@ namespace SistemaKyoGroup.Application.Controllers
         public IActionResult Index() => View();
 
 
+
+        // ======================================================
+        // LISTA PENDIENTES
+        // ======================================================
         [HttpGet]
         public async Task<IActionResult> ListaPendientes()
         {
@@ -30,14 +34,8 @@ namespace SistemaKyoGroup.Application.Controllers
             {
                 var userId = User.GetUserId();
 
-                // 1) Obtener los registros ya INCLUYENDO las relaciones
                 var data = await _svc.ObtenerPendientes();
-
-                // 2) MATERIALIZAR (si el servicio devuelve IQueryable)
-                var listaRaw = data.ToList();
-
-                // 3) Proyectar en memoria con ?
-                var lista = listaRaw.Select(o => new VMOrdenCompra
+                var lista = data.ToList().Select(o => new VMOrdenCompra
                 {
                     Id = o.Id,
                     UnidadNegocio = o.IdUnidadNegocioNavigation?.Nombre,
@@ -47,31 +45,33 @@ namespace SistemaKyoGroup.Application.Controllers
                     FechaEmision = o.FechaEmision,
                     FechaEntrega = o.FechaEntrega,
                     CostoTotal = o.CostoTotal,
-                    NotaInterna = o.NotaInterna
+                    NotaInterna = o.NotaInterna,
+                    CantCompras = o.Compras?.Count ?? 0,
+                    IdCompraPrimera = o.Compras?.OrderByDescending(c => c.Fecha).FirstOrDefault()?.Id,
+                    TieneComprasAsociadas = (o.Compras?.Any() ?? false)
                 }).ToList();
 
                 return Ok(lista);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new
-                {
-                    mensaje = "Error al obtener las órdenes de compra pendientes",
-                    detalle = ex.Message
-                });
+                return StatusCode(500, new { mensaje = "Error al obtener las órdenes pendientes", detalle = ex.Message });
             }
         }
 
 
 
+        // ======================================================
+        // LISTA COMPLETA
+        // ======================================================
         [HttpGet]
         public async Task<IActionResult> Lista(
-    int? IdUnidadNegocio = null,
-    int? IdLocal = null,
-    int? IdProveedor = null,
-    int? IdEstado = null,
-    DateTime? FechaDesde = null,
-    DateTime? FechaHasta = null)
+            int? IdUnidadNegocio = null,
+            int? IdLocal = null,
+            int? IdProveedor = null,
+            int? IdEstado = null,
+            DateTime? FechaDesde = null,
+            DateTime? FechaHasta = null)
         {
             try
             {
@@ -84,11 +84,7 @@ namespace SistemaKyoGroup.Application.Controllers
                 var lista = data.Select(o =>
                 {
                     var compras = o.Compras ?? new List<Compra>();
-
-                    // Podés elegir “primera”, “última”, o la más reciente por fecha
-                    var compraDestino = compras
-                        .OrderByDescending(c => c.Fecha)   // o FechaCompra / FechaEmision según tu modelo
-                        .FirstOrDefault();
+                    var compraDestino = compras.OrderByDescending(c => c.Fecha).FirstOrDefault();
 
                     return new VMOrdenCompra
                     {
@@ -102,7 +98,8 @@ namespace SistemaKyoGroup.Application.Controllers
                         CostoTotal = o.CostoTotal,
                         NotaInterna = o.NotaInterna,
                         CantCompras = compras.Count,
-                        IdCompraPrimera = compraDestino?.Id
+                        IdCompraPrimera = compraDestino?.Id,
+                        TieneComprasAsociadas = compras.Any()
                     };
                 }).ToList();
 
@@ -110,9 +107,10 @@ namespace SistemaKyoGroup.Application.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { mensaje = "Error al obtener las órdenes de compra", detalle = ex.Message });
+                return StatusCode(500, new { mensaje = "Error al obtener las órdenes", detalle = ex.Message });
             }
         }
+
 
 
         [HttpGet]
@@ -122,45 +120,36 @@ namespace SistemaKyoGroup.Application.Controllers
                 return Ok(new { });
 
             var oc = await _svc.Obtener(id);
-            if (oc == null) return NotFound();
+            if (oc == null)
+                return NotFound();
 
-            // ===== CABECERA (usa tu VMOrdenCompra tal cual está) =====
+            // ========= CABECERA =========
             var vm = new VMOrdenCompra
             {
                 Id = oc.Id,
-
                 IdUnidadNegocio = oc.IdUnidadNegocio,
                 UnidadNegocio = oc.IdUnidadNegocioNavigation?.Nombre,
-
                 IdLocal = oc.IdLocal,
                 Local = oc.IdLocalNavigation?.Nombre,
-
                 IdProveedor = oc.IdProveedor,
                 Proveedor = oc.IdProveedorNavigation?.Nombre,
-
                 FechaEmision = oc.FechaEmision,
                 FechaEntrega = oc.FechaEntrega,
-
                 CostoTotal = oc.CostoTotal,
-
                 IdEstado = oc.IdEstado,
                 Estado = oc.IdEstadoNavigation?.Nombre,
-
                 NotaInterna = oc.NotaInterna,
 
-                // estos dos por si los querés usar en el front
                 CantCompras = oc.Compras?.Count ?? 0,
-                IdCompraPrimera = oc.Compras?
-                    .OrderBy(c => c.Id)
-                    .FirstOrDefault()?.Id
+                IdCompraPrimera = oc.Compras?.OrderBy(c => c.Fecha).FirstOrDefault()?.Id,
+                TieneComprasAsociadas = oc.Compras?.Any() ?? false
             };
 
-            // ===== DETALLE (lista de VMOrdenCompraInsumo) =====
+            // ========= DETALLE OC (CRUDO) =========
             var detalle = oc.OrdenesComprasInsumos.Select(d => new VMOrdenCompraInsumo
             {
                 Id = d.Id,
                 IdOrdenCompra = d.IdOrdenCompra,
-
                 IdInsumo = d.IdInsumo,
                 IdProveedorLista = d.IdProveedorLista,
 
@@ -169,6 +158,7 @@ namespace SistemaKyoGroup.Application.Controllers
                 CantidadRestante = d.CantidadRestante,
 
                 PrecioLista = d.PrecioLista,
+                SubTotal = d.Subtotal,
 
                 IdEstado = d.IdEstado,
                 NotaInterna = d.NotaInterna,
@@ -178,27 +168,115 @@ namespace SistemaKyoGroup.Application.Controllers
                 IdUsuarioModifica = d.IdUsuarioModifica,
                 FechaModifica = d.FechaModifica,
 
-                // extras “solo vista”
                 Estado = d.IdEstadoNavigation?.Nombre,
                 Sku = d.IdInsumoNavigation?.Sku,
-                Nombre = d.IdInsumoNavigation?.Descripcion,
-
-                // tu campo “de vista”
-                SubTotal = d.Subtotal
+                Nombre = d.IdInsumoNavigation?.Descripcion
             }).ToList();
 
-            // ===== RESPUESTA (cab + detalle separados) =====
+            // ========= RESUMEN X INSUMO (OC vs TODAS LAS COMPRAS) =========
+
+            // Todas las compras asociadas + su detalle
+            var comprasDetalle = (oc.Compras ?? new List<Compra>())
+                .SelectMany(c => c.ComprasInsumos.Select(ci => new
+                {
+                    Compra = c,
+                    Det = ci
+                }))
+                .ToList();
+
+            var resumenPorInsumo = new List<object>();
+
+            foreach (var d in detalle)
+            {
+                // Todas las líneas de compra que matchean ese renglón de la OC
+                var matches = comprasDetalle
+                    .Where(x =>
+                        x.Det.IdInsumo == d.IdInsumo &&
+                        x.Det.IdProveedorLista == d.IdProveedorLista)
+                    .ToList();
+
+                decimal cantRecibida = 0m;
+                decimal subtotalCompra = 0m;
+                decimal sumaPrecioXCant = 0m;
+
+                foreach (var m in matches)
+                {
+                    var det = m.Det;
+
+                    // Precio unitario de la compra: prioridad Factura > Final > Lista
+                    decimal precioCompraUnit;
+                    if (det.PrecioFactura != 0)
+                        precioCompraUnit = det.PrecioFactura;
+                    else if (det.PrecioFinal != 0)
+                        precioCompraUnit = det.PrecioFinal;
+                    else if (det.PrecioLista != 0)
+                        precioCompraUnit = det.PrecioLista;
+                    else
+                        precioCompraUnit = 0m;
+
+                    cantRecibida += det.Cantidad;
+                    sumaPrecioXCant += precioCompraUnit * det.Cantidad;
+                    subtotalCompra += precioCompraUnit * det.Cantidad;
+                }
+
+                decimal precioCompraProm = 0m;
+                if (cantRecibida > 0 && sumaPrecioXCant != 0)
+                    precioCompraProm = sumaPrecioXCant / cantRecibida;
+
+                // Datos de la OC (SIEMPRE tomados de la OC, no de las compras)
+                decimal cantPedidaOc = d.CantidadPedida;
+                decimal cantEntregadaOc = d.CantidadEntregada;
+                decimal cantPendienteOc = d.CantidadRestante;
+
+                // Subtotal de la orden = cantidad pedida * precio lista OC
+                decimal precioListaOc = d.PrecioLista;
+                decimal subtotalOrden = cantPedidaOc * precioListaOc;
+
+                resumenPorInsumo.Add(new
+                {
+                    // Identificación
+                    d.IdInsumo,
+                    d.IdProveedorLista,
+                    d.Id,
+                    IdOrdenCompraInsumo = d.Id,
+                    Sku = d.Sku,
+                    Nombre = d.Nombre,
+
+                    // Cantidades OC
+                    CantidadPedidaOc = cantPedidaOc,
+                    CantidadEntregadaOc = cantEntregadaOc,
+                    CantidadPendienteOc = cantPendienteOc,
+
+                    // Cantidad recibida total en compras
+                    CantidadRecibidaCompras = cantRecibida,
+
+                    // Precios ORDEN
+                    PrecioLista = precioListaOc,
+                    SubTotalOrden = subtotalOrden,
+
+                    // Precios COMPRA (reales acumulados)
+                    PrecioCompra = precioCompraProm,
+                    SubtotalCompra = subtotalCompra,
+
+                    // Estado OC
+                    IdEstado = d.IdEstado,
+                    EstadoOcNombre = d.Estado
+                });
+            }
+
             return Ok(new
             {
                 OrdenCompra = vm,
-                OrdenesComprasInsumos = detalle
+                OrdenesComprasInsumos = detalle,
+                ResumenCompras = resumenPorInsumo
             });
         }
 
 
-        /// <summary>
-        /// Inserta una nueva OC con su detalle
-        /// </summary>
+
+        // ======================================================
+        // INSERTAR
+        // ======================================================
         [HttpPost]
         public async Task<IActionResult> Insertar([FromBody] VMOrdenCompra model)
         {
@@ -211,55 +289,44 @@ namespace SistemaKyoGroup.Application.Controllers
                     IdUnidadNegocio = model.IdUnidadNegocio,
                     IdLocal = model.IdLocal,
                     IdProveedor = model.IdProveedor,
-
-                    // Si querés que siempre sea Pendiente podés forzar acá:
-                    // IdEstado = (int)EstadosOC.Pendiente,
                     IdEstado = model.IdEstado,
-
-                    FechaEmision = model.FechaEmision == default ? DateTime.Now : model.FechaEmision,
+                    FechaEmision = model.FechaEmision,
                     FechaEntrega = model.FechaEntrega,
                     NotaInterna = model.NotaInterna,
-                    CostoTotal = model.CostoTotal, // el service puede recalcular por seguridad
-
-                    IdUsuarioRegistra = (int)userId,
+                    CostoTotal = model.CostoTotal,
+                    IdUsuarioRegistra = userId,
                     FechaRegistra = DateTime.Now,
 
-                    // 🔥 ACA ES LA CLAVE: mapear a OrdenesComprasInsumo, NO a VMOrdenCompraInsumo
-                    OrdenesComprasInsumos = model.OrdenesComprasInsumos?
-                        .Select(d => new OrdenesComprasInsumo
-                        {
-                            // Id = 0 en alta (identity)
-                            IdInsumo = d.IdInsumo,
-                            IdProveedorLista = d.IdProveedorLista,
-
-                            CantidadPedida = d.CantidadPedida,
-                            CantidadEntregada = d.CantidadEntregada,
-                            CantidadRestante = d.CantidadRestante,
-
-                            PrecioLista = d.PrecioLista,
-                            Subtotal = d.Subtotal,   // en la entidad se llama Subtotal
-
-                            IdEstado = d.IdEstado,
-                            NotaInterna = d.NotaInterna,
-
-                            IdUsuarioRegistra = (int)userId,
-                            FechaRegistra = DateTime.Now
-                        })
-                        .ToList() ?? new List<OrdenesComprasInsumo>()
+                    OrdenesComprasInsumos = model.OrdenesComprasInsumos?.Select(d => new OrdenesComprasInsumo
+                    {
+                        IdInsumo = d.IdInsumo,
+                        IdProveedorLista = d.IdProveedorLista,
+                        CantidadPedida = d.CantidadPedida,
+                        CantidadEntregada = d.CantidadEntregada,
+                        CantidadRestante = d.CantidadRestante,
+                        PrecioLista = d.PrecioLista,
+                        Subtotal = d.Subtotal,
+                        IdEstado = d.IdEstado,
+                        NotaInterna = d.NotaInterna,
+                        IdUsuarioRegistra = userId,
+                        FechaRegistra = DateTime.Now
+                    }).ToList()
                 };
 
                 var ok = await _svc.Insertar(entity);
                 return Ok(new { valor = ok });
             }
-            catch (Exception)
+            catch
             {
-                return StatusCode(500, new { valor = false, mensaje = "Error al registrar la orden de compra." });
+                return StatusCode(500, new { valor = false, mensaje = "Error al registrar la OC." });
             }
         }
 
-        /// <summary>
-        /// Actualiza cabecera + hace upsert/diff de detalle (lo resuelve el service/repo)
-        /// </summary>
+
+
+        // ======================================================
+        // ACTUALIZAR
+        // ======================================================
         [HttpPut]
         public async Task<IActionResult> Actualizar([FromBody] VMOrdenCompra model)
         {
@@ -276,52 +343,41 @@ namespace SistemaKyoGroup.Application.Controllers
                     IdUnidadNegocio = model.IdUnidadNegocio,
                     IdLocal = model.IdLocal,
                     IdProveedor = model.IdProveedor,
-
-                    // si querés, acá podrías forzar siempre "Pendiente"
                     IdEstado = model.IdEstado,
-
                     FechaEmision = model.FechaEmision,
                     FechaEntrega = model.FechaEntrega,
                     NotaInterna = model.NotaInterna,
-                    CostoTotal = model.CostoTotal, // el service puede recalcular
-
-                    IdUsuarioModifica = (int)userId,
+                    CostoTotal = model.CostoTotal,
+                    IdUsuarioModifica = userId,
                     FechaModifica = DateTime.Now,
 
-                    // 🔥 detalle mapeado a entidad, NO al VM
-                    OrdenesComprasInsumos = model.OrdenesComprasInsumos?
-                        .Select(d => new OrdenesComprasInsumo
-                        {
-                            Id = d.Id,                          // importante para el diff (update/delete)
-                            IdOrdenCompra = d.IdOrdenCompra,   // o model.Id
-
-                            IdInsumo = d.IdInsumo,
-                            IdProveedorLista = d.IdProveedorLista,
-
-                            CantidadPedida = d.CantidadPedida,
-                            CantidadEntregada = d.CantidadEntregada,
-                            CantidadRestante = d.CantidadRestante,
-
-                            PrecioLista = d.PrecioLista,
-                            Subtotal = d.Subtotal,             // en la entidad se llama Subtotal
-
-                            IdEstado = d.IdEstado,
-                            NotaInterna = d.NotaInterna,
-
-                            IdUsuarioModifica = (int)userId,
-                            FechaModifica = DateTime.Now
-                        })
-                        .ToList() ?? new List<OrdenesComprasInsumo>()
+                    OrdenesComprasInsumos = model.OrdenesComprasInsumos?.Select(d => new OrdenesComprasInsumo
+                    {
+                        Id = d.Id,
+                        IdOrdenCompra = d.IdOrdenCompra,
+                        IdInsumo = d.IdInsumo,
+                        IdProveedorLista = d.IdProveedorLista,
+                        CantidadPedida = d.CantidadPedida,
+                        CantidadEntregada = d.CantidadEntregada,
+                        CantidadRestante = d.CantidadRestante,
+                        PrecioLista = d.PrecioLista,
+                        Subtotal = d.Subtotal,
+                        IdEstado = d.IdEstado,
+                        NotaInterna = d.NotaInterna,
+                        IdUsuarioModifica = userId,
+                        FechaModifica = DateTime.Now
+                    }).ToList()
                 };
 
                 var ok = await _svc.Actualizar(entity);
                 return Ok(new { valor = ok });
             }
-            catch (Exception)
+            catch
             {
-                return StatusCode(500, new { valor = false, mensaje = "Error al actualizar la orden de compra." });
+                return StatusCode(500, new { valor = false, mensaje = "Error al actualizar la OC." });
             }
         }
+
 
 
         [HttpDelete]
@@ -331,6 +387,8 @@ namespace SistemaKyoGroup.Application.Controllers
             return Ok(new { valor = eliminado, mensaje });
         }
 
+
+
         [AllowAnonymous]
         public async Task<IActionResult> NuevoModif(int? id)
         {
@@ -338,7 +396,10 @@ namespace SistemaKyoGroup.Application.Controllers
             return View();
         }
 
+
+
         public IActionResult Privacy() => View();
+
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
