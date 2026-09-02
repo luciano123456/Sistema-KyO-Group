@@ -44,6 +44,8 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
 
         public virtual ICollection<OrdenesComprasInsumo> OrdenesComprasInsumos { get; set; } = new List<OrdenesComprasInsumo>();
 
+        public bool TieneComprasAsociadas { get; set; }
+
         public int CantCompras { get; set; }
         public int? IdCompraPrimera { get; set; }   // o “IdCompraDestino”
     }

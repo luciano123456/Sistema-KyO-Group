@@ -2818,3 +2818,210 @@ input[type="date"]::-webkit-calendar-picker-indicator{ filter: invert(1) ... }
     .cc-alert-inline.d-none {
         display: none
     }
+
+/* ==========================================================
+   TARJETAS RESUMEN ORDEN DE COMPRA
+   ========================================================== */
+
+.oc-grid-tarjetas {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+}
+
+/* CARD COMPACTA */
+.oc-card-item {
+    background: radial-gradient(circle at 30% 30%, var(--dt-row-zebra), var(--dt-row-zebra2));
+    border-radius: 16px;
+    padding: 1rem 1.2rem;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+/* HEADER */
+.oc-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.oc-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    background: radial-gradient(circle at 30% 30%, #7dd3fc, #2563eb);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+}
+
+.oc-card-main {
+    flex: 1;
+}
+
+.oc-card-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.oc-card-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.oc-card-sub {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+/* ESTADOS */
+.oc-badge-estado {
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.oc-badge-estado--pendiente {
+    background: rgba(250, 204, 21, 0.1);
+    color: #facc15;
+}
+
+.oc-badge-estado--entregado {
+    background: rgba(52, 211, 153, 0.12);
+    color: #34d399;
+}
+
+.oc-badge-estado--incompleto {
+    background: rgba(248, 113, 113, 0.12);
+    color: #fb7185;
+}
+
+.oc-badge-estado--default {
+    background: rgba(148, 163, 184, 0.16);
+    color: #e5e7eb;
+}
+
+/* BODY */
+.oc-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.oc-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.oc-row-prices {
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+    padding-top: 0.6rem;
+}
+
+.oc-col {
+    flex: 1;
+    min-width: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.oc-label {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+.oc-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.oc-value-small {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.oc-restante {
+    color: #f97373;
+}
+
+/* DIFERENCIAS */
+.oc-dif-pos {
+    color: #4ade80;
+}
+
+.oc-dif-neg {
+    color: #fb7185;
+}
+
+/* EMPTY */
+.oc-empty {
+    padding: 1rem;
+    text-align: center;
+    opacity: 0.7;
+    font-size: 0.9rem;
+}
+
+/* RESPONSIVE */
+@media (min-width: 992px) {
+    .oc-grid-tarjetas {
+        grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    }
+}
+
+.oc-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 18px 22px;
+    border-radius: 14px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    /* Glass-like */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 0 25px rgba(0,0,0,0.45) inset;
+}
+
+    .oc-banner i {
+        font-size: 26px;
+        margin-top: 4px;
+    }
+
+/* Amarillo dark */
+.oc-banner--yellow {
+    background: rgba(255, 220, 100, 0.08);
+    color: #ffe8a1;
+}
+
+/* Verde agua dark */
+.oc-banner--green {
+    background: rgba(0, 255, 180, 0.10);
+    color: #8fffe2;
+}
+
+.oc-banner-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+}
+
+.oc-banner-text {
+    font-size: 14px;
+    margin: 0;
+}
+
+    .oc-banner-text button {
+        color: #8fffe2 !important;
+        font-weight: 600;
+    }

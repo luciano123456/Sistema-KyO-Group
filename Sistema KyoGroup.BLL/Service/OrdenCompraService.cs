@@ -1,12 +1,20 @@
 ﻿using SistemaKyoGroup.DAL.Repository;
 using SistemaKyoGroup.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SistemaKyoGroup.BLL.Service
 {
     public class OrdenCompraService : IOrdenCompraService
     {
         private readonly IOrdenCompraRepository<OrdenesCompra> _repo;
-        public OrdenCompraService(IOrdenCompraRepository<OrdenesCompra> repo) { _repo = repo; }
+
+        public OrdenCompraService(IOrdenCompraRepository<OrdenesCompra> repo)
+        {
+            _repo = repo;
+        }
 
         public Task<bool> Insertar(OrdenesCompra model) => _repo.Insertar(model);
         public Task<bool> Actualizar(OrdenesCompra model) => _repo.Actualizar(model);
@@ -16,18 +24,17 @@ namespace SistemaKyoGroup.BLL.Service
         public Task<IQueryable<OrdenesCompra>> ObtenerPendientes() => _repo.ObtenerPendientes();
         public Task<IQueryable<OrdenesCompra>> ObtenerTodosUnidadNegocio(int idUnidadNegocio, int userId, int? idEstado)
             => _repo.ObtenerTodosUnidadNegocio(idUnidadNegocio, userId, idEstado);
-        public async Task<List<OrdenesCompra>> ObtenerTodosConFiltros(
-    int? idUnidadNegocio = null,
-    int? idLocal = null,
-    int? idProveedor = null,
-    int? idEstado = null,
-    DateTime? fechaDesde = null,
-    DateTime? fechaHasta = null,
-    int? idUsuario = null)
-        {
-            return await _repo.ObtenerTodosConFiltros(
-                idUnidadNegocio, idLocal, idProveedor, idEstado, fechaDesde, fechaHasta, idUsuario);
-        }
+        public Task<List<OrdenesCompra>> ObtenerTodosConFiltros(
+            int? idUnidadNegocio = null,
+            int? idLocal = null,
+            int? idProveedor = null,
+            int? idEstado = null,
+            DateTime? fechaDesde = null,
+            DateTime? fechaHasta = null,
+            int? idUsuario = null)
+            => _repo.ObtenerTodosConFiltros(idUnidadNegocio, idLocal, idProveedor, idEstado, fechaDesde, fechaHasta, idUsuario);
 
+        public Task ActualizarEstadosDetalle(int idOrdenCompra, IDictionary<int, int> estadosPorDetalle)
+            => _repo.ActualizarEstadosDetalle(idOrdenCompra, estadosPorDetalle);
     }
 }

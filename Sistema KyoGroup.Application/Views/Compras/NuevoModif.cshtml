@@ -15,8 +15,59 @@
     <link href="~/css/OrdenesCompraNuevoModif.css" rel="stylesheet" />
     <link href="~/css/ComprasNuevoModif.css" rel="stylesheet" />
 
-    <!-- Estilos específicos de Compras -->
-   
+    <style>
+
+        /* ======= ACORDEON COMPARATIVO ======= */
+
+        .cmp-accordion {
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 25px;
+            border: 1px solid var(--panel-border);
+            background: var(--panel);
+            transition: all .25s ease;
+        }
+
+        .cmp-accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+            .cmp-accordion-header.ok {
+                background: #1f7a35cc;
+                color: #fff;
+            }
+
+            .cmp-accordion-header.alerta {
+                background: #b73535e6;
+                color: #fff;
+            }
+
+            .cmp-accordion-header i {
+                transition: transform .25s ease;
+            }
+
+            .cmp-accordion-header.abierto i {
+                transform: rotate(180deg);
+            }
+
+        .cmp-accordion-body {
+            padding: 15px 20px;
+            display: none;
+            background: var(--panel-alt);
+            border-top: 1px solid var(--panel-border);
+        }
+
+            .cmp-accordion-body ul {
+                margin: 0;
+                padding-left: 20px;
+            }
+
+    </style>
 }
 
 <header class="cc-kpi cc-card cc-container-xxl">
@@ -31,6 +82,7 @@
 </header>
 
 <main class="cc-container-xxl compras-wrapper">
+
     <!-- ==================== PASO 1: CABECERA ==================== -->
     <section class="cc-section cc-card compras-step">
         <div class="cc-titlebar">
@@ -44,30 +96,30 @@
 
         <div id="frmCabeceraCompra" class="cc-grid cc-grid-3xl compras-grid-cabecera">
 
-                    <div class="form-group">
+            <div class="form-group">
                 <label class="form-label">Orden de Compra</label>
                 <select id="OrdenCompraSelect" class="form-select" data-required="true">
                     <option value="" disabled selected>Seleccionar una Orden Pendiente...</option>
                 </select>
                 <div class="invalid-feedback d-none">Campo requerido</div>
-                <small class="text-muted-cc">Solo se muestran órdenes en estado <strong>Pendiente</strong>.</small>
+                <small class="text-muted-cc">Solo órdenes en estado <strong>Pendiente</strong>.</small>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Unidad de Negocio</label>
-                <input type="text" id="UnidadNegocioNombre" class="form-control compras-readonly" readonly placeholder="Seleccionar desde la OC..." />
+                <input type="text" id="UnidadNegocioNombre" class="form-control compras-readonly" readonly />
                 <div class="invalid-feedback d-none">Campo requerido</div>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Local</label>
-                <input type="text" id="LocalNombre" class="form-control compras-readonly" readonly placeholder="Seleccionar desde la OC..." />
+                <input type="text" id="LocalNombre" class="form-control compras-readonly" readonly />
                 <div class="invalid-feedback d-none">Campo requerido</div>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Proveedor</label>
-                <input type="text" id="ProveedorNombre" class="form-control compras-readonly" readonly placeholder="Seleccionar desde la OC..." />
+                <input type="text" id="ProveedorNombre" class="form-control compras-readonly" readonly />
                 <div class="invalid-feedback d-none">Campo requerido</div>
             </div>
 
@@ -76,8 +128,6 @@
                 <input type="date" id="FechaCompra" class="form-control" data-required="true" />
                 <div class="invalid-feedback d-none">Campo requerido</div>
             </div>
-
-    
 
             <div class="form-group full">
                 <label class="form-label">Nota Interna</label>
@@ -98,17 +148,19 @@
                 <label class="form-label">Total Final</label>
                 <input type="text" id="SubtotalFinal" class="form-control compras-importes compras-total-final" readonly />
             </div>
+
         </div>
 
         <div id="alertRequeridosCompra" class="cc-alert-inline d-none mt-3">
             <i class="fa fa-exclamation-triangle"></i> Debes completar los campos requeridos.
         </div>
+
     </section>
 
     <!-- ==================== PASO 2: DETALLE ==================== -->
     <section class="cc-section cc-card compras-step compras-detalle-wrapper">
-        <div class="cc-titlebar">
 
+        <div class="cc-titlebar">
             <h3 class="m-0"><i class="fa fa-cubes me-2"></i>Detalle de Insumos</h3>
             <span id="lblOrigenOC" class="compras-oc-badge d-none">
                 Basado en OC <span id="lblNroOC"></span>
@@ -127,26 +179,46 @@
                         <th class="text-center">PRECIO LISTA OC</th>
                         <th class="text-center">PRECIO FACTURA</th>
                         <th class="text-center">DIF. PRECIO</th>
-                        <th class="text-center">ESTADO OC INSUMO</th>
-                        <th class="text-center">SUBTOTAL</th>
+                        <th class="text-center">DIF. SUBTOTAL</th>
+                        <th class="text-center">ESTADO OC</th>
+                        <th class="text-center">SUBTOTAL FACTURA</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <!-- filas generadas por JS -->
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
 
         <div id="alertDetalleCompra" class="cc-alert-inline d-none mt-3">
             <i class="fa fa-exclamation-triangle"></i> Debes agregar al menos un insumo con cantidad recibida mayor a 0.
         </div>
+
     </section>
 
+    <!-- ==================== ACORDEON COMPARATIVO ==================== -->
+    <section id="panelAcordeonComparativo" class="cc-section cc-card mt-4 d-none">
+
+        <div id="cmpAcordeon" class="cmp-accordion">
+
+            <div id="cmpAcordeonHeader" class="cmp-accordion-header ok">
+                <span id="cmpAcordeonTitulo"><i class="fa fa-check-circle me-2"></i>Sin diferencias detectadas</span>
+                <i class="fa fa-chevron-down"></i>
+            </div>
+
+            <div id="cmpAcordeonBody" class="cmp-accordion-body">
+                <!-- generado por JS -->
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- ==================== BOTÓN GUARDAR ==================== -->
     <div class="d-flex justify-content-end gap-2 my-3">
         <button type="button" id="btnNuevoModificarCompra" class="btn btn-new" onclick="guardarCompra()">
             <i class="fa fa-save me-1"></i> Registrar
         </button>
     </div>
+
 </main>
 
 @section Scripts {
@@ -154,16 +226,13 @@
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
-
     <script src="~/js/cc.validators.js?v=1.0"></script>
 
     <script>
-        var CompraData = @Html.Raw(Json.Serialize(ViewBag.Data ?? 0));   // si viene id de compra
+        var CompraData = @Html.Raw(Json.Serialize(ViewBag.Data ?? 0));
         var IdOrdenCompraInicial = @Html.Raw(Json.Serialize(ViewBag.IdOrdenCompra ?? 0));
     </script>
 
     <script src="~/js/ComprasNuevoModif.js?v=1.0"></script>
     <script src="~/js/site.js"></script>
-
- 
 }

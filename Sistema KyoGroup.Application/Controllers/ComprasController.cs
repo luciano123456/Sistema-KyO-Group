@@ -5,6 +5,7 @@ using SistemaKyoGroup.Application.Models.ViewModels;
 using SistemaKyoGroup.BLL.Service;
 using SistemaKyoGroup.Models;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -61,9 +62,9 @@ namespace SistemaKyoGroup.Application.Controllers
             if (c == null)
                 return NotFound();
 
-            // Si la compra tiene OC, traigo las líneas completas
-            var detallesOc = c.IdOrdenCompraNavigation?.OrdenesComprasInsumos?.ToList()
-                             ?? new List<OrdenesComprasInsumo>();
+            var detallesOc =
+                c.IdOrdenCompraNavigation?.OrdenesComprasInsumos?.ToList()
+                ?? new List<OrdenesComprasInsumo>();
 
             var vm = new VMCompra
             {
@@ -80,40 +81,44 @@ namespace SistemaKyoGroup.Application.Controllers
 
                 ComprasInsumos = c.ComprasInsumos.Select(d =>
                 {
-                    // Busco la línea correspondiente en la OC
                     var ocDet = detallesOc.FirstOrDefault(oc =>
                         oc.IdInsumo == d.IdInsumo &&
                         oc.IdProveedorLista == d.IdProveedorLista);
 
-                    // Si no hay línea en la OC → uso lo que ya estaba en la compra
-                    var cantPedidaOc = ocDet?.CantidadPedida ?? d.Cantidad;
-                    var cantPendienteOc = ocDet?.CantidadRestante ?? cantPedidaOc;
+                    var cantPedida = ocDet?.CantidadPedida ?? d.Cantidad;
+                    var cantEntregada = ocDet?.CantidadEntregada ?? 0;
+                    var cantPendiente = ocDet?.CantidadRestante ??
+                                        (cantPedida - cantEntregada);
 
                     return new VMCompraInsumo
                     {
                         Id = d.Id,
                         IdInsumo = d.IdInsumo,
                         IdProveedorLista = d.IdProveedorLista,
-
-                        // Cantidad recibida en ESTA compra
                         Cantidad = d.Cantidad,
 
-                        PrecioLista = d.PrecioLista,
                         Nombre = d.IdInsumoNavigation.Descripcion,
+                        Sku = d.IdInsumoNavigation.Sku,
+
+                        PrecioLista = d.PrecioLista,
                         PrecioFactura = d.PrecioFactura,
                         Diferencia = d.Diferencia,
                         PorcDescuento = d.PorcDescuento,
                         DescuentoUnitario = d.DescuentoUnitario,
-                        Sku = d.IdInsumoNavigation.Sku,
                         PrecioFinal = d.PrecioFinal,
                         DescuentoTotal = d.DescuentoTotal,
                         SubtotalConDescuento = d.SubtotalConDescuento,
                         SubtotalFinal = d.SubtotalFinal,
 
-                        // Datos reales de la OC
                         IdOrdenCompraInsumo = ocDet?.Id,
-                        CantidadPedidaOc = cantPedidaOc,
-                        CantidadPendienteOc = cantPendienteOc
+                        CantidadPedidaOc = cantPedida,
+                        CantidadEntregadaOc = cantEntregada,
+                        CantidadPendienteOc = cantPendiente,
+
+                        IdEstadoOcInsumo = ocDet?.IdEstado,
+                        EstadoOcNombre = ocDet?.IdEstadoNavigation?.Nombre,
+
+                        EstadoManualOC = ocDet?.IdEstado   // ✔ necesario
                     };
                 }).ToList()
             };
@@ -121,6 +126,31 @@ namespace SistemaKyoGroup.Application.Controllers
             return Ok(vm);
         }
 
+        // =============================================================
+        // OBTENER ESTADOS MANUALES DE OC DESDE VM
+        // =============================================================
+        private static IDictionary<int, int> ObtenerEstadosDetalleOcDesdeVm(VMCompra model)
+        {
+            var dict = new Dictionary<int, int>();
+
+            if (model.ComprasInsumos == null)
+                return dict;
+
+            foreach (var x in model.ComprasInsumos)
+            {
+                if (x.IdOrdenCompraInsumo.HasValue &&
+                    x.EstadoManualOC.HasValue)
+                {
+                    dict[x.IdOrdenCompraInsumo.Value] = x.EstadoManualOC.Value;
+                }
+            }
+
+            return dict;
+        }
+
+        // =============================================================
+        // INSERTAR
+        // =============================================================
         [HttpPost]
         public async Task<IActionResult> Insertar([FromBody] VMCompra model)
         {
@@ -141,6 +171,7 @@ namespace SistemaKyoGroup.Application.Controllers
                     SubtotalFinal = model.SubtotalFinal,
                     IdUsuarioRegistra = userId,
                     FechaRegistra = DateTime.Now,
+
                     ComprasInsumos = model.ComprasInsumos.Select(d => new ComprasInsumo
                     {
                         IdInsumo = d.IdInsumo,
@@ -160,7 +191,12 @@ namespace SistemaKyoGroup.Application.Controllers
                     }).ToList()
                 };
 
+                var estadosDetalle = ObtenerEstadosDetalleOcDesdeVm(model);
+
                 var ok = await _svc.Insertar(entity);
+
+                if (ok && model.IdOrdenCompra > 0 && estadosDetalle.Any())
+                    await _oc.ActualizarEstadosDetalle(model.IdOrdenCompra, estadosDetalle);
 
                 return Ok(new { valor = ok });
             }
@@ -170,48 +206,64 @@ namespace SistemaKyoGroup.Application.Controllers
             }
         }
 
+        // =============================================================
+        // ACTUALIZAR
+        // =============================================================
         [HttpPut]
         public async Task<IActionResult> Actualizar([FromBody] VMCompra model)
         {
-            var userId = User.GetUserId() ?? 0;
-
-            var entity = new Compra
+            try
             {
-                Id = model.Id,
-                IdUnidadNegocio = model.IdUnidadNegocio,
-                IdLocal = model.IdLocal,
-                IdProveedor = model.IdProveedor,
-                IdOrdenCompra = model.IdOrdenCompra,
-                Fecha = model.Fecha,
-                NotaInterna = model.NotaInterna,
-                Subtotal = model.Subtotal,
-                Descuentos = model.Descuentos,
-                SubtotalFinal = model.SubtotalFinal,
-                IdUsuarioModifica = userId,
-                ComprasInsumos = model.ComprasInsumos.Select(d => new ComprasInsumo
+                var userId = User.GetUserId() ?? 0;
+
+                var entity = new Compra
                 {
-                    Id = d.Id,
-                    IdCompra = model.Id,
-                    IdInsumo = d.IdInsumo,
-                    IdProveedorLista = d.IdProveedorLista,
-                    Cantidad = d.Cantidad,
-                    PrecioLista = d.PrecioLista,
-                    PrecioFactura = d.PrecioFactura,
-                    Diferencia = d.Diferencia,
-                    PorcDescuento = d.PorcDescuento,
-                    DescuentoUnitario = d.DescuentoUnitario,
-                    PrecioFinal = d.PrecioFinal,
-                    DescuentoTotal = d.DescuentoTotal,
-                    SubtotalConDescuento = d.SubtotalConDescuento,
-                    SubtotalFinal = d.SubtotalFinal,
+                    Id = model.Id,
+                    IdUnidadNegocio = model.IdUnidadNegocio,
+                    IdLocal = model.IdLocal,
+                    IdProveedor = model.IdProveedor,
+                    IdOrdenCompra = model.IdOrdenCompra,
+                    Fecha = model.Fecha,
+                    NotaInterna = model.NotaInterna,
+                    Subtotal = model.Subtotal,
+                    Descuentos = model.Descuentos,
+                    SubtotalFinal = model.SubtotalFinal,
                     IdUsuarioModifica = userId,
-                    FechaModifica = DateTime.Now
-                }).ToList()
-            };
 
-            var ok = await _svc.Actualizar(entity);
+                    ComprasInsumos = model.ComprasInsumos.Select(d => new ComprasInsumo
+                    {
+                        Id = d.Id,
+                        IdCompra = model.Id,
+                        IdInsumo = d.IdInsumo,
+                        IdProveedorLista = d.IdProveedorLista,
+                        Cantidad = d.Cantidad,
+                        PrecioLista = d.PrecioLista,
+                        PrecioFactura = d.PrecioFactura,
+                        Diferencia = d.Diferencia,
+                        PorcDescuento = d.PorcDescuento,
+                        DescuentoUnitario = d.DescuentoUnitario,
+                        PrecioFinal = d.PrecioFinal,
+                        DescuentoTotal = d.DescuentoTotal,
+                        SubtotalConDescuento = d.SubtotalConDescuento,
+                        SubtotalFinal = d.SubtotalFinal,
+                        IdUsuarioModifica = userId,
+                        FechaModifica = DateTime.Now
+                    }).ToList()
+                };
 
-            return Ok(new { valor = ok });
+                var estadosDetalle = ObtenerEstadosDetalleOcDesdeVm(model);
+
+                var ok = await _svc.Actualizar(entity);
+
+                if (ok && model.IdOrdenCompra > 0 && estadosDetalle.Any())
+                    await _oc.ActualizarEstadosDetalle(model.IdOrdenCompra, estadosDetalle);
+
+                return Ok(new { valor = ok });
+            }
+            catch
+            {
+                return StatusCode(500, new { valor = false, mensaje = "Error al actualizar compra." });
+            }
         }
 
         [HttpDelete]

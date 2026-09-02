@@ -277,37 +277,82 @@ async function configurarDataTableOC(data) {
                     searchable: false,
                 },
 
-                { data: null, title: 'N°', render: r => r.Id },
+                // Nº OC con “pill”
+                {
+                    data: null,
+                    title: 'N°',
+                    render: r => `<span class="oc-pill-id">${r.Id}</span>`
+                },
 
-                { data: null, title: 'Fecha Emisión', render: r => fmtDate(r.FechaEmision) },
+                // Fecha Emisión
+                {
+                    data: null,
+                    title: 'F. Emisión',
+                    render: r => `<span class="oc-fecha-emi">${fmtDate(r.FechaEmision)}</span>`
+                },
 
+                // Unidad de Negocio
                 {
                     data: null,
                     title: 'Unidad Negocio',
                     render: r => r.UnidadNegocio || r.UnidadNegocioNombre
                 },
 
+                // Local
                 {
                     data: null,
                     title: 'Local',
                     render: r => r.Local || r.LocalNombre
                 },
 
+                // Proveedor
                 {
                     data: null,
                     title: 'Proveedor',
                     render: r => r.Proveedor || r.ProveedorNombre
                 },
 
-                { data: null, title: 'Fecha Entrega', render: r => fmtDate(r.FechaEntrega) },
+                // Fecha Entrega con color según estado (vencida / hoy / futura)
+                {
+                    data: null,
+                    title: 'F. Entrega',
+                    render: function (r) {
+                        const txt = fmtDate(r.FechaEntrega);
+                        if (!txt) return '';
 
+                        let cls = 'oc-fecha-entrega';
+                        try {
+                            const f = new Date(r.FechaEntrega);
+                            const hoy = new Date();
+                            hoy.setHours(0, 0, 0, 0);
+                            const fd = new Date(f.getFullYear(), f.getMonth(), f.getDate());
+
+                            cls += ' oc-fecha-futura';
+                        } catch { }
+
+                        return `<span class="${cls}">${txt}</span>`;
+                    }
+                },
+
+                // Estado con badge tipo “pill”
                 {
                     data: null,
                     title: 'Estado',
-                    render: r => r.Estado || r.EstadoNombre
+                    render: function (r) {
+                        const txt = (r.Estado || r.EstadoNombre || '').trim();
+                        const lower = txt.toLowerCase();
+                        let cls = 'oc-estado-default';
+
+                        if (lower.indexOf('pend') >= 0) cls = 'oc-estado-pendiente';
+                        else if (lower.indexOf('parc') >= 0 || lower.indexOf('incom') >= 0) cls = 'oc-estado-parcial';
+                        else if (lower.indexOf('comp') >= 0 || lower.indexOf('cerr') >= 0 || lower.indexOf('final') >= 0) cls = 'oc-estado-completa';
+                        else if (lower.indexOf('canc') >= 0 || lower.indexOf('anul') >= 0) cls = 'oc-estado-cancelada';
+
+                        return `<span class="oc-badge-estado ${cls}">${txt || '-'}</span>`;
+                    }
                 },
 
-                /* 🔥 OJITO: si tiene compra → icono que te lleva */
+                // Compra (ojito)
                 {
                     data: null,
                     title: 'Compra',
@@ -316,33 +361,37 @@ async function configurarDataTableOC(data) {
                     className: 'text-center',
                     render: function (data, type, row) {
 
-                        // Soportar PascalCase o camelCase
-                        const idOC = row.id ?? row.Id;
                         const cantCompras = row.cantCompras ?? row.CantCompras ?? 0;
                         const idCompraPrimera = row.idCompraPrimera ?? row.IdCompraPrimera ?? null;
 
-                        let html = "";
-
-                        // 👁‍🗨 Ojito solo si tiene compras asociadas
                         if (cantCompras > 0 && idCompraPrimera) {
-                            html += `
-<button class="btn btn-sm btn-link"
+                            return `
+<button class="btn btn-sm btn-link oc-btn-ojito"
         title="Ver compra asociada"
         onclick="window.location.href='/Compras/NuevoModif?id=${idCompraPrimera}'">
-  <i class="fa fa-eye text-info fa-lg"></i>
+    <i class="fa fa-eye fa-lg"></i>
 </button>`;
-                        } else {
-                            html += `-`
                         }
-
-                        return html;
+                        return '-';
                     }
                 },
 
-                { data: 'CostoTotal', title: 'Costo Total', render: d => fmtARS(d) },
+                // Costo Total con formato
+                {
+                    data: 'CostoTotal',
+                    title: 'Costo Total',
+                    render: d => `<span class="oc-monto">${fmtARS(d)}</span>`
+                },
 
-                { data: 'NotaInterna', title: 'Nota Interna', render: d => d || '' },
+                // Nota Interna
+                {
+                    data: 'NotaInterna',
+                    title: 'Nota Interna',
+                    render: d => d || ''
+                },
             ],
+
+
 
             dom: 'Bfrtip',
             buttons: [

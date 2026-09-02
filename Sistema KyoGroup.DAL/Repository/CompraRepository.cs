@@ -3,7 +3,6 @@ using SistemaKyoGroup.DAL.DataContext;
 using SistemaKyoGroup.Models;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,47 +17,38 @@ namespace SistemaKyoGroup.DAL.Repository
             _db = context;
         }
 
-        /* =========================================================
-         * MÉTODO PRIVADO: Recalcular OC desde todas las compras
-         *  - Recalcula CantidadEntregada / Restante / Estado por línea
-         *  - Actualiza IdEstado y FechaEntrega de cabecera
-         * ========================================================= */
+        // ============================================================
+        // RECALCULAR ORDEN COMPRA SEGÚN COMPRAS – RESPETA MANUAL
+        // ============================================================
         private async Task RecalcularOrdenCompraDesdeCompras(int idOrdenCompra)
         {
             if (idOrdenCompra <= 0) return;
 
-            // =============================
-            // 1) Traigo cabecera + detalle
-            // =============================
             var oc = await _db.OrdenesCompras
                 .Include(o => o.OrdenesComprasInsumos)
                 .FirstOrDefaultAsync(o => o.Id == idOrdenCompra);
 
             if (oc == null) return;
 
-            // =============================
-            // 2) Traigo todas las compras
-            // =============================
             var compras = await _db.Compras
                 .Include(c => c.ComprasInsumos)
                 .Where(c => c.IdOrdenCompra == idOrdenCompra)
                 .ToListAsync();
 
-            // ==============================================================
-            // 3) Si NO hay compras → TODO vuelve a PENDIENTE
-            // ==============================================================
-            if (compras.Count == 0)
+            // SIN COMPRAS — RESET
+            if (!compras.Any())
             {
                 foreach (var det in oc.OrdenesComprasInsumos)
                 {
                     det.CantidadEntregada = 0;
                     det.CantidadRestante = det.CantidadPedida;
-                    // solo si el estado está raro lo forzamos a Pendiente
-                    if (det.IdEstado > 3)
+
+                    // no pisar manual
+                    if (det.IdEstado < 1 || det.IdEstado > 3)
                         det.IdEstado = 1;
                 }
 
-                oc.IdEstado = 1;      // Pendiente
+                oc.IdEstado = 1;
                 oc.FechaEntrega = null;
                 oc.FechaModifica = DateTime.Now;
 
@@ -66,130 +56,96 @@ namespace SistemaKyoGroup.DAL.Repository
                 return;
             }
 
-            // ==============================================================
-            // 4) Agrupo lo entregado por (IdInsumo, IdProveedorLista)
-            //    => key SIEMPRE (int, int?)
-            //    IMPORTANTE: la suma puede ser negativa; la clampamos después
-            // ==============================================================
-            Dictionary<(int IdInsumo, int? IdProveedorLista), decimal> entregados =
-                compras
-                    .SelectMany(c => c.ComprasInsumos)
-                    .GroupBy(d => new { d.IdInsumo, d.IdProveedorLista })
-                    .ToDictionary(
-                        g => (g.Key.IdInsumo, (int?)g.Key.IdProveedorLista),
-                        g => g.Sum(x => x.Cantidad)
-                    );
+            var entregados = compras
+                .SelectMany(c => c.ComprasInsumos)
+                .GroupBy(x => new { x.IdInsumo, x.IdProveedorLista })
+                .ToDictionary(
+                    g => (g.Key.IdInsumo, (int?)g.Key.IdProveedorLista),
+                    g => g.Sum(z => z.Cantidad)
+                );
 
-            // ==============================================================
-            // 5) Actualizo cada línea de la OC
-            // ==============================================================
             foreach (var det in oc.OrdenesComprasInsumos)
             {
                 var key = (det.IdInsumo, (int?)det.IdProveedorLista);
 
-                decimal cantEntregada = 0;
-                if (entregados.TryGetValue(key, out var totalEntregado))
-                    cantEntregada = totalEntregado;
+                decimal entregado = 0;
+                if (entregados.TryGetValue(key, out var sum))
+                    entregado = sum;
 
-                // ---- CLAMP: nunca < 0 y nunca > CantidadPedida ----
-                if (cantEntregada < 0)
-                    cantEntregada = 0;
+                if (entregado < 0) entregado = 0;
+                if (entregado > det.CantidadPedida)
+                    entregado = det.CantidadPedida;
 
-                if (cantEntregada > det.CantidadPedida)
-                    cantEntregada = det.CantidadPedida;
+                det.CantidadEntregada = entregado;
+                det.CantidadRestante = det.CantidadPedida - entregado;
 
-                det.CantidadEntregada = cantEntregada;
-                det.CantidadRestante = det.CantidadPedida - cantEntregada;
-
-                // ---- Estado de la línea ----
-                // Si ya viene un estado válido (1,2,3) NO lo tocamos.
-                // Solo calculamos si está en 0 o fuera de rango.
-                if (det.IdEstado > 3)
+                // NO pisar manual
+                if (det.IdEstado < 1 || det.IdEstado > 3)
                 {
-                    if (det.CantidadEntregada <= 0)
-                        det.IdEstado = 1;        // Pendiente
+                    if (entregado <= 0)
+                        det.IdEstado = 1;
                     else if (det.CantidadRestante <= 0)
-                        det.IdEstado = 2;        // Entregado
+                        det.IdEstado = 2;
                     else
-                        det.IdEstado = 3;        // Parcial / Incompleto
+                        det.IdEstado = 3;
                 }
             }
 
-            // ==============================================================
-            // 6) Estado de cabecera + FechaEntrega
-            // ==============================================================
-            bool hayEntregas = oc.OrdenesComprasInsumos.Any(d => d.CantidadEntregada > 0);
-            bool todoEntregado = oc.OrdenesComprasInsumos.All(d => d.CantidadRestante <= 0);
+            bool hayEntrega = oc.OrdenesComprasInsumos.Any(x => x.CantidadEntregada > 0);
+            bool todoEntregado = oc.OrdenesComprasInsumos.All(x => x.CantidadRestante <= 0);
 
-            if (!hayEntregas)
+            if (!hayEntrega)
             {
-                oc.IdEstado = 1;           // Pendiente
+                oc.IdEstado = 1;
                 oc.FechaEntrega = null;
             }
             else if (todoEntregado)
             {
-                oc.IdEstado = 2;           // Entregado
-
+                oc.IdEstado = 2;
                 oc.FechaEntrega = compras
-                    .Where(c => c.Fecha != default)
                     .Select(c => c.Fecha)
                     .DefaultIfEmpty(DateTime.Now)
                     .Max();
             }
             else
             {
-                oc.IdEstado = 3;           // Parcial
+                oc.IdEstado = 3;
             }
 
             oc.FechaModifica = DateTime.Now;
-
             await _db.SaveChangesAsync();
         }
 
-
-        /* =========================================================
-         * INSERTAR COMPRA
-         *  - Usa el mismo IdProveedorLista que la OC (si existe)
-         * ========================================================= */
+        // ============================================================
+        // INSERTAR
+        // ============================================================
         public async Task<bool> Insertar(Compra model)
         {
             await using var tx = await _db.Database.BeginTransactionAsync();
+
             try
             {
-                // Guardo una referencia a los detalles y "desengancho" la navegación
-                var detalles = model.ComprasInsumos ?? new List<ComprasInsumo>();
-                model.ComprasInsumos = null; // 👈 así EF no inserta los detalles por cascada
-
-                // 1) Cabecera
-                model.Id = 0;
-                model.FechaRegistra = DateTime.Now;
+                var detalles = model.ComprasInsumos;
+                model.ComprasInsumos = null;
 
                 _db.Compras.Add(model);
-                await _db.SaveChangesAsync(); // => genera model.Id
-
-                // 2) Normalizo detalle con el Id de la compra recién generado
-                foreach (var d in detalles)
-                {
-                    d.Id = 0;
-                    d.IdCompra = model.Id;
-                    d.FechaRegistra = DateTime.Now;
-
-                    // Si te llega IdProveedorLista desde el JS, EF lo respeta tal cual
-                    // (no lo pisamos acá)
-
-                    d.SubtotalConDescuento = d.Cantidad * d.PrecioFinal;
-                    d.SubtotalFinal = d.SubtotalConDescuento;
-                }
-
-                // 3) Inserto detalle UNA sola vez
-                await _db.ComprasInsumos.AddRangeAsync(detalles);
                 await _db.SaveChangesAsync();
 
-                // 4) Recalcular OC si corresponde
-                if (model.IdOrdenCompra > 0)
+                foreach (var d in detalles)
                 {
-                    await RecalcularOrdenCompraDesdeCompras(model.IdOrdenCompra);
+                    d.IdCompra = model.Id;
+                    d.SubtotalConDescuento = d.Cantidad * d.PrecioFinal;
+                    d.SubtotalFinal = d.SubtotalConDescuento;
+
+                    d.IdUsuarioRegistra = model.IdUsuarioRegistra;
+                    d.FechaRegistra = DateTime.Now;
                 }
+
+                _db.ComprasInsumos.AddRange(detalles);
+                await _db.SaveChangesAsync();
+
+                if (model.IdOrdenCompra > 0)
+                    await RecalcularOrdenCompraDesdeCompras(model.IdOrdenCompra);
 
                 await tx.CommitAsync();
                 return true;
@@ -201,12 +157,16 @@ namespace SistemaKyoGroup.DAL.Repository
             }
         }
 
-        /* =========================================================
-         * ACTUALIZAR COMPRA
-         * ========================================================= */
+        // ============================================================
+        // ACTUALIZAR
+        // ============================================================
+        // ============================================================
+        // ACTUALIZAR COMPRA — VERSION FINAL CORREGIDA
+        // ============================================================
         public async Task<bool> Actualizar(Compra model)
         {
             await using var tx = await _db.Database.BeginTransactionAsync();
+
             try
             {
                 var existente = await _db.Compras
@@ -216,80 +176,69 @@ namespace SistemaKyoGroup.DAL.Repository
                 if (existente == null)
                     return false;
 
-                // ===== Normalizar fechas para no romper SqlDateTime =====
-                var minSqlDate = (DateTime)SqlDateTime.MinValue;
-                if (model.Fecha < minSqlDate)
-                {
-                    // si llegara 0001-01-01 desde el modelo, conservamos la de DB
-                    model.Fecha = existente.Fecha;
-                }
-
-                // ===== CABECERA =====
+                // ====== CABECERA ======
                 var entry = _db.Entry(existente);
                 entry.CurrentValues.SetValues(model);
 
-                // No pisar auditoría de registro
+                // NO TOCAR auditoría de registro
                 entry.Property(nameof(Compra.IdUsuarioRegistra)).IsModified = false;
                 entry.Property(nameof(Compra.FechaRegistra)).IsModified = false;
 
-                // La auditoría de modificación la seteamos nosotros a mano
-                entry.Property(nameof(Compra.IdUsuarioModifica)).IsModified = false;
-                entry.Property(nameof(Compra.FechaModifica)).IsModified = false;
+                // Auditoría de modificación SIEMPRE debe ser manual
+                existente.IdUsuarioModifica = model.IdUsuarioModifica;
+                existente.FechaModifica = DateTime.Now;
 
-                // ===== DETALLE =====
-                model.ComprasInsumos ??= new List<ComprasInsumo>();
-
+                // ====== DETALLES ======
                 var originales = existente.ComprasInsumos.ToList();
-                var idsNuevos = model.ComprasInsumos
-                    .Where(x => x.Id > 0)
-                    .Select(x => x.Id)
-                    .ToHashSet();
 
-                foreach (var inc in model.ComprasInsumos)
+                foreach (var d in model.ComprasInsumos)
                 {
-                    inc.SubtotalConDescuento = inc.Cantidad * inc.PrecioFinal;
-                    inc.SubtotalFinal = inc.SubtotalConDescuento;
+                    d.SubtotalConDescuento = d.Cantidad * d.PrecioFinal;
+                    d.SubtotalFinal = d.SubtotalConDescuento;
 
-                    if (inc.Id > 0)
+                    if (d.Id > 0)
                     {
-                        var cur = originales.First(x => x.Id == inc.Id);
+                        // DETALLE EXISTENTE
+                        var cur = originales.First(x => x.Id == d.Id);
 
                         var eDet = _db.Entry(cur);
-                        eDet.CurrentValues.SetValues(inc);
+                        eDet.CurrentValues.SetValues(d);
 
-                        // No pisar auditoría de registro en el detalle
-                        eDet.Property(nameof(ComprasInsumo.IdUsuarioRegistra)).IsModified = false;
+                        // NO PISAR FECHA REGISTRO
                         eDet.Property(nameof(ComprasInsumo.FechaRegistra)).IsModified = false;
+                        eDet.Property(nameof(ComprasInsumo.IdUsuarioRegistra)).IsModified = false;
 
-                        // Auditoría de modificación
+                        // AUDITORÍA MODIFICA
                         cur.IdUsuarioModifica = model.IdUsuarioModifica;
                         cur.FechaModifica = DateTime.Now;
                     }
                     else
                     {
-                        inc.IdCompra = existente.Id;
+                        // DETALLE NUEVO
+                        d.Id = 0;
+                        d.IdCompra = existente.Id;
 
-                        // Auditoría de registro del detalle nuevo
-                        inc.IdUsuarioRegistra = model.IdUsuarioModifica ?? existente.IdUsuarioRegistra;
-                        inc.FechaRegistra = DateTime.Now;
+                        d.IdUsuarioRegistra = model.IdUsuarioModifica ?? existente.IdUsuarioRegistra;
+                        d.FechaRegistra = DateTime.Now;
 
-                        _db.ComprasInsumos.Add(inc);
+                        _db.ComprasInsumos.Add(d);
                     }
                 }
 
-                var bajas = originales.Where(x => !idsNuevos.Contains(x.Id)).ToList();
-                if (bajas.Any()) _db.ComprasInsumos.RemoveRange(bajas);
+                // BORRADOS
+                var idsNuevos = model.ComprasInsumos
+                    .Where(x => x.Id > 0)
+                    .Select(x => x.Id)
+                    .ToHashSet();
 
-                // Auditoría de modificación de la cabecera
-                existente.IdUsuarioModifica = model.IdUsuarioModifica;
-                existente.FechaModifica = DateTime.Now;
+                var bajas = originales.Where(x => !idsNuevos.Contains(x.Id)).ToList();
+                if (bajas.Any())
+                    _db.ComprasInsumos.RemoveRange(bajas);
 
                 await _db.SaveChangesAsync();
 
                 if (existente.IdOrdenCompra > 0)
-                {
                     await RecalcularOrdenCompraDesdeCompras(existente.IdOrdenCompra);
-                }
 
                 await tx.CommitAsync();
                 return true;
@@ -300,9 +249,11 @@ namespace SistemaKyoGroup.DAL.Repository
                 return false;
             }
         }
-        /* =========================================================
-         * ELIMINAR
-         * ========================================================= */
+
+
+        // ============================================================
+        // ELIMINAR
+        // ============================================================
         public async Task<(bool eliminado, string mensaje)> Eliminar(int id)
         {
             try
@@ -310,10 +261,10 @@ namespace SistemaKyoGroup.DAL.Repository
                 var cab = await _db.Compras.FirstOrDefaultAsync(c => c.Id == id);
                 if (cab == null) return (false, "Compra no encontrada.");
 
-                var idOrdenCompra = cab.IdOrdenCompra;
+                var idOc = cab.IdOrdenCompra;
 
                 var det = await _db.ComprasInsumos
-                    .Where(d => d.IdCompra == id)
+                    .Where(x => x.IdCompra == id)
                     .ToListAsync();
 
                 if (det.Any()) _db.ComprasInsumos.RemoveRange(det);
@@ -321,10 +272,8 @@ namespace SistemaKyoGroup.DAL.Repository
                 _db.Compras.Remove(cab);
                 await _db.SaveChangesAsync();
 
-                if (idOrdenCompra > 0)
-                {
-                    await RecalcularOrdenCompraDesdeCompras(idOrdenCompra);
-                }
+                if (idOc > 0)
+                    await RecalcularOrdenCompraDesdeCompras(idOc);
 
                 return (true, "Compra eliminada correctamente.");
             }
@@ -334,10 +283,6 @@ namespace SistemaKyoGroup.DAL.Repository
             }
         }
 
-
-        /* =========================================================
-         * OBTENER
-         * ========================================================= */
         public async Task<Compra?> Obtener(int id)
         {
             try
@@ -345,30 +290,19 @@ namespace SistemaKyoGroup.DAL.Repository
                 return await _db.Compras
                     .Where(c => c.Id == id)
 
-                    // ================= CABECERA =================
                     .Include(c => c.IdUnidadNegocioNavigation)
                     .Include(c => c.IdLocalNavigation)
                     .Include(c => c.IdProveedorNavigation)
 
-                    // 👉 OC + su detalle
                     .Include(c => c.IdOrdenCompraNavigation)
                         .ThenInclude(oc => oc.OrdenesComprasInsumos)
-
-                    .Include(c => c.IdUsuarioRegistraNavigation)
-                    .Include(c => c.IdUsuarioModificaNavigation)
-
-                    // ================= DETALLE ==================
-                    .Include(c => c.ComprasInsumos)
-                        .ThenInclude(d => d.IdInsumoNavigation)
+                            .ThenInclude(det => det.IdEstadoNavigation)
 
                     .Include(c => c.ComprasInsumos)
-                        .ThenInclude(d => d.IdProveedorListaNavigation)
+                        .ThenInclude(x => x.IdInsumoNavigation)
 
                     .Include(c => c.ComprasInsumos)
-                        .ThenInclude(d => d.IdUsuarioRegistraNavigation)
-
-                    .Include(c => c.ComprasInsumos)
-                        .ThenInclude(d => d.IdUsuarioModificaNavigation)
+                        .ThenInclude(x => x.IdProveedorListaNavigation)
 
                     .AsNoTracking()
                     .FirstOrDefaultAsync();
@@ -379,17 +313,11 @@ namespace SistemaKyoGroup.DAL.Repository
             }
         }
 
-
-
         public async Task<IQueryable<Compra>> ObtenerTodos()
         {
-            IQueryable<Compra> q = _db.Compras.AsNoTracking();
-            return await Task.FromResult(q);
+            return await Task.FromResult(_db.Compras.AsNoTracking());
         }
 
-        /* =========================================================
-         * OBTENER TODOS CON FILTROS
-         * ========================================================= */
         public async Task<List<Compra>> ObtenerTodosConFiltros(
             int? idUnidadNegocio,
             int? idLocal,
