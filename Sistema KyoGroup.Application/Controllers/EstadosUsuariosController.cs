@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaKyoGroup.Application.Models;
 using SistemaKyoGroup.Application.Models.ViewModels;
+using SistemaKyoGroup.BLL.Common;
 using SistemaKyoGroup.BLL.Service;
 using SistemaKyoGroup.Models;
 using System.Diagnostics;
@@ -63,11 +64,14 @@ namespace SistemaKyoGroup.Application.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Eliminar(int id)
+        public async Task<IActionResult> Eliminar(int id, bool cascade = false)
         {
-            bool respuesta = await _EstadosUsuariosService.Eliminar(id);
-
-            return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
+            var sr = await DeleteOperationHelper.ExecuteAsync(
+                () => _EstadosUsuariosService.Eliminar(id),
+                "el estado",
+                "Estado eliminado correctamente.",
+                id);
+            return Ok(sr.ToEliminarJson());
         }
 
         [HttpGet]

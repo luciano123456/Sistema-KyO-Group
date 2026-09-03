@@ -1,108 +1,125 @@
-/* ====== Órdenes de Compra – decoraciones columnas importantes ====== */
+/* ====== Ã“rdenes de Compra â†’ columnas (tema claro) ====== */
 
-/* N° OC */
+/* NÂ° / ID */
 .oc-pill-id {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 3rem;
-    padding: 0.15rem 0.6rem;
+    min-width: 2.6rem;
+    padding: 0.2rem 0.55rem;
     border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
     font-variant-numeric: tabular-nums;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+    background: #fce4ec;
+    border: 1px solid rgba(232, 135, 159, 0.45);
+    color: #9a3d5c;
 }
 
 /* Fechas */
 .oc-fecha-emi {
-    font-size: 0.8rem;
-    opacity: 0.9;
+    font-size: 0.82rem;
+    color: #3d3548;
+    font-variant-numeric: tabular-nums;
 }
 
 .oc-fecha-entrega {
     display: inline-block;
-    padding: 0.15rem 0.6rem;
+    padding: 0.2rem 0.65rem;
     border-radius: 999px;
     font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+    background: #f3f4f6;
+    border: 1px solid rgba(90, 70, 90, 0.14);
+    color: #3d3548;
 }
 
 .oc-fecha-atrasada {
-    background: rgba(220, 53, 69, 0.12);
-    border-color: rgba(220, 53, 69, 0.5);
-    color: #ff9ca4;
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #991b1b;
 }
 
 .oc-fecha-hoy {
-    background: rgba(255, 193, 7, 0.14);
-    border-color: rgba(255, 193, 7, 0.6);
-    color: #ffe28a;
+    background: #fef3c7;
+    border-color: #fcd34d;
+    color: #92400e;
 }
 
 .oc-fecha-futura {
-    background: rgba(25, 135, 84, 0.14);
-    border-color: rgba(25, 135, 84, 0.6);
-    color: #8ee3b1;
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #166534;
 }
 
 /* Estado */
 .oc-badge-estado {
     display: inline-block;
-    padding: 0.15rem 0.8rem;
+    padding: 0.22rem 0.75rem;
     border-radius: 999px;
     font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
+    font-weight: 700;
+    letter-spacing: 0.02em;
     text-transform: capitalize;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 12px rgba(0, 0, 0, 0.55);
+    border: 1px solid transparent;
+    line-height: 1.25;
 }
 
 .oc-estado-default {
-    background: rgba(108, 117, 125, 0.18);
-    color: #ced4da;
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    color: #374151;
 }
 
 .oc-estado-pendiente {
-    background: rgba(148, 163, 184, .25);
-    color: #e5e7eb;
+    background: #eef2ff;
+    border-color: #c7d2fe;
+    color: #3730a3;
 }
 
 .oc-estado-parcial {
-    background: rgba(249, 115, 22, .22);
-    color: #fed7aa;
+    background: #ffedd5;
+    border-color: #fdba74;
+    color: #9a3412;
 }
 
 .oc-estado-completa {
-    background: rgba(22, 163, 74, .22);
-    color: #bbf7d0;
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #166534;
 }
 
 .oc-estado-cancelada {
-     background: rgba(249, 115, 22, .22);
-    color: #fed7aa;
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #991b1b;
 }
 
 /* Monto */
 .oc-monto {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 0.85rem;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+    color: #3d3548;
 }
 
 /* Ojito compra */
 .oc-btn-ojito {
-    padding: 0.1rem 0.35rem;
+    padding: 0.15rem 0.4rem;
     border-radius: 999px;
 }
 
-    .oc-btn-ojito i {
-        color: #4fc3f7;
-    }
+.oc-btn-ojito i {
+    color: #0284c7;
+}
+
+/* Evitar doble marco/sombra (raya debajo del card) */
+.page-99 .card-glass .dt-dark-wrap {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 12px !important;
+}

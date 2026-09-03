@@ -1,5 +1,7 @@
 ﻿using SistemaKyoGroup.DAL.Repository;
+using SistemaKyoGroup.DAL.Grid;
 using SistemaKyoGroup.Models;
+using SistemaKyoGroup.Models.Common;
 
 namespace SistemaKyoGroup.BLL.Service
 {
@@ -18,9 +20,9 @@ namespace SistemaKyoGroup.BLL.Service
             return await _contactRepo.Actualizar(model);
         }
 
-        public async Task<bool> Eliminar(int id)
+        public async Task<DeleteResult> Eliminar(int id, bool cascade = false)
         {
-            return await _contactRepo.Eliminar(id);
+            return await _contactRepo.Eliminar(id, cascade);
         }
 
         public async Task<bool> Insertar(Insumo model)
@@ -62,6 +64,21 @@ namespace SistemaKyoGroup.BLL.Service
         public async Task<IQueryable<Insumo>> ObtenerPorUnidadYProveedor(int idUnidadNegocio, int idProveedor)
         {
             return await _contactRepo.ObtenerPorUnidadYProveedor(idUnidadNegocio, idProveedor);
+        }
+
+        public async Task<Insumo?> BuscarDuplicado(string sku, string descripcion, int idExcluir)
+        {
+            return await _contactRepo.BuscarDuplicado(sku, descripcion, idExcluir);
+        }
+
+        public async Task<GridResult<Insumo>> ListarPaginado(int idUnidadNegocio, GridQuery query)
+        {
+            return await _contactRepo.ListarPaginado(idUnidadNegocio, query);
+        }
+
+        public async Task<(int Total, int SinProveedor)> ObtenerKpis(int idUnidadNegocio)
+        {
+            return await _contactRepo.ObtenerKpis(idUnidadNegocio);
         }
 
 

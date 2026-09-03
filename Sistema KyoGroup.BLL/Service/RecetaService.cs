@@ -1,28 +1,29 @@
 ﻿using SistemaKyoGroup.DAL.Repository;
 using SistemaKyoGroup.Models;
+using SistemaKyoGroup.Models.Common;
 
 namespace SistemaKyoGroup.BLL.Service
 {
     public class RecetaService : IRecetaService
     {
-
         private readonly IRecetaRepository<Receta> _contactRepo;
 
         public RecetaService(IRecetaRepository<Receta> contactRepo)
         {
             _contactRepo = contactRepo;
         }
-        public async Task<bool> Actualizar(Receta model)
+
+        public async Task<(bool ok, string mensaje)> Actualizar(Receta model)
         {
             return await _contactRepo.Actualizar(model);
         }
 
-        public async Task<bool> Eliminar(int id)
+        public async Task<DeleteResult> Eliminar(int id, bool cascade = false)
         {
-            return await _contactRepo.Eliminar(id);
+            return await _contactRepo.Eliminar(id, cascade);
         }
 
-        public async Task<bool> Insertar(Receta model)
+        public async Task<(bool ok, string mensaje)> Insertar(Receta model)
         {
             return await _contactRepo.Insertar(model);
         }
@@ -31,6 +32,7 @@ namespace SistemaKyoGroup.BLL.Service
         {
             return await _contactRepo.Obtener(id);
         }
+
         public async Task<IQueryable<Receta>> ObtenerTodos()
         {
             return await _contactRepo.ObtenerTodos();
@@ -55,7 +57,5 @@ namespace SistemaKyoGroup.BLL.Service
         {
             return await _contactRepo.ObtenerInsumos(idReceta);
         }
-
-
     }
 }

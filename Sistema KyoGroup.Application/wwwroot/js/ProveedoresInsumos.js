@@ -1,7 +1,7 @@
-﻿/* ============================================================================
- * ProveedoresInsumos.js — COMPLETO
+/* ============================================================================
+ * ProveedoresInsumos.js → COMPLETO
  * - DataTable principal
- * - Validaciones y modal (Código NO requerido al crear)
+ * - Validaciones y modal (CÓdigo NO requerido al crear)
  * - Importación Excel + vista previa editable + resumen
  * - Envío exacto al endpoint Importar (Codigo, Descripcion, CostoUnitario, Cantidad)
  * ============================================================================ */
@@ -9,18 +9,16 @@
 /* ================== Estado global ================== */
 let gridInsumos = null;
 let listaInsumosArray = [];        // vista previa importación
-const _PI_selected = new Set();    // selección múltiple grilla principal
-let _PI_lastSelectedIndex = null;
 
 const columnConfig = [
-    { index: 1, filterType: 'text' }, // Codigo
-    { index: 2, filterType: 'text' }, // Descripcion
-    { index: 3, filterType: 'text' }, // Costo
-    { index: 4, filterType: 'text' }, // Cantidad
-    { index: 5, filterType: 'text' }, // Costo Unitario
-    { index: 6, filterType: 'text' }, // Proveedor
-    { index: 7, filterType: 'text' }, // Fecha Actualizacion
-    { index: 8, filterType: 'text' }, // Fecha Actualizacion
+    { index: 2, filterType: 'text', placeholder: 'Código…' },
+    { index: 3, filterType: 'text', placeholder: 'Descripción…' },
+    { index: 4, filterType: 'text', placeholder: 'Costo…' },
+    { index: 5, filterType: 'text', placeholder: 'Cant…' },
+    { index: 6, filterType: 'text', placeholder: 'Desc%…' },
+    { index: 7, filterType: 'text', placeholder: 'Unitario…' },
+    { index: 8, filterType: 'text', placeholder: 'Proveedor…' },
+    { index: 9, filterType: 'text', placeholder: 'Fecha…' },
 ];
 
 /* ================== Helpers numérico/formatos ================== */
@@ -35,7 +33,7 @@ function _parseNumberLoose(txt) {
     // Quitar símbolos/palabras de moneda y %
     // (se eliminan sin romper números con espacios p.ej. "R$ 1.234,56")
     s = s.replace(/\s+/g, '');
-    s = s.replace(/(?:USD|ARS|MXN|COP|CLP|UYU|EUR|GBP|JPY|CNY|R\$|A\$|C\$|€|\$|£|¥|₱|₡|₫|₴|₪|₹|₩|₦|₭|₲|₺|₽|%)/gi, '');
+    s = s.replace(/(?:USD|ARS|MXN|COP|CLP|UYU|EUR|GBP|JPY|CNY|R\$|A\$|C\$|\$|%)/gi, '');
 
     // Mantener solo dígitos, coma, punto y signo
     s = s.replace(/[^\d.,-]/g, '');
@@ -81,7 +79,7 @@ function parsearPrecio(precioTexto) {
 
 function parsearPorcentaje(txt) {
     if (typeof txt === 'number' && isFinite(txt)) {
-        // Excel guarda 30% como 0.30 → convertir a 30
+        // Excel guarda 30% como 0.30 ? convertir a 30
         return (txt > 0 && txt <= 1) ? (txt * 100) : txt;
     }
     if (txt == null) return 0;
@@ -166,9 +164,7 @@ async function listaProveedoresFiltro() {
         op.value = p.Id; op.text = p.Nombre;
         sel.appendChild(op);
     });
-    if (window.jQuery && $.fn.select2) {
-        $('#ProveedorFiltro').select2({ placeholder: 'Proveedor', allowClear: false, width: '100%' });
-    }
+    // Select2: site-select2.js
 }
 
 function initFiltroProveedorPersistente() {
@@ -231,22 +227,16 @@ async function limpiarFiltrosPI() {
 }
 
 /* ================== CRUD principal ================== */
-function toggleAcciones(id) {
-    const $dropdown = $(`.acciones-menu[data-id="${id}"] .acciones-dropdown`);
-    if ($dropdown.is(":visible")) $dropdown.hide();
-    else { $('.acciones-dropdown').hide(); $dropdown.show(); }
-}
-
 /**
  * Validación del modal.
- * - Código: NO requerido si es ALTA (txtId vacío). Si editás, podés exigirlo como quieras.
+ * - CÓdigo: NO requerido si es ALTA (txtId vacío). Si editás, podés exigirlo como quieras.
  */
 function validarCampos() {
     const idVal = (document.querySelector('#txtId')?.value || '').trim();
     const esAlta = (idVal === '');
 
     const campos = [
-        // esAlta ? null : "#txtCodigo",  // si quisieras exigirlo sólo en edición
+        // esAlta ? null : "#txtCodigo",  // si quisieras exigirlo sÓlo en edición
         "#txtDescripcion",
         "#Proveedores",
         "#txtCosto",
@@ -292,7 +282,7 @@ function validarCampos() {
 }
 
 function recalcularCostoUnitario() {
-    const costoUnit = _parseNumberLoose(document.getElementById('txtCosto')?.value);   // unitario
+    const costoTotal = _parseNumberLoose(document.getElementById('txtCosto')?.value);
     let cant = _parseNumberLoose(document.getElementById('txtCantidad')?.value);
     let desc = parsearPorcentaje(document.getElementById('txtPorcDesc')?.value);
 
@@ -303,14 +293,17 @@ function recalcularCostoUnitario() {
     const out = document.getElementById('txtCostoUnitario');
     if (!out) return;
 
-    if (isNaN(costoUnit)) { out.value = ''; return; }
+    if (isNaN(costoTotal)) { out.value = ''; return; }
 
-    const factor = 1 - (desc / 100);
-    const resultado = (costoUnit * cant) * factor; // << clave: multiplicar por cantidad
-    out.value = isNaN(resultado) ? '' : resultado.toFixed(2);
+    const unitarioBase = costoTotal / cant;
+    const unitario = unitarioBase * (1 - (desc / 100));
+    out.value = isNaN(unitario) ? '' : (typeof formatNumeroAR === 'function' ? formatNumeroAR(unitario, 2) : unitario.toFixed(2));
 }
 
-function formatearSinMiles(txt) { return _parseNumberLoose(txt); }
+function formatearSinMiles(txt) {
+    const n = typeof parseNumeroLoose === 'function' ? parseNumeroLoose(txt) : _parseNumberLoose(txt);
+    return isNaN(n) ? 0 : n;
+}
 
 function limpiarModal() {
     const f = document.querySelector("#formInsumo");
@@ -327,15 +320,6 @@ function limpiarModal() {
     document.getElementById("errorCampos")?.classList.add("d-none");
 }
 
-function setInfoAuditoria(modelo) {
-    const el = document.getElementById('lblUltimaModif');
-    if (!el) return;
-    if (modelo?.FechaActualizacion) {
-        const d = new Date(modelo.FechaActualizacion);
-        el.textContent = `Última modif.: ${moment(d).format('DD/MM/YYYY HH:mm')}`;
-    } else el.textContent = '';
-}
-
 async function listaProveedores() {
     const data = await listaProveedoresFilter();
     const sel = document.getElementById('Proveedores');
@@ -349,9 +333,7 @@ async function listaProveedores() {
         o.value = p.Id; o.text = p.Nombre;
         sel.appendChild(o);
     });
-    if (window.jQuery && $.fn.select2) {
-        $('#Proveedores').select2({ dropdownParent: $("#modalEdicion"), width: "100%", placeholder: "Seleccionar", allowClear: false });
-    }
+    // Select2: site-select2.js
 }
 
 function nuevoInsumo() {
@@ -361,7 +343,7 @@ function nuevoInsumo() {
         $('#modalEdicion').modal('show');
         $("#btnGuardar").text("Registrar");
         $("#modalEdicionLabel").text("Nuevo Insumo");
-        // Código NO requerido → no lo marcamos
+        // CÓdigo NO requerido ? no lo marcamos
     });
     $("#txtCantidad").val(1);
     $("#txtPorcDesc").val(0);
@@ -377,13 +359,13 @@ async function mostrarModal(m) {
     const porcDesc = (m.PorcDesc ?? 0);
     const unitario = (m.CostoUnitario ?? ((cantidad ? (costo / cantidad) : 0) * (1 - (porcDesc / 100))));
 
-    $("#txtId").val(m.Id);
+    $("#txtId").val(m.Id && Number(m.Id) > 0 ? m.Id : "");
     $("#txtCodigo").val(m.Codigo);
     $("#txtDescripcion").val(m.Descripcion);
-    $("#txtCosto").val(isNaN(costo) ? '' : (+costo).toFixed(2));
-    $("#txtCantidad").val(isNaN(cantidad) ? '' : cantidad.toString());
-    $("#txtPorcDesc").val(isNaN(porcDesc) ? '0' : (+porcDesc).toFixed(2));
-    $("#txtCostoUnitario").val(isNaN(unitario) ? '' : (+unitario).toFixed(2));
+    $("#txtCosto").val(isNaN(costo) ? '' : formatNumeroAR(costo, 2));
+    $("#txtCantidad").val(isNaN(cantidad) ? '' : formatNumeroAR(cantidad, 2));
+    $("#txtPorcDesc").val(isNaN(porcDesc) ? '0' : formatNumeroAR(porcDesc, 2));
+    $("#txtCostoUnitario").val(isNaN(unitario) ? '' : formatNumeroAR(unitario, 2));
     $("#Proveedores").val(m.IdProveedor).trigger("change.select2");
 
     $('#modalEdicion').modal('show');
@@ -394,66 +376,106 @@ async function mostrarModal(m) {
 async function guardarCambios() {
     if (!validarCampos()) return;
 
-    const idInsumo = $("#txtId").val();
-    const costo = formatearSinMiles($("#txtCosto").val());
-    const cantidad = _parseNumberLoose($("#txtCantidad").val());
-    const porcDesc = _parseNumberLoose($("#txtPorcDesc").val());
-    const porc = isNaN(porcDesc) ? 0 : Math.max(0, porcDesc);
-    const cantOk = (isNaN(cantidad) || cantidad <= 0) ? 1 : cantidad;
+    return withBusy("#btnGuardar", async () => {
+        const idInsumo = $("#txtId").val();
+        const esNuevo = !idInsumo || idInsumo === "0";
+        const costo = formatearSinMiles($("#txtCosto").val());
+        const cantidad = _parseNumberLoose($("#txtCantidad").val());
+        const porcDesc = _parseNumberLoose($("#txtPorcDesc").val());
+        const porc = isNaN(porcDesc) ? 0 : Math.max(0, porcDesc);
+        const cantOk = (isNaN(cantidad) || cantidad <= 0) ? 1 : cantidad;
 
-    const unitarioBase = (!isNaN(costo) && !isNaN(cantOk) && cantOk !== 0) ? (costo / cantOk) : NaN;
-    const unitario = isNaN(unitarioBase) ? NaN : (unitarioBase * (1 - (porc / 100)));
+        const unitarioBase = (!isNaN(costo) && !isNaN(cantOk) && cantOk !== 0) ? (costo / cantOk) : NaN;
+        const unitario = isNaN(unitarioBase) ? NaN : (unitarioBase * (1 - (porc / 100)));
 
-    const modelo = {
-        Id: idInsumo !== "" ? parseInt(idInsumo) : 0,
-        Codigo: $("#txtCodigo").val(), // NO requerido si es alta
-        Descripcion: $("#txtDescripcion").val(),
-        Costo: isNaN(costo) ? 0 : +costo.toFixed(2),
-        Cantidad: +cantOk.toFixed(4),
-        PorcDesc: +porc.toFixed(2),
-        CostoUnitario: isNaN(unitario) ? 0 : +unitario.toFixed(4),
-        IdProveedor: parseInt($("#Proveedores").val())
-    };
+        const modelo = {
+            Id: esNuevo ? 0 : parseInt(idInsumo),
+            Codigo: $("#txtCodigo").val(), // NO requerido si es alta
+            Descripcion: $("#txtDescripcion").val(),
+            Costo: isNaN(costo) ? 0 : +costo.toFixed(2),
+            Cantidad: +cantOk.toFixed(4),
+            PorcDesc: +porc.toFixed(2),
+            CostoUnitario: isNaN(unitario) ? 0 : +unitario.toFixed(4),
+            IdProveedor: parseInt($("#Proveedores").val())
+        };
 
-    const url = idInsumo === "" ? "ProveedoresInsumos/Insertar" : "ProveedoresInsumos/Actualizar";
-    const method = idInsumo === "" ? "POST" : "PUT";
+        const url = esNuevo ? "/ProveedoresInsumos/Insertar" : "/ProveedoresInsumos/Actualizar";
+        const method = esNuevo ? "POST" : "PUT";
 
+        try {
+            const r = await fetch(url, {
+                method,
+                headers: { 'Authorization': 'Bearer ' + (token || ''), 'Content-Type': 'application/json;charset=utf-8' },
+                body: JSON.stringify(modelo)
+            });
+            const data = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(data.mensaje || r.statusText || 'Error inesperado');
+            $('#modalEdicion').modal('hide');
+            exitoModal(data.mensaje || (esNuevo ? "Insumo registrado correctamente" : "Insumo modificado correctamente"));
+            aplicarFiltros();
+        } catch (err) {
+            console.error(err);
+            errorModal(err.message || "Error inesperado");
+        }
+    });
+}
+
+async function verHistorialLista(id) {
     try {
-        const r = await fetch(url, {
-            method,
-            headers: { 'Authorization': 'Bearer ' + (token || ''), 'Content-Type': 'application/json;charset=utf-8' },
-            body: JSON.stringify(modelo)
+        const r = await fetch('/ProveedoresInsumos/Historial?id=' + encodeURIComponent(id), {
+            headers: { 'Authorization': 'Bearer ' + (token || '') }
         });
-        const data = await r.json().catch(() => ({}));
-        if (!r.ok) throw new Error(data.mensaje || r.statusText || 'Error inesperado');
-        $('#modalEdicion').modal('hide');
-        exitoModal(data.mensaje || (idInsumo === "" ? "Insumo registrado correctamente" : "Insumo modificado correctamente"));
-        aplicarFiltros();
-    } catch (err) {
-        console.error(err);
-        errorModal(err.message || "Error inesperado");
+        if (!r.ok) throw new Error('No se pudo cargar el historial.');
+        const data = await r.json();
+        if (typeof renderHistorialPreciosModal === 'function') {
+            renderHistorialPreciosModal(data || [], `Historial de precios #${id}`);
+        } else {
+            renderHistorialModal(data || [], `Historial de precios #${id}`);
+        }
+    } catch (e) {
+        console.error(e);
+        errorModal(e.message || 'No se pudo cargar el historial.');
+    }
+}
+
+async function verHistorialPreciosProveedorFiltro() {
+    const idProv = getProveedorFiltro();
+    if (!idProv || idProv <= 0) {
+        advertenciaModal('Seleccioná un proveedor en el filtro para ver su evolución de precios.');
+        return;
+    }
+    try {
+        const r = await fetch('/ProveedoresInsumos/HistorialProveedor?idProveedor=' + encodeURIComponent(idProv), {
+            headers: { 'Authorization': 'Bearer ' + (token || '') }
+        });
+        if (!r.ok) throw new Error('No se pudo cargar el historial del proveedor.');
+        const data = await r.json();
+        const nombre = document.querySelector('#ProveedorFiltro option:checked')?.textContent?.trim() || ('#' + idProv);
+        if (typeof renderHistorialPreciosModal === 'function') {
+            renderHistorialPreciosModal(data || [], `Evolución de precios — ${nombre}`);
+        } else {
+            renderHistorialModal(data || [], `Evolución de precios — ${nombre}`);
+        }
+    } catch (e) {
+        console.error(e);
+        errorModal(e.message || 'No se pudo cargar el historial.');
     }
 }
 
 async function eliminarInsumo(id) {
-    const ok = window.confirm("¿Desea eliminar el Insumo?");
-    if (!ok) return;
-    try {
-        const r = await fetch("ProveedoresInsumos/Eliminar?id=" + id, {
-            method: "DELETE",
-            headers: { 'Authorization': 'Bearer ' + (token || '') }
-        });
-        if (!r.ok) throw new Error("Error al eliminar el Insumo.");
-        const j = await r.json();
-        if (j.valor) { aplicarFiltros(); exitoModal("Insumo eliminado correctamente"); }
-        else throw new Error(j.mensaje || "No se pudo eliminar.");
-    } catch (e) {
-        console.error(e); errorModal(e.message || "Ha ocurrido un error");
-    }
+    return eliminarConCascada({
+        url: '/ProveedoresInsumos/Eliminar',
+        id,
+        confirmMsg: '¿Desea eliminar el Insumo?',
+        headers: () => ({ 'Authorization': 'Bearer ' + (token || '') }),
+        onSuccess: async (j) => {
+            aplicarFiltros();
+            exitoModal(j.mensaje || 'Insumo eliminado correctamente');
+        }
+    });
 }
 
 const editarInsumo = (id) => {
-    $('.acciones-dropdown').hide();
     fetch("/ProveedoresInsumos/EditarInfo?id=" + encodeURIComponent(id), {
         headers: { 'Authorization': 'Bearer ' + (token || ''), 'Content-Type': 'application/json' }
     })
@@ -462,71 +484,66 @@ const editarInsumo = (id) => {
         .catch(() => errorModal("Ha ocurrido un error."));
 };
 
-/* ================== DataTable principal ================== */
-async function listaInsumos(IdProveedor) {
-    const url = `/ProveedoresInsumos/Lista?IdProveedor=${IdProveedor}`;
-    const response = await fetch(url, {
-        headers: { 'Authorization': 'Bearer ' + (token || ''), 'Content-Type': 'application/json' }
-    });
-    const data = await response.json();
-    await configurarDataTable(data);
+async function duplicarProveedorInsumo(id) {
+    try {
+        const r = await fetch("/ProveedoresInsumos/EditarInfo?id=" + encodeURIComponent(id), {
+            headers: { 'Authorization': 'Bearer ' + (token || ''), 'Content-Type': 'application/json' }
+        });
+        if (!r.ok) throw new Error("Ha ocurrido un error.");
+        const origen = await r.json();
+        if (!origen) throw new Error("Ha ocurrido un error.");
+
+        const codigo = String(origen.Codigo || '').trim();
+        const copia = {
+            ...origen,
+            Id: 0,
+            Codigo: codigo ? `${codigo}-COPIA` : '',
+            Descripcion: typeof kyoTextoCopia === 'function'
+                ? kyoTextoCopia(origen.Descripcion)
+                : `${(origen.Descripcion || '').trim()} (copia)`.trim()
+        };
+
+        await mostrarModal(copia);
+        $("#txtId").val("");
+        $("#btnGuardar").text("Registrar");
+        $("#modalEdicionLabel").text("Duplicar Insumo de proveedor");
+    } catch (e) {
+        console.error(e);
+        errorModal("Ha ocurrido un error al duplicar.");
+    }
 }
 
-async function configurarDataTable(data) {
-    // ==== agregado: estado + helpers ====
-    window._PI_selected = window._PI_selected || new Set();
+/* ================== DataTable principal ================== */
+async function listaInsumos(IdProveedor) {
+    if (gridInsumos) {
+        kyoGridReload(gridInsumos);
+    } else {
+        await initProveedoresInsumosGrid();
+    }
+}
 
-    // (a) oculto forzado al entrar (evita que se vea en 0)
-    $('#fabEliminarPI').removeClass('show-fab').hide();
+async function initProveedoresInsumosGrid() {
+    if (window.ensureKyoExportLibs) await window.ensureKyoExportLibs();
+    if (gridInsumos) return;
 
-    const _piUpdateFAB = () => {
-        const $fab = $('#fabEliminarPI');
-        const total = _PI_selected.size;
-        $fab.find('.count-badge').text(String(`(${total})` || 0));
-        if (total > 0) $fab.addClass('show-fab').show();
-        else $fab.removeClass('show-fab').hide();
-    };
+    $('#grd_InsumosProveedor thead tr').clone(true).addClass('filters').appendTo('#grd_InsumosProveedor thead');
 
-    const _piIsActionClick = (e) =>
-        $(e.target).closest('button,a,input,select,label,.icon-btn,.acciones-menu,.acciones-dropdown').length > 0;
-
-    if (!gridInsumos) {
-        $('#grd_InsumosProveedor thead tr').clone(true).addClass('filters').appendTo('#grd_InsumosProveedor thead');
-
-        gridInsumos = $('#grd_InsumosProveedor').DataTable({
-            rowId: 'Id',
-            data,
+    gridInsumos = $('#grd_InsumosProveedor').DataTable({
+        serverSide: true,
+        processing: true,
+        ajax: kyoServerGridAjax('/ProveedoresInsumos/ListaPaginada', () => ({
+            IdProveedor: getProveedorFiltro()
+        })),
             language: {
                 sLengthMenu: "Mostrar MENU registros",
-                lengthMenu: "Anzeigen von _MENU_ Einträgen",
+                lengthMenu: "Anzeigen von _MENU_ Einträge",
                 url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
             },
-            scrollX: "100px",
+            scrollX: false,
             scrollCollapse: true,
             columns: [
-                {
-                    data: "Id",
-                    title: '',
-                    width: "1%",
-                    render: function (data) {
-                        return `
-      <div class="acciones-menu" data-id="${data}">
-        <button class='btn btn-sm btnacciones' type='button' title='Acciones'>
-          <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
-        </button>
-        <div class="acciones-dropdown" style="display:none">
-          <button class='btn btn-sm btneditar'  type='button' onclick='editarInsumo(${data})'   title='Editar'>
-            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
-          </button>
-          <button class='btn btn-sm btneliminar' type='button' onclick='eliminarInsumo(${data})' title='Eliminar'>
-            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
-          </button>
-        </div>
-      </div>`;
-                    },
-                    orderable: false,
-                    searchable: false,
-                },
+                columnaGridAcciones({ editar: 'editarInsumo', duplicar: 'duplicarProveedorInsumo', historial: 'verHistorialLista', eliminar: 'eliminarInsumo' }),
+                columnaGridId(),
                 { data: 'Codigo' },
                 { data: 'Descripcion' },
                 { data: 'Costo' },
@@ -543,7 +560,7 @@ async function configurarDataTable(data) {
                     text: 'Exportar Excel',
                     filename: 'Reporte Proveedores-Insumos',
                     title: '',
-                    exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7] },
+                    exportOptions: { columns: [2, 3, 4, 5, 6, 7, 8] },
                     className: 'btn-exportar-excel',
                 },
                 {
@@ -551,20 +568,20 @@ async function configurarDataTable(data) {
                     text: 'Exportar PDF',
                     filename: 'Reporte Proveedores-Insumos',
                     title: '',
-                    exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7] },
+                    exportOptions: { columns: [2, 3, 4, 5, 6, 7, 8] },
                     className: 'btn-exportar-pdf',
                 },
                 {
                     extend: 'print',
                     text: 'Imprimir',
                     title: '',
-                    exportOptions: { columns: [1, 2, 3, 4, 5, 6, 7] },
+                    exportOptions: { columns: [2, 3, 4, 5, 6, 7, 8] },
                     className: 'btn-exportar-print'
                 },
                 'pageLength'
             ],
             orderCellsTop: true,
-            fixedHeader: true,
+            fixedHeader: false,
             columnDefs: [
                 { // Costo y CostoUnitario
                     render: function (data) {
@@ -576,7 +593,7 @@ async function configurarDataTable(data) {
                             return '$ ' + n.toFixed(2);
                         }
                     },
-                    targets: [3, 6]
+                    targets: [4, 7]
                 },
                 { // Cantidad
                     render: function (data) {
@@ -584,7 +601,7 @@ async function configurarDataTable(data) {
                         if (isNaN(n)) return '';
                         return (Math.round(n * 10000) / 10000).toString();
                     },
-                    targets: [4]
+                    targets: [5]
                 },
                 { // Fecha
                     render: function (data) {
@@ -594,7 +611,7 @@ async function configurarDataTable(data) {
                         }
                         return '';
                     },
-                    targets: [8]
+                    targets: [9]
                 }
             ],
 
@@ -605,7 +622,7 @@ async function configurarDataTable(data) {
                     text: 'Exportar Excel',
                     filename: 'Reporte Proveedores-Insumos',
                     title: '',
-                    exportOptions: { columns: [1, 2, 3, 4, 5] },
+                    exportOptions: { columns: [2, 3, 4, 5, 6] },
                     className: 'btn-exportar-excel',
                 },
                 {
@@ -613,206 +630,56 @@ async function configurarDataTable(data) {
                     text: 'Exportar PDF',
                     filename: 'Reporte Proveedores-Insumos',
                     title: '',
-                    exportOptions: { columns: [1, 2, 3, 4, 5] },
+                    exportOptions: { columns: [2, 3, 4, 5, 6] },
                     className: 'btn-exportar-pdf',
                 },
                 {
                     extend: 'print',
                     text: 'Imprimir',
                     title: '',
-                    exportOptions: { columns: [1, 2, 3, 4, 5] },
+                    exportOptions: { columns: [2, 3, 4, 5, 6] },
                     className: 'btn-exportar-print'
                 },
                 'pageLength'
             ],
             orderCellsTop: true,
-            fixedHeader: true,
-
-            createdRow: function (row, rowData) {
-                const idStr = String(rowData?.Id ?? '');
-                if (idStr && _PI_selected.has(idStr)) {
-                    row.classList.add('row-selected');
-                }
-            },
+            fixedHeader: false,
 
             initComplete: async function () {
                 const api = this.api();
 
-                // Filtros por columna
-                columnConfig.forEach(async (config) => {
-                    const cell = $('.filters th').eq(config.index);
-
-                    if (config.filterType === 'text') {
-                        $('<input type="text" placeholder="Buscar..." />')
-                            .appendTo(cell.empty())
-                            .off('keyup change')
-                            .on('keyup change', function (e) {
-                                e.stopPropagation();
-                                const regexr = '({search})';
-                                const cursorPosition = this.selectionStart;
-                                api.column(config.index)
-                                    .search(this.value !== '' ? regexr.replace('{search}', '(((' + this.value + ')))') : '', this.value !== '', this.value === '')
-                                    .draw();
-                                $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
-                            });
-                    } else if (config.filterType === 'select') {
-                        const select = $('<select><option value="">Seleccionar</option></select>')
-                            .appendTo(cell.empty())
-                            .on('change', function () {
-                                const selectedText = $(this).find('option:selected').text();
-                                api.column(config.index).search(this.value ? '^' + selectedText + '$' : '', true, false).draw();
-                            });
-                    }
+                await kyoBindColumnFilters(api, {
+                    columns: columnConfig,
+                    skipIndexes: [0, 1]
                 });
-
-                // La primera columna (acciones) no lleva filtro
-                $('.filters th').eq(0).html('');
 
                 configurarOpcionesColumnas();
 
                 setTimeout(() => { gridInsumos.columns.adjust(); }, 10);
 
                 // KPIs
-                actualizarKpisProveedorInsumos(data);
+                const json = api.ajax.json();
+                const cant = json?.recordsFiltered ?? json?.recordsTotal ?? api.rows({ search: 'applied' }).count();
+                actualizarKpisProveedorInsumos(Array.from({ length: cant }));
 
-                // Selección por fila
-                // ==================== Selección avanzada ====================
-                let _PI_lastSelectedIndex = null;
-
-                $('#grd_InsumosProveedor tbody')
-                    .off('click.pi-select')
-                    .on('click.pi-select', 'tr', function (e) {
-                        if (_piIsActionClick(e)) return; // evita conflicto con botones internos
-
-                        const row = gridInsumos.row(this);
-                        const id = String(row?.data()?.Id ?? '');
-                        if (!id) return;
-
-                        const allRows = gridInsumos.rows({ order: 'applied', search: 'applied' }).nodes();
-                        const currentIndex = Array.from(allRows).indexOf(this);
-
-                        // SHIFT → seleccionar rango desde última fila seleccionada
-                        if (e.shiftKey && _PI_lastSelectedIndex != null) {
-                            const start = Math.min(_PI_lastSelectedIndex, currentIndex);
-                            const end = Math.max(_PI_lastSelectedIndex, currentIndex);
-
-                            _PI_selected.clear();
-                            for (let i = start; i <= end; i++) {
-                                const data = gridInsumos.row(allRows[i]).data();
-                                if (data?.Id) _PI_selected.add(String(data.Id));
-                            }
-                        }
-                        // CTRL → toggle individual sin limpiar
-                        else if (e.ctrlKey || e.metaKey) {
-                            if (_PI_selected.has(id)) _PI_selected.delete(id);
-                            else _PI_selected.add(id);
-                            _PI_lastSelectedIndex = currentIndex;
-                        }
-                        // CLICK normal → limpiar y seleccionar solo esta
-                        else {
-                            _PI_selected.clear();
-                            _PI_selected.add(id);
-                            _PI_lastSelectedIndex = currentIndex;
-                        }
-
-                        // Actualizar clases visuales
-                        $(allRows).removeClass('row-selected');
-                        for (const rid of _PI_selected) {
-                            const rowNode = Array.from(allRows).find(r => gridInsumos.row(r).data()?.Id == rid);
-                            if (rowNode) rowNode.classList.add('row-selected');
-                        }
-
-                        _piUpdateFAB();
-                    });
-
-                gridInsumos.on('draw', function () {
-                    gridInsumos.rows().every(function () {
-                        const id = String(this.data()?.Id ?? '');
-                        const tr = this.node();
-                        if (id && _PI_selected.has(id)) tr.classList.add('row-selected');
-                        else tr.classList.remove('row-selected');
-                    });
-                    _piUpdateFAB();
-                });
-
-                $('#fabEliminarPI').off('click.pi-del').on('click.pi-del', async function () {
-                    const ids = Array.from(_PI_selected).map(Number).filter(x => !isNaN(x));
-                    if (ids.length === 0) return;
-
-                    const ok = (typeof confirmarModal === 'function')
-                        ? await confirmarModal(`¿Eliminar ${ids.length} insumo(s) seleccionados?`)
-                        : window.confirm(`¿Eliminar ${ids.length} insumo(s) seleccionados?`);
-                    if (!ok) return;
-
-                   
-                    const res = await fetch('/ProveedoresInsumos/EliminarMasivo', {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                            ...(token ? { 'Authorization': 'Bearer ' + token } : {})
-                        },
-                        body: JSON.stringify({ ids })
-                    });
-
-                    if (!res.ok) {
-                        if (typeof errorModal === 'function') errorModal('No se pudo eliminar.');
-                        return;
-                    }
-                    const j = await res.json();
-                    if (j?.valor === true) {
-                        _PI_selected.clear();
-                        _piUpdateFAB();
-                        if (typeof exitoModal === 'function') exitoModal('Eliminados correctamente.');
-                        aplicarFiltros();
-                    } else {
-                        if (typeof errorModal === 'function') errorModal(j?.mensaje || 'La operación no pudo completarse.');
-                    }
+                api.on('xhr.dt', function (_e, _settings, jsonXhr) {
+                    const n = jsonXhr?.recordsFiltered ?? jsonXhr?.recordsTotal ?? 0;
+                    actualizarKpisProveedorInsumos(Array.from({ length: n }));
                 });
             },
         });
+}
 
-    } else {
-        gridInsumos.clear().rows.add(data).draw();
-        actualizarKpisProveedorInsumos(data);
-
-        gridInsumos.rows().every(function () {
-            const id = String(this.data()?.Id ?? '');
-            const tr = this.node();
-            if (id && _PI_selected.has(id)) tr.classList.add('row-selected');
-            else tr.classList.remove('row-selected');
-        });
-        _piUpdateFAB();
-    }
+async function configurarDataTable() {
+    await initProveedoresInsumosGrid();
 }
 
 function configurarOpcionesColumnas() {
-    const grid = $('#grd_InsumosProveedor').DataTable();
-    const columnas = grid.settings().init().columns;
-    const container = $('#configColumnasMenu');
-    const storageKey = `ProveedoresInsumos_Columnas`;
-    const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
-    container.empty();
-
-    columnas.forEach((col, i) => {
-        if (!col.data || col.data === "Id" || i === 0) return;
-        const isChecked = saved[`col_${i}`] !== undefined ? saved[`col_${i}`] : true;
-        grid.column(i).visible(isChecked);
-        container.append(`
-            <li>
-                <label class="dropdown-item">
-                    <input type="checkbox" class="toggle-column" data-column="${i}" ${isChecked ? 'checked' : ''}>
-                    ${col.data}
-                </label>
-            </li>`);
-    });
-
-    $('.toggle-column').on('change', function () {
-        const idx = parseInt(this.dataset.column, 10);
-        const show = this.checked;
-        saved[`col_${idx}`] = show;
-        localStorage.setItem(storageKey, JSON.stringify(saved));
-        grid.column(idx).visible(show);
+    initGridColumnConfig({
+        gridSelector: '#grd_InsumosProveedor',
+        menuSelector: '#configColumnasMenu',
+        storageKey: 'ProveedoresInsumos_Columnas',
+        skipColumn: (col, index) => !col.data || col.data === 'Id' || index === 0,
     });
 }
 
@@ -862,14 +729,15 @@ document.getElementById('modalImportar')?.addEventListener('shown.bs.modal', () 
     cargarProveedores();
 });
 
-function descargarMaqueta() {
+async function descargarMaqueta() {
+    if (window.ensureKyoXlsx) await window.ensureKyoXlsx();
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet([], { header: ["Código", "Descripción", "Precio Total", "% Desc", "Cantidad"] });
+    const ws = XLSX.utils.json_to_sheet([], { header: ["CÓdigo", "Descripción", "Precio Total", "% Desc", "Cantidad"] });
     XLSX.utils.book_append_sheet(wb, ws, "Insumos");
     XLSX.writeFile(wb, "maqueta-insumos.xlsx");
 }
 
-/** Lee hoja Excel: tolera cabeceras horizontales y “bloques” desplazados */
+/** Lee hoja Excel: tolera cabeceras horizontales y «bloques» desplazados */
 function extraerBloquesDesdeMatriz(hoja) {
     const A = XLSX.utils.sheet_to_json(hoja, {
         header: 1,
@@ -937,7 +805,7 @@ function extraerBloquesDesdeMatriz(hoja) {
         if (idx.porc < 0) idx.porc = argmax(score.porc);
         if (idx.cant < 0) idx.cant = argmax(score.cant);
 
-        // intentar “Código” y “Descripción” como las dos primeras columnas con más texto
+        // intentar «CÓdigo» y «Descripción» como las dos primeras columnas con más texto
         if (idx.descripcion < 0 || idx.codigo < 0) {
             const textScore = new Array(cols).fill(0);
             for (let c = 0; c < cols; c++) {
@@ -953,7 +821,7 @@ function extraerBloquesDesdeMatriz(hoja) {
         if (hdrRow === -1) hdrRow = 0;
     }
 
-    // lector tolerante: si “precio” es símbolo en una celda y número en la siguiente
+    // lector tolerante: si «precio» es símbolo en una celda y número en la siguiente
     const leerPrecio = (row, i) => {
         if (i < 0) return NaN;
         const v1 = row[i];
@@ -1010,7 +878,7 @@ function eqRelAbs(a, b, absTol = 1e-4, relTol = 0.001) {
     return diff <= Math.max(absTol, relTol * scale);
 }
 
-/** Indexa la lista del backend (existentes) por código, descripción y combinación */
+/** Indexa la lista del backend (existentes) por cÓdigo, descripción y combinación */
 function buildIndexBackend(items) {
     const norm = s => normalizarClave(s ?? '').replace(/\s+/g, ' ').trim();
     const normCode = s => norm(s).replace(/[^a-z0-9]/gi, ''); // solo [a-z0-9]
@@ -1043,15 +911,16 @@ function buildIndexBackend(items) {
 // ========================= Reemplazar COMPLETO =========================
 // ============ IMPORTAR Y COMPARAR (campo por campo) ============
 // Reemplazá COMPLETO tu función por ésta.
-// - Compara por (Código+Descripción) -> Descripción -> Código
-// - No hace “cálculos lógicos” para decidir estado: compara campo a campo
+// - Compara por (CÓdigo+Descripción) -> Descripción -> CÓdigo
+// - No hace «cálculos lógicos» para decidir estado: compara campo a campo
 // - Si difiere el unitario => cambio; si difiere %desc => cambio; si difiere cantidad => cambio;
 //   si difiere el total (Costo) => cambio. Si todo igual => sin cambios. Si no hay match => nuevo.
-// - “P. Anterior” muestra SIEMPRE el Total/Costo anterior del backend.
+// - «P. Anterior» muestra SIEMPRE el Total/Costo anterior del backend.
 // - Tolerancias para evitar falsos positivos por redondeos.
 
 // ============ IMPORTAR Y COMPARAR (campo por campo, robusto) ============
 async function procesarArchivo() {
+    if (window.ensureKyoXlsx) await window.ensureKyoXlsx();
     const archivo = document.getElementById('archivoExcel').files[0];
     const idProveedor = document.getElementById('ProveedorImportar').value;
 
@@ -1065,7 +934,7 @@ async function procesarArchivo() {
 
     // ---------- Helpers ----------
     const epsTotal = 0.01;  // $0,01
-    const epsUnit = 0.01;  // $0,01 (comparación “visible” a 2 decimales)
+    const epsUnit = 0.01;  // $0,01 (comparación «visible» a 2 decimales)
     const epsPorc = 0.00;  // 0,01%
     const epsCant = 1e-4;  // 0,0001
 
@@ -1116,20 +985,20 @@ async function procesarArchivo() {
     listaInsumosArray = [];
 
     try {
-        // 1) Excel (fuente de “nuevo”)
+        // 1) Excel (fuente de «nuevo»)
         const data = await archivo.arrayBuffer();
         const workbook = XLSX.read(data, { type: 'buffer', cellNF: true, cellDates: true });
         const hoja = workbook.Sheets[workbook.SheetNames[0]];
 
         const desdeExcel = extraerBloquesDesdeMatriz(hoja); // {Codigo, Descripcion, PrecioTotal, PorcDesc, Cantidad, CostoUnitario?}
         if (!Array.isArray(desdeExcel) || desdeExcel.length === 0) {
-            throw new Error("No se reconocieron columnas válidas (Código, Descripción, Precio, % Desc, Cantidad).");
+            throw new Error("No se reconocieron columnas válidas (CÓdigo, Descripción, Precio, % Desc, Cantidad).");
         }
 
         // 2) Backend: traer LISTA EXISTENTE completa del proveedor (sin comparar)
         let existentes = [];
         try {
-            const resp = await fetch('/ProveedoresInsumos/Comparar', {   // <- si tenés otro endpoint, cambialo acá
+            const resp = await fetch('/ProveedoresInsumos/Comparar', {   // <- si tenäs otro endpoint, cambialo acá
                 method: 'POST',
                 headers: { 'Authorization': 'Bearer ' + (token || ''), 'Content-Type': 'application/json' },
                 body: JSON.stringify({ IdProveedor: parseInt(idProveedor), Lista: [] })
@@ -1137,7 +1006,7 @@ async function procesarArchivo() {
             if (resp.ok) existentes = await resp.json();
         } catch { existentes = []; }
 
-        // 3) Índices para matcheo
+        // 3) índices para matcheo
         const byCode = new Map(), byDesc = new Map(), byBag = new Map(), byBoth = new Map();
         for (const it of (existentes || [])) {
             const c = normCode(it.Codigo ?? '');
@@ -1650,30 +1519,32 @@ async function enviarDatos() {
 
     const payload = { IdProveedor: parseInt(idProveedor), Lista: lista };
 
-    try {
-        const resp = await fetch('/ProveedoresInsumos/Importar', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + (token || ''),
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-        if (!resp.ok) throw new Error(await resp.text() || "Error en la solicitud.");
-        const result = await resp.json();
-        if (result.valor) {
-            exitoModal("Insumos importados correctamente");
-            aplicarFiltros();
-            $('#modalImportar').modal('hide');
-        } else {
-            errorBox.textContent = result.mensaje || "Error al importar los insumos.";
+    return withBusy("#btnImportar", async () => {
+        try {
+            const resp = await fetch('/ProveedoresInsumos/Importar', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + (token || ''),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            if (!resp.ok) throw new Error(await resp.text() || "Error en la solicitud.");
+            const result = await resp.json();
+            if (result.valor) {
+                exitoModal("Insumos importados correctamente");
+                aplicarFiltros();
+                $('#modalImportar').modal('hide');
+            } else {
+                errorBox.textContent = result.mensaje || "Error al importar los insumos.";
+                errorBox.classList.remove('d-none');
+            }
+        } catch (error) {
+            errorBox.textContent = error.message || "Error inesperado al importar.";
             errorBox.classList.remove('d-none');
+            console.error(error);
         }
-    } catch (error) {
-        errorBox.textContent = error.message || "Error inesperado al importar.";
-        errorBox.classList.remove('d-none');
-        console.error(error);
-    }
+    }, { label: "Importando..." });
 }
 
 /* ================== Boot ================== */
@@ -1686,98 +1557,6 @@ $(document).ready(() => {
 
     bootstrapFiltroProveedor().then(aplicarFiltros);
 });
-
-
-/* ================== Selección múltiple en grilla principal ================== */
-// Estado global ya lo tenés:
-/// const _PI_selected = new Set();
-/// let _PI_lastSelectedIndex = null;
-
-function _piRowKey(row) { return Number(row?.Id); }
-
-function _piUpdateHeaderCheckbox() {
-    const th = document.querySelector('#grd_InsumosProveedor thead th .pi-check-all');
-    if (!th) return;
-    const dt = $('#grd_InsumosProveedor').DataTable();
-    const ids = dt.rows({ search: 'applied' }).data().toArray().map(r => r.Id);
-    if (ids.length === 0) { th.indeterminate = false; th.checked = false; return; }
-    const selectedOnPage = ids.filter(id => _PI_selected.has(id)).length;
-    th.checked = selectedOnPage === ids.length;
-    th.indeterminate = selectedOnPage > 0 && selectedOnPage < ids.length;
-}
-
-function _piSyncRowCheckboxes() {
-    $('#grd_InsumosProveedor tbody tr').each(function () {
-        const id = Number($(this).attr('id')); // rowId = 'Id'
-        const chk = this.querySelector('.pi-check-row');
-        if (chk) chk.checked = _PI_selected.has(id);
-        this.classList.toggle('row-selected', _PI_selected.has(id));
-    });
-    _piUpdateHeaderCheckbox();
-
-    // actualizar FAB/botón si existiera
-    const b = document.getElementById('fabEliminarPI');
-    if (b) {
-        const c = _PI_selected.size;
-        b.disabled = c === 0;
-        const badge = b.querySelector('.count-badge');
-        if (badge) badge.textContent = String(c);
-    }
-}
-
-function _piToggleRow(id, checked) {
-    if (checked) _PI_selected.add(id); else _PI_selected.delete(id);
-    _piSyncRowCheckboxes();
-}
-
-function _piToggleAll(checked) {
-    const dt = $('#grd_InsumosProveedor').DataTable();
-    dt.rows({ search: 'applied' }).every(function () {
-        const r = this.data(); if (!r) return;
-        if (checked) _PI_selected.add(r.Id); else _PI_selected.delete(r.Id);
-    });
-    _piSyncRowCheckboxes();
-}
-
-async function piDeleteSelected() {
-    if (_PI_selected.size === 0) return;
-    const ok = confirm(`¿Eliminar ${_PI_selected.size} insumo(s) seleccionados?`);
-    if (!ok) return;
-
-    const ids = Array.from(_PI_selected);
-
-    // Intentar endpoint masivo; si no existe, caer en DELETE por id
-    try {
-        const resp = await fetch('/ProveedoresInsumos/EliminarVarios', {
-            method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + (token || ''), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ Ids: ids })
-        });
-        if (!resp.ok) throw new Error('fallback');
-        const j = await resp.json();
-        if (!j?.valor) throw new Error(j?.mensaje || 'No se pudieron eliminar.');
-    } catch {
-        // fallback uno a uno
-        for (const id of ids) {
-            try {
-                const r = await fetch('ProveedoresInsumos/Eliminar?id=' + id, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': 'Bearer ' + (token || '') }
-                });
-                if (!r.ok) console.warn('No se pudo eliminar id', id);
-            } catch (e) { console.warn(e); }
-        }
-    }
-
-    _PI_selected.clear();
-    await aplicarFiltros();
-    exitoModal('Eliminación completada.');
-}
-
-function piClearSelection() {
-    _PI_selected.clear();
-    _piSyncRowCheckboxes();
-}
 
 
 // --- Normalización fuerte para matching por descripción ---
@@ -1795,7 +1574,7 @@ function _normBasic(s) {
 function normDescKey(s) {
     let t = _normBasic(s);
     // Unificar formatos de unidades, comas/puntos
-    t = t.replace(/[,]+/g, '.')       // 2,25L → 2.25L
+    t = t.replace(/[,]+/g, '.')       // 2,25L ? 2.25L
         .replace(/\b(litros?|lts?)\b/g, 'l')
         .replace(/\b(mililitros?|mls?)\b/g, 'ml')
         .replace(/\s+/g, '')

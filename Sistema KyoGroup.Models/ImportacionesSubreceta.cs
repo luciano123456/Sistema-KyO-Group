@@ -7,7 +7,7 @@ public partial class ImportacionesSubReceta
 {
     public int Id { get; set; }
 
-    public int IdMovInventario { get; set; }
+    public int? IdMovInventario { get; set; }
 
     public int IdVentaReceta { get; set; }
 

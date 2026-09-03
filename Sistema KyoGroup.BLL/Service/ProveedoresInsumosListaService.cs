@@ -1,5 +1,7 @@
-﻿using SistemaKyoGroup.DAL.Repository;
+﻿using SistemaKyoGroup.DAL.Grid;
+using SistemaKyoGroup.DAL.Repository;
 using SistemaKyoGroup.Models;
+using SistemaKyoGroup.Models.Common;
 
 namespace SistemaKyoGroup.BLL.Service
 {
@@ -18,9 +20,9 @@ namespace SistemaKyoGroup.BLL.Service
             return await _contactRepo.Actualizar(model);
         }
 
-        public async Task<bool> Eliminar(int id)
+        public async Task<DeleteResult> Eliminar(int id, bool cascade = false)
         {
-            return await _contactRepo.Eliminar(id);
+            return await _contactRepo.Eliminar(id, cascade);
         }
 
         public async Task<bool> ImportarDesdeLista(int idProveedor, List<ProveedoresInsumosLista> lista)
@@ -63,7 +65,10 @@ namespace SistemaKyoGroup.BLL.Service
             return await _contactRepo.ObtenerTodos();
         }
 
-
+        public async Task<GridResult<ProveedoresInsumosLista>> ListarPaginado(int idProveedor, GridQuery query)
+        {
+            return await _contactRepo.ListarPaginado(idProveedor, query);
+        }
 
     }
 }

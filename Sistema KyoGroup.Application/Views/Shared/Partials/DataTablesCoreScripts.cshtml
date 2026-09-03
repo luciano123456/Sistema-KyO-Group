@@ -1,0 +1,9 @@
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
+<script>
+    // Activa scrollX/filtros apenas carga DataTables (antes de los JS de cada pantalla)
+    if (window.kyoPatchDataTableColumnFilters) {
+        window.kyoPatchDataTableColumnFilters();
+    }
+</script>

@@ -1,4 +1,5 @@
 ﻿using SistemaKyoGroup.Models;
+using SistemaKyoGroup.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +11,9 @@ namespace SistemaKyoGroup.DAL.Repository
 {
     public interface ISubRecetaRepository<TEntityModel> where TEntityModel : class
     {
-        Task<(bool eliminado, string mensaje)> Eliminar(int id);
-        Task<bool> Actualizar(SubReceta model);
-        Task<bool> Insertar(SubReceta model);
+        Task<DeleteResult> Eliminar(int id, bool cascade = false);
+        Task<(bool ok, string mensaje)> Actualizar(SubReceta model);
+        Task<(bool ok, string mensaje)> Insertar(SubReceta model);
         Task<SubReceta> Obtener(int id);
         Task<IQueryable<SubReceta>> ObtenerTodos();
         Task<IQueryable<SubReceta>> ObtenerTodosUnidadNegocio(int idUnidadNegocio, int userId);

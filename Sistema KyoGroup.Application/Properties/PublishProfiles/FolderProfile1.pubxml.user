@@ -3,30 +3,54 @@
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>D:\Publicaciones Webs\Sistema KyoGroup</_PublishTargetUrl>
-    <History>True|2025-11-05T05:21:25.1454383Z||;True|2025-11-04T23:44:29.2247568-03:00||;True|2025-11-03T22:07:52.1429643-03:00||;True|2025-11-03T22:04:12.3571635-03:00||;True|2025-11-02T00:51:20.5393445-03:00||;</History>
+    <History>True|2026-09-03T19:39:44.7818569Z||;True|2026-09-03T16:39:26.8038607-03:00||;True|2026-09-03T12:23:11.3739394-03:00||;True|2026-09-03T11:59:36.5852163-03:00||;True|2026-09-03T11:45:15.5291933-03:00||;True|2026-09-03T10:41:05.8513271-03:00||;True|2025-11-05T02:21:25.1454383-03:00||;True|2025-11-04T23:44:29.2247568-03:00||;True|2025-11-03T22:07:52.1429643-03:00||;True|2025-11-03T22:04:12.3571635-03:00||;True|2025-11-02T00:51:20.5393445-03:00||;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
     <File Include="Views/AccesoDenegado/Index.cshtml">
       <publishTime>10/29/2025 19:25:29</publishTime>
     </File>
+    <File Include="Views/AnalisisDatos/Index.cshtml">
+      <publishTime>09/02/2026 01:27:56</publishTime>
+    </File>
+    <File Include="Views/Compras/Index.cshtml">
+      <publishTime>09/03/2026 16:24:42</publishTime>
+    </File>
+    <File Include="Views/Compras/NuevoModif.cshtml">
+      <publishTime>09/03/2026 16:20:29</publishTime>
+    </File>
     <File Include="Views/Insumos/Index.cshtml">
-      <publishTime>11/04/2025 16:16:46</publishTime>
+      <publishTime>09/03/2026 02:44:04</publishTime>
     </File>
     <File Include="Views/Login/Index.cshtml">
-      <publishTime>10/30/2025 03:00:52</publishTime>
+      <publishTime>09/03/2026 16:24:46</publishTime>
+    </File>
+    <File Include="Views/OrdenesCompras/Index.cshtml">
+      <publishTime>09/03/2026 02:44:05</publishTime>
+    </File>
+    <File Include="Views/OrdenesCompras/NuevoModif.cshtml">
+      <publishTime>09/03/2026 02:22:58</publishTime>
+    </File>
+    <File Include="Views/Proveedores/Analisis.cshtml">
+      <publishTime>09/03/2026 03:33:48</publishTime>
+    </File>
+    <File Include="Views/Proveedores/Gestion.cshtml">
+      <publishTime>09/03/2026 03:55:37</publishTime>
     </File>
     <File Include="Views/Proveedores/Index.cshtml">
-      <publishTime>11/04/2025 16:16:46</publishTime>
+      <publishTime>09/03/2026 16:20:24</publishTime>
+    </File>
+    <File Include="Views/ProveedoresCuentaCorriente/Index.cshtml">
+      <publishTime>09/03/2026 03:25:35</publishTime>
     </File>
     <File Include="Views/ProveedoresInsumos/Index.cshtml">
-      <publishTime>11/05/2025 02:21:09</publishTime>
+      <publishTime>09/03/2026 16:24:45</publishTime>
     </File>
     <File Include="Views/Recetas/Index.cshtml">
-      <publishTime>11/04/2025 16:16:46</publishTime>
+      <publishTime>09/03/2026 02:44:04</publishTime>
     </File>
     <File Include="Views/Recetas/NuevoModif.cshtml">
-      <publishTime>11/04/2025 16:16:46</publishTime>
+      <publishTime>09/03/2026 16:20:28</publishTime>
     </File>
     <File Include="Views/Shared/Error.cshtml">
       <publishTime>11/03/2025 20:18:23</publishTime>
@@ -34,68 +58,152 @@
     <File Include="Views/Shared/Partials/BotonMenu.cshtml">
       <publishTime>10/29/2025 19:25:29</publishTime>
     </File>
+    <File Include="Views/Shared/Partials/DataTablesCoreScripts.cshtml">
+      <publishTime>09/03/2026 02:59:00</publishTime>
+    </File>
+    <File Include="Views/Shared/Partials/GridColumnConfigDropdown.cshtml">
+      <publishTime>09/02/2026 02:48:08</publishTime>
+    </File>
+    <File Include="Views/Shared/Partials/HistorialModal.cshtml">
+      <publishTime>09/02/2026 16:54:46</publishTime>
+    </File>
     <File Include="Views/Shared/Partials/NavBarLogin.cshtml">
-      <publishTime>11/04/2025 16:16:46</publishTime>
+      <publishTime>09/03/2026 16:20:14</publishTime>
+    </File>
+    <File Include="Views/Shared/Partials/SessionModals.cshtml">
+      <publishTime>09/03/2026 12:05:24</publishTime>
     </File>
     <File Include="Views/Shared/_Layout.cshtml">
-      <publishTime>10/30/2025 03:00:52</publishTime>
+      <publishTime>09/03/2026 15:29:53</publishTime>
     </File>
     <File Include="Views/Shared/_Layout.cshtml.css">
       <publishTime>10/29/2025 19:25:29</publishTime>
+    </File>
+    <File Include="Views/Shared/_LayoutModulo.cshtml">
+      <publishTime>09/03/2026 15:29:43</publishTime>
     </File>
     <File Include="Views/Shared/_ValidationScriptsPartial.cshtml">
       <publishTime>10/29/2025 19:25:29</publishTime>
     </File>
     <File Include="Views/SubRecetas/Index.cshtml">
-      <publishTime>11/04/2025 16:16:46</publishTime>
+      <publishTime>09/03/2026 16:24:43</publishTime>
     </File>
     <File Include="Views/SubRecetas/NuevoModif.cshtml">
-      <publishTime>11/04/2025 16:16:46</publishTime>
+      <publishTime>09/03/2026 16:20:26</publishTime>
     </File>
     <File Include="Views/Usuarios/Configuracion.cshtml">
-      <publishTime>10/29/2025 19:25:29</publishTime>
+      <publishTime>09/03/2026 16:20:33</publishTime>
     </File>
     <File Include="Views/Usuarios/Index.cshtml">
-      <publishTime>11/04/2025 16:16:46</publishTime>
+      <publishTime>09/03/2026 16:24:40</publishTime>
     </File>
     <File Include="Views/Utils/Modals.cshtml">
-      <publishTime>10/30/2025 10:19:38</publishTime>
+      <publishTime>09/02/2026 15:58:43</publishTime>
+    </File>
+    <File Include="Views/Ventas/Analisis.cshtml">
+      <publishTime>09/03/2026 01:52:42</publishTime>
+    </File>
+    <File Include="Views/Ventas/Detalle.cshtml">
+      <publishTime>09/03/2026 01:45:51</publishTime>
+    </File>
+    <File Include="Views/Ventas/Importar.cshtml">
+      <publishTime>09/02/2026 20:14:41</publishTime>
+    </File>
+    <File Include="Views/Ventas/Index.cshtml">
+      <publishTime>09/03/2026 02:44:05</publishTime>
     </File>
     <File Include="Views/_ViewImports.cshtml">
       <publishTime>10/29/2025 19:25:29</publishTime>
     </File>
     <File Include="Views/_ViewStart.cshtml">
-      <publishTime>10/29/2025 19:25:29</publishTime>
+      <publishTime>09/02/2026 01:07:22</publishTime>
+    </File>
+    <File Include="wwwroot/css/AnalisisDatos.css">
+      <publishTime>02/09/2026 02:35:04</publishTime>
     </File>
     <File Include="wwwroot/css/BotonMenu.css">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
+    <File Include="wwwroot/css/ComprasNuevoModif.css">
+      <publishTime>03/09/2026 02:23:20</publishTime>
+    </File>
     <File Include="wwwroot/css/DisenoPantallas.css">
-      <publishTime>04/11/2025 16:16:46</publishTime>
+      <publishTime>03/09/2026 02:33:07</publishTime>
+    </File>
+    <File Include="wwwroot/css/GridColumnConfig.css">
+      <publishTime>02/09/2026 02:48:05</publishTime>
+    </File>
+    <File Include="wwwroot/css/GridViewMode.css">
+      <publishTime>03/09/2026 03:06:33</publishTime>
     </File>
     <File Include="wwwroot/css/Insumos.css">
-      <publishTime>03/11/2025 21:24:51</publishTime>
+      <publishTime>03/09/2026 11:37:20</publishTime>
+    </File>
+    <File Include="wwwroot/css/kyo-modals.css">
+      <publishTime>02/09/2026 16:40:37</publishTime>
+    </File>
+    <File Include="wwwroot/css/kyo-theme.css">
+      <publishTime>03/09/2026 03:22:14</publishTime>
+    </File>
+    <File Include="wwwroot/css/kyo-toasts.css">
+      <publishTime>03/09/2026 03:05:32</publishTime>
     </File>
     <File Include="wwwroot/css/Login.css">
-      <publishTime>01/01/0001 00:00:00</publishTime>
+      <publishTime>02/09/2026 02:00:31</publishTime>
     </File>
     <File Include="wwwroot/css/NavBarLogin.css">
-      <publishTime>01/01/0001 00:00:00</publishTime>
+      <publishTime>03/09/2026 11:59:03</publishTime>
+    </File>
+    <File Include="wwwroot/css/OrdenesCompraNuevoModif.css">
+      <publishTime>03/09/2026 02:21:52</publishTime>
+    </File>
+    <File Include="wwwroot/css/OrdenesCompras.css">
+      <publishTime>03/09/2026 02:33:17</publishTime>
+    </File>
+    <File Include="wwwroot/css/ProveedorAnalisisTab.css">
+      <publishTime>03/09/2026 03:55:39</publishTime>
+    </File>
+    <File Include="wwwroot/css/ProveedoresAnalisis.css">
+      <publishTime>03/09/2026 03:35:11</publishTime>
+    </File>
+    <File Include="wwwroot/css/ProveedoresCuentaCorriente.css">
+      <publishTime>03/09/2026 03:25:29</publishTime>
+    </File>
+    <File Include="wwwroot/css/ProveedoresGestion.css">
+      <publishTime>03/09/2026 03:25:33</publishTime>
     </File>
     <File Include="wwwroot/css/ProveedoresInsumos.css">
-      <publishTime>04/11/2025 19:58:56</publishTime>
+      <publishTime>03/09/2026 02:41:51</publishTime>
     </File>
     <File Include="wwwroot/css/RecetasNuevoModif.css">
-      <publishTime>01/11/2025 21:43:49</publishTime>
+      <publishTime>02/09/2026 01:43:43</publishTime>
+    </File>
+    <File Include="wwwroot/css/RpAvatar.css">
+      <publishTime>02/09/2026 01:51:15</publishTime>
+    </File>
+    <File Include="wwwroot/css/RpDataTable.css">
+      <publishTime>03/09/2026 03:22:14</publishTime>
+    </File>
+    <File Include="wwwroot/css/RpPresence.css">
+      <publishTime>03/09/2026 15:28:19</publishTime>
+    </File>
+    <File Include="wwwroot/css/RpSelect2.css">
+      <publishTime>03/09/2026 11:37:05</publishTime>
     </File>
     <File Include="wwwroot/css/site.css">
-      <publishTime>03/11/2025 20:18:23</publishTime>
+      <publishTime>02/09/2026 02:18:51</publishTime>
     </File>
     <File Include="wwwroot/css/SubRecetasNuevoModif.css">
-      <publishTime>04/11/2025 16:16:46</publishTime>
+      <publishTime>03/09/2026 11:37:24</publishTime>
     </File>
     <File Include="wwwroot/css/Usuarios.css">
-      <publishTime>03/11/2025 20:18:23</publishTime>
+      <publishTime>03/09/2026 15:32:51</publishTime>
+    </File>
+    <File Include="wwwroot/css/Ventas.css">
+      <publishTime>03/09/2026 03:26:18</publishTime>
+    </File>
+    <File Include="wwwroot/css/VentasAnalisis.css">
+      <publishTime>03/09/2026 01:47:43</publishTime>
     </File>
     <File Include="wwwroot/favicon.ico">
       <publishTime>01/01/0001 00:00:00</publishTime>
@@ -226,47 +334,119 @@
     <File Include="wwwroot/Imagenes/Ventas.png">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
+    <File Include="wwwroot/js/AnalisisDatos.js">
+      <publishTime>02/09/2026 02:35:12</publishTime>
+    </File>
+    <File Include="wwwroot/js/Compras.js">
+      <publishTime>03/09/2026 03:52:23</publishTime>
+    </File>
+    <File Include="wwwroot/js/ComprasNuevoModif.js">
+      <publishTime>03/09/2026 03:07:37</publishTime>
+    </File>
+    <File Include="wwwroot/js/GridViewMode.js">
+      <publishTime>03/09/2026 03:06:11</publishTime>
+    </File>
     <File Include="wwwroot/js/Insumos.js">
-      <publishTime>04/11/2025 16:16:46</publishTime>
+      <publishTime>03/09/2026 03:52:23</publishTime>
     </File>
     <File Include="wwwroot/js/Login.js">
-      <publishTime>01/01/0001 00:00:00</publishTime>
+      <publishTime>03/09/2026 12:00:53</publishTime>
     </File>
     <File Include="wwwroot/js/NavBarLogin.js">
-      <publishTime>03/11/2025 20:18:23</publishTime>
+      <publishTime>03/09/2026 12:01:01</publishTime>
+    </File>
+    <File Include="wwwroot/js/OrdenesCompra.js">
+      <publishTime>03/09/2026 03:52:23</publishTime>
+    </File>
+    <File Include="wwwroot/js/OrdenesCompraNuevoModif.js">
+      <publishTime>03/09/2026 02:22:45</publishTime>
     </File>
     <File Include="wwwroot/js/ProvedoresInsumos.js">
       <publishTime>03/11/2025 21:57:31</publishTime>
     </File>
     <File Include="wwwroot/js/Proveedores.js">
-      <publishTime>03/11/2025 21:24:51</publishTime>
+      <publishTime>03/09/2026 01:59:17</publishTime>
+    </File>
+    <File Include="wwwroot/js/ProveedoresAnalisis.js">
+      <publishTime>03/09/2026 03:36:15</publishTime>
+    </File>
+    <File Include="wwwroot/js/ProveedoresCuentaCorriente.js">
+      <publishTime>03/09/2026 03:26:40</publishTime>
+    </File>
+    <File Include="wwwroot/js/ProveedoresGestion.js">
+      <publishTime>03/09/2026 03:57:11</publishTime>
     </File>
     <File Include="wwwroot/js/ProveedoresInsumos.js">
-      <publishTime>05/11/2025 00:35:34</publishTime>
+      <publishTime>03/09/2026 03:53:08</publishTime>
     </File>
     <File Include="wwwroot/js/Recetas.js">
-      <publishTime>04/11/2025 16:16:46</publishTime>
+      <publishTime>03/09/2026 03:52:23</publishTime>
     </File>
     <File Include="wwwroot/js/RecetasNuevoModif.js">
-      <publishTime>04/11/2025 16:16:46</publishTime>
+      <publishTime>03/09/2026 03:49:54</publishTime>
+    </File>
+    <File Include="wwwroot/js/RpAvatar.js">
+      <publishTime>02/09/2026 01:51:14</publishTime>
+    </File>
+    <File Include="wwwroot/js/RpModulos.js">
+      <publishTime>03/09/2026 15:27:42</publishTime>
+    </File>
+    <File Include="wwwroot/js/RpPresence.js">
+      <publishTime>03/09/2026 15:28:02</publishTime>
+    </File>
+    <File Include="wwwroot/js/SessionManager.js">
+      <publishTime>03/09/2026 15:29:24</publishTime>
+    </File>
+    <File Include="wwwroot/js/site-datatable-rows.js">
+      <publishTime>03/09/2026 02:41:48</publishTime>
+    </File>
+    <File Include="wwwroot/js/site-grid-actions.js">
+      <publishTime>02/09/2026 16:55:02</publishTime>
+    </File>
+    <File Include="wwwroot/js/site-grid-bulk.js">
+      <publishTime>03/09/2026 02:44:29</publishTime>
+    </File>
+    <File Include="wwwroot/js/site-grid-server.js">
+      <publishTime>03/09/2026 03:27:10</publishTime>
+    </File>
+    <File Include="wwwroot/js/site-select2.js">
+      <publishTime>02/09/2026 01:55:54</publishTime>
+    </File>
+    <File Include="wwwroot/js/site-table-loading.js">
+      <publishTime>02/09/2026 17:00:29</publishTime>
     </File>
     <File Include="wwwroot/js/site.js">
-      <publishTime>03/11/2025 20:18:23</publishTime>
+      <publishTime>03/09/2026 03:05:54</publishTime>
     </File>
     <File Include="wwwroot/js/SubRecetas.js">
-      <publishTime>04/11/2025 16:16:46</publishTime>
+      <publishTime>03/09/2026 03:49:54</publishTime>
     </File>
     <File Include="wwwroot/js/SubRecetasNuevoModif.js">
-      <publishTime>04/11/2025 16:16:46</publishTime>
+      <publishTime>03/09/2026 03:49:54</publishTime>
     </File>
     <File Include="wwwroot/js/Usuarios.js">
-      <publishTime>03/11/2025 21:30:48</publishTime>
+      <publishTime>03/09/2026 16:22:06</publishTime>
     </File>
     <File Include="wwwroot/js/UsuariosConfiguracion.js">
-      <publishTime>01/01/0001 00:00:00</publishTime>
+      <publishTime>02/09/2026 17:17:06</publishTime>
     </File>
     <File Include="wwwroot/js/Utils/moment.js">
       <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/js/Ventas.js">
+      <publishTime>03/09/2026 03:22:25</publishTime>
+    </File>
+    <File Include="wwwroot/js/VentasAnalisis.js">
+      <publishTime>03/09/2026 01:54:37</publishTime>
+    </File>
+    <File Include="wwwroot/js/VentasDetalle.js">
+      <publishTime>03/09/2026 01:45:51</publishTime>
+    </File>
+    <File Include="wwwroot/js/VentasFiltros.js">
+      <publishTime>02/09/2026 20:16:34</publishTime>
+    </File>
+    <File Include="wwwroot/js/VentasImportar.js">
+      <publishTime>03/09/2026 03:26:18</publishTime>
     </File>
     <File Include="wwwroot/lib/bootstrap/dist/css/bootstrap-grid.css">
       <publishTime>01/01/0001 00:00:00</publishTime>
@@ -431,13 +611,19 @@
       <publishTime>04/11/2025 16:16:46</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery/dist/jquery.min.js">
-      <publishTime>04/11/2025 16:16:46</publishTime>
+      <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery/dist/jquery.min.map">
       <publishTime>01/01/0001 00:00:00</publishTime>
     </File>
     <File Include="wwwroot/lib/jquery/LICENSE.txt">
       <publishTime>01/01/0001 00:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/Uploads/Avatares/u_1005_2849cda712c746bb8aa3595ec4630e5e.jpeg">
+      <publishTime>03/09/2026 03:20:52</publishTime>
+    </File>
+    <File Include="wwwroot/Uploads/Avatares/u_1005_56019551c5f542f08ba1b57f3993443b.jpeg">
+      <publishTime>02/09/2026 16:29:01</publishTime>
     </File>
   </ItemGroup>
 </Project>

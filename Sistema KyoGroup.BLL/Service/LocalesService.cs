@@ -1,5 +1,6 @@
 ﻿using SistemaKyoGroup.DAL.Repository;
 using SistemaKyoGroup.Models;
+using SistemaKyoGroup.Models.Common;
 
 namespace SistemaKyoGroup.BLL.Service
 {
@@ -17,9 +18,9 @@ namespace SistemaKyoGroup.BLL.Service
             return await _contactRepo.Actualizar(model);
         }
 
-        public async Task<bool> Eliminar(int id)
+        public async Task<DeleteResult> Eliminar(int id, bool cascade = false)
         {
-            return await _contactRepo.Eliminar(id);
+            return await _contactRepo.Eliminar(id, cascade);
         }
 
         public async Task<bool> Insertar(Local model)

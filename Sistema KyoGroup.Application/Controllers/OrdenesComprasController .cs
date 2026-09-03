@@ -6,6 +6,7 @@ using SistemaKyoGroup.Application.Models.ViewModels;
 using SistemaKyoGroup.BLL.Service;
 using SistemaKyoGroup.Models;
 using System.Diagnostics;
+using System.Linq;
 
 namespace SistemaKyoGroup.Application.Controllers
 {
@@ -28,16 +29,23 @@ namespace SistemaKyoGroup.Application.Controllers
         // LISTA PENDIENTES
         // ======================================================
         [HttpGet]
-        public async Task<IActionResult> ListaPendientes()
+        public async Task<IActionResult> ListaPendientes(int? idProveedor = null)
         {
             try
             {
                 var userId = User.GetUserId();
 
                 var data = await _svc.ObtenerPendientes();
-                var lista = data.ToList().Select(o => new VMOrdenCompra
+                var query = data.AsEnumerable();
+                if (idProveedor.HasValue && idProveedor.Value > 0)
+                    query = query.Where(o => o.IdProveedor == idProveedor.Value);
+
+                var lista = query.Select(o => new VMOrdenCompra
                 {
                     Id = o.Id,
+                    IdProveedor = o.IdProveedor,
+                    IdUnidadNegocio = o.IdUnidadNegocio,
+                    IdLocal = o.IdLocal,
                     UnidadNegocio = o.IdUnidadNegocioNavigation?.Nombre,
                     Local = o.IdLocalNavigation?.Nombre,
                     Proveedor = o.IdProveedorNavigation?.Nombre,
@@ -282,7 +290,10 @@ namespace SistemaKyoGroup.Application.Controllers
         {
             try
             {
-                var userId = User.GetUserId() ?? 0;
+                var userId = User.GetUserId() ?? 1;
+
+                if (model.IdEstado <= 0)
+                    model.IdEstado = 1;
 
                 var entity = new OrdenesCompra
                 {
@@ -300,13 +311,13 @@ namespace SistemaKyoGroup.Application.Controllers
                     OrdenesComprasInsumos = model.OrdenesComprasInsumos?.Select(d => new OrdenesComprasInsumo
                     {
                         IdInsumo = d.IdInsumo,
-                        IdProveedorLista = d.IdProveedorLista,
+                        IdProveedorLista = d.IdProveedorLista is > 0 ? d.IdProveedorLista : null,
                         CantidadPedida = d.CantidadPedida,
                         CantidadEntregada = d.CantidadEntregada,
                         CantidadRestante = d.CantidadRestante,
                         PrecioLista = d.PrecioLista,
                         Subtotal = d.Subtotal,
-                        IdEstado = d.IdEstado,
+                        IdEstado = d.IdEstado > 0 ? d.IdEstado : 1,
                         NotaInterna = d.NotaInterna,
                         IdUsuarioRegistra = userId,
                         FechaRegistra = DateTime.Now
@@ -314,11 +325,11 @@ namespace SistemaKyoGroup.Application.Controllers
                 };
 
                 var ok = await _svc.Insertar(entity);
-                return Ok(new { valor = ok });
+                return Ok(new { valor = ok, mensaje = ok ? "Orden de compra registrada." : "No se pudo guardar la orden de compra." });
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(500, new { valor = false, mensaje = "Error al registrar la OC." });
+                return StatusCode(500, new { valor = false, mensaje = "Error al registrar la OC: " + (ex.InnerException?.Message ?? ex.Message) });
             }
         }
 
@@ -335,7 +346,10 @@ namespace SistemaKyoGroup.Application.Controllers
 
             try
             {
-                var userId = User.GetUserId() ?? 0;
+                var userId = User.GetUserId() ?? 1;
+
+                if (model.IdEstado <= 0)
+                    model.IdEstado = 1;
 
                 var entity = new OrdenesCompra
                 {
@@ -356,13 +370,13 @@ namespace SistemaKyoGroup.Application.Controllers
                         Id = d.Id,
                         IdOrdenCompra = d.IdOrdenCompra,
                         IdInsumo = d.IdInsumo,
-                        IdProveedorLista = d.IdProveedorLista,
+                        IdProveedorLista = d.IdProveedorLista is > 0 ? d.IdProveedorLista : null,
                         CantidadPedida = d.CantidadPedida,
                         CantidadEntregada = d.CantidadEntregada,
                         CantidadRestante = d.CantidadRestante,
                         PrecioLista = d.PrecioLista,
                         Subtotal = d.Subtotal,
-                        IdEstado = d.IdEstado,
+                        IdEstado = d.IdEstado > 0 ? d.IdEstado : 1,
                         NotaInterna = d.NotaInterna,
                         IdUsuarioModifica = userId,
                         FechaModifica = DateTime.Now
@@ -370,21 +384,34 @@ namespace SistemaKyoGroup.Application.Controllers
                 };
 
                 var ok = await _svc.Actualizar(entity);
-                return Ok(new { valor = ok });
+                return Ok(new { valor = ok, mensaje = ok ? "Orden de compra actualizada." : "No se pudo actualizar la orden de compra." });
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(500, new { valor = false, mensaje = "Error al actualizar la OC." });
+                return StatusCode(500, new { valor = false, mensaje = "Error al actualizar la OC: " + (ex.InnerException?.Message ?? ex.Message) });
             }
         }
 
 
 
         [HttpDelete]
-        public async Task<IActionResult> Eliminar(int id)
+        public async Task<IActionResult> Eliminar(int id, bool cascade = false)
         {
-            var (eliminado, mensaje) = await _svc.Eliminar(id);
-            return Ok(new { valor = eliminado, mensaje });
+            var r = await _svc.Eliminar(id, cascade);
+            return Ok(new
+            {
+                valor = r.Ok,
+                mensaje = r.Mensaje,
+                tipo = r.Tipo,
+                cascadeDisponible = r.CascadeDisponible,
+                dependencias = r.Dependencias.Select(d => new
+                {
+                    entidad = d.Entidad,
+                    cantidad = d.Cantidad,
+                    detalle = d.Detalle,
+                    cascadeable = d.Cascadeable
+                })
+            });
         }
 
 

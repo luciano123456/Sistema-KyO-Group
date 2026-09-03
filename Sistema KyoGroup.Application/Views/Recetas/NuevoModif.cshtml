@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewBag.Title = "Nueva Receta";
 }
 <title>@ViewBag.Title</title>
@@ -6,247 +6,212 @@
 <partial name="~/Views/Utils/Modals.cshtml" />
 
 @section Estilos {
-    <!-- DataTables / Buttons / FixedHeader / FontAwesome / Select2 -->
     <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" />
     <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" />
     <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
-
-    <!-- SKIN -->
-    <link href="~/css/disenopantallas.css?v=1.0" rel="stylesheet" />
-    <link href="~/css/subRecetasnuevomodif.css?v=1.0" rel="stylesheet" />
-
-    <style>
-        /* estilos mínimos para feedback (compatibles con tu skin) */
-        .is-invalid {
-            border-color: #e55353 !important;
-            box-shadow: 0 0 0 0.1rem rgba(229,83,83,.15)
-        }
-
-        .invalid-feedback {
-            color: #ff6b6b;
-            font-size: .85rem;
-            margin-top: .35rem
-        }
-
-        .cc-alert-inline {
-            width: 100%;
-            border: 1px solid rgba(255,255,255,.06);
-            background: linear-gradient(180deg, rgba(255,77,109,.12), rgba(255,77,109,.06));
-            color: #ffb5c3;
-            padding: .9rem 1.1rem;
-            border-radius: .8rem
-        }
-
-            .cc-alert-inline i {
-                opacity: .9;
-                margin-right: .45rem
-            }
-
-            .cc-alert-inline.d-none {
-                display: none
-            }
-    </style>
+    <link href="~/css/SubRecetasNuevoModif.css?v=3.3" rel="stylesheet" />
 }
 
-<!-- KPI superior -->
-<header class="cc-kpi cc-card cc-container-xxl">
-    <div class="cc-kpi-icon"><i class="fa fa-cutlery"></i></div>
-    <div class="cc-kpi-text">
-        <h1 id="tituloReceta" class="cc-kpi-title">Nueva Receta</h1>
-        <p class="cc-muted m-0">Registro y edición de Recetas</p>
+<div class="rm-page">
+    <header class="rm-hero">
+        <div class="rm-hero-icon"><i class="fa fa-cutlery"></i></div>
+        <div class="rm-hero-text">
+            <h1 id="tituloReceta" class="rm-hero-title">Nueva Receta</h1>
+            <p class="rm-hero-sub">Registro y edición de recetas · composición, costos y rendimiento</p>
+        </div>
+        <div class="rm-hero-actions">
+            <button type="button" class="rm-btn-back" onclick="window.location.href='/Recetas'">
+                <i class="fa fa-angle-left"></i> Volver a Recetas
+            </button>
+        </div>
+    </header>
+
+    <div class="rm-cost-strip" aria-label="Resumen de costos">
+        <div class="rm-cost-card">
+            <span class="rm-cost-label">Costo SubRecetas</span>
+            <input type="text" id="costoRecetas" class="rm-cost-input" readonly tabindex="-1" />
+        </div>
+        <div class="rm-cost-card">
+            <span class="rm-cost-label">Costo Insumos</span>
+            <input type="text" id="costoInsumos" class="rm-cost-input" readonly tabindex="-1" />
+        </div>
+        <div class="rm-cost-card rm-cost-card--highlight">
+            <span class="rm-cost-label">Costo Porción</span>
+            <input type="text" id="CostoPorcion" class="rm-cost-input" readonly tabindex="-1" />
+        </div>
+        <div class="rm-cost-card">
+            <span class="rm-cost-label">Rendimiento</span>
+            <input type="text" id="rmKpiRendimiento" class="rm-cost-input" readonly tabindex="-1" placeholder="—" />
+        </div>
+        <div class="rm-cost-card rm-cost-card--accent">
+            <span class="rm-cost-label">Costo Unitario</span>
+            <input type="text" id="CostoUnitario" class="rm-cost-input" readonly tabindex="-1" />
+        </div>
     </div>
-    <button type="button" class="btn btn-outline-light ms-auto" onclick="window.location.href='/Recetas'">
-        <i class="fa fa-angle-left me-2"></i> Volver a Recetas
-    </button>
-</header>
 
-<main class="cc-container-xxl">
-    <!-- Tabs superiores -->
-    <ul class="nav nav-tabs cc-tabs pestaniasDatos" id="tabs-datos-Receta" Rol="tablist">
-        <li class="nav-item" Rol="presentation">
-            <a class="nav-link active" id="Receta-tab" data-bs-toggle="tab" href="#Receta" Rol="tab"
-               aria-contRoles="Receta" aria-selected="true">Datos de la Receta</a>
-        </li>
-    </ul>
-
-    <div class="tab-content mt-4" id="tabs-datos-Receta-content">
-        <!-- Datos de la Receta -->
-        <section class="tab-pane fade show active" id="Receta" Rol="tabpanel" aria-labelledby="Receta-tab">
-            <div class="cc-section cc-card">
-                <div class="cc-titlebar">
-                    <h3 class="m-0"><i class="fa fa-info-circle me-2"></i>Datos de la Receta</h3>
+    <div class="rm-layout">
+        <aside class="rm-layout-form">
+            <section class="rm-panel">
+                <div class="rm-panel-head">
+                    <h3><i class="fa fa-info-circle"></i> Datos de la Receta</h3>
                 </div>
-
-                <input type="hidden" id="idReceta" name="idReceta" />
-                <div id="frmReceta" class="cc-grid cc-grid-3xl">
-                    <div class="form-group">
-                        <label class="form-label" for="UnidadesNegocio">Unidad de Negocio</label>
-                        <select id="UnidadesNegocio" class="form-select" data-required="true" data-field="unidadNegocio">
-                            <option value="" disabled selected>Seleccionar...</option>
-                        </select>
-                        <div class="invalid-feedback d-none">Campo requerido</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="sku">SKU</label>
-                        <input type="text" id="sku" class="form-control" data-required="true" data-field="sku" />
-                        <div class="invalid-feedback d-none">Campo requerido</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="descripcion">Descripción</label>
-                        <input type="text" id="descripcion" class="form-control" data-required="true" data-field="descripcion" />
-                        <div class="invalid-feedback d-none">Campo requerido</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="Categorias">Categoría</label>
-
-                        <div class="input-group input-plus">
-                            <select id="Categorias" class="form-select selectAgregado" data-required="true" data-field="categoria">
+                <div class="rm-panel-body">
+                    <input type="hidden" id="idReceta" name="idReceta" />
+                    <div id="frmReceta" class="rm-form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="UnidadesNegocio">Unidad de Negocio</label>
+                            <select id="UnidadesNegocio" class="form-select" data-required="true" data-field="unidadNegocio">
                                 <option value="" disabled selected>Seleccionar...</option>
                             </select>
-                            <button type="button" id="btnAddCategoria" class="btn btn-plus" title="Nueva categoría">
-                                <i class="fa fa-plus"></i>
-                            </button>
+                            <div class="invalid-feedback d-none">Campo requerido</div>
                         </div>
 
-                        <div class="invalid-feedback d-none">Campo requerido</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="UnidadMedidas">Unidad de Medida</label>
-
-                        <div class="input-group input-plus">
-                            <select id="UnidadMedidas" class="form-select selectAgregado" data-required="true" data-field="unidadMedida">
-                                <option value="" disabled selected>Seleccionar...</option>
-                            </select>
-                            <button type="button" id="btnAddUMSub" class="btn btn-plus" title="Nueva unidad de medida">
-                                <i class="fa fa-plus"></i>
-                            </button>
+                        <div class="form-group">
+                            <label class="form-label" for="sku">SKU</label>
+                            <input type="text" id="sku" class="form-control" data-required="true" data-field="sku" placeholder="Código único" />
+                            <div class="invalid-feedback d-none">Campo requerido</div>
                         </div>
 
-                        <div class="invalid-feedback d-none">Campo requerido</div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="costoRecetas">Costo SubRecetas</label>
-                        <input type="text" id="costoRecetas" class="form-control" readonly />
+                        <div class="form-group rm-span-full">
+                            <label class="form-label" for="descripcion">Descripción</label>
+                            <input type="text" id="descripcion" class="form-control" data-required="true" data-field="descripcion" placeholder="Nombre de la receta" />
+                            <div class="invalid-feedback d-none">Campo requerido</div>
+                        </div>
+
+                        <div class="form-group rm-span-full">
+                            <label class="form-label" for="Categorias">Categoría</label>
+                            <div class="input-group input-plus">
+                                <select id="Categorias" class="form-select selectAgregado" data-required="true" data-field="categoria"
+                                        data-s2-config-nombre="Categorias de Recetas"
+                                        data-s2-config-controller="RecetasCategoria"
+                                        data-s2-config-reload="/RecetasCategoria/Lista"
+                                        data-s2-config-title="Nueva categoria">
+                                    <option value="" disabled selected>Seleccionar...</option>
+                                </select>
+                                <button type="button" class="btn btn-plus" title="Nueva categoría">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback d-none">Campo requerido</div>
+                        </div>
+
+                        <div class="form-group rm-span-full">
+                            <label class="form-label" for="UnidadMedidas">Unidad de Medida</label>
+                            <div class="input-group input-plus">
+                                <select id="UnidadMedidas" class="form-select selectAgregado" data-required="true" data-field="unidadMedida"
+                                        data-s2-config-nombre="Unidades de Medida"
+                                        data-s2-config-controller="UnidadesMedida"
+                                        data-s2-config-reload="/UnidadesMedida/Lista"
+                                        data-s2-config-title="Nueva unidad de medida">
+                                    <option value="" disabled selected>Seleccionar...</option>
+                                </select>
+                                <button type="button" class="btn btn-plus" title="Nueva unidad de medida">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback d-none">Campo requerido</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="Rendimiento">Rendimiento</label>
+                            <input type="number" id="Rendimiento" class="form-control" data-min="0.0000001" data-field="rendimiento" placeholder="Porciones" />
+                            <div class="invalid-feedback d-none">Debe ser mayor que 0</div>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label" for="costoInsumos">Costo Insumos</label>
-                        <input type="text" id="costoInsumos" class="form-control" readonly />
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="CostoPorcion">Costo Porción</label>
-                        <input type="text" id="CostoPorcion" class="form-control" readonly />
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="Rendimiento">Rendimiento</label>
-                        <input type="number" id="Rendimiento" class="form-control" data-min="0.0000001" data-field="rendimiento" />
-                        <div class="invalid-feedback d-none">Debe ser mayor que 0</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="CostoUnitario">Costo Unitario</label>
-                        <input type="text" id="CostoUnitario" class="form-control" readonly />
+                    <div id="alertRequeridos" class="cc-alert-inline d-none mt-3">
+                        <i class="fa fa-exclamation-triangle"></i>
+                        Debes completar los campos requeridos.
                     </div>
                 </div>
+            </section>
+        </aside>
 
-                <!-- ALERTA GLOBAL FORM -->
-                <div id="alertRequeridos" class="cc-alert-inline d-none mt-3">
-                    <i class="fa fa-exclamation-triangle"></i>
-                    Debes completar los campos requeridos.
+        <div class="rm-layout-detail">
+            <section class="rm-panel rm-detalle-panel">
+                <div class="rm-tabs-wrap">
+                    <ul class="nav nav-tabs rm-tabs" id="tabs-detalle" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active" id="Recetas-tab" data-bs-toggle="tab" href="#Recetas" role="tab"
+                               aria-controls="Recetas" aria-selected="true">
+                                <i class="fa fa-sitemap"></i> SubRecetas
+                            </a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="insumos-tab" data-bs-toggle="tab" href="#insumos" role="tab"
+                               aria-controls="insumos" aria-selected="false">
+                                <i class="fa fa-cubes"></i> Insumos
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-            </div>
-        </section>
+
+                <div class="tab-content rm-tab-content" id="tabs-detalle-content">
+                    <section class="tab-pane fade show active" id="Recetas" role="tabpanel" aria-labelledby="Recetas-tab">
+                        <div class="rm-table-toolbar">
+                            <span class="rm-table-toolbar-title">
+                                <i class="fa fa-sitemap"></i> SubRecetas de la receta
+                            </span>
+                            <button type="button" class="btn btn-new" onclick="anadirSubReceta()">
+                                <i class="fa fa-plus"></i> Añadir
+                            </button>
+                        </div>
+                        <div class="rm-table-wrap">
+                            <table class="display nowrap table w-100" id="grd_SubRecetas" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Costo Unitario</th>
+                                        <th>Cantidad</th>
+                                        <th>SubTotal</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="tab-pane fade" id="insumos" role="tabpanel" aria-labelledby="insumos-tab">
+                        <div class="rm-table-toolbar">
+                            <span class="rm-table-toolbar-title">
+                                <i class="fa fa-cubes"></i> Insumos de la receta
+                            </span>
+                            <button type="button" class="btn btn-new" onclick="anadirInsumo()">
+                                <i class="fa fa-plus"></i> Añadir
+                            </button>
+                        </div>
+                        <div class="rm-table-wrap">
+                            <table class="display nowrap table w-100" id="grd_Insumos" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Costo Unitario</th>
+                                        <th>Cantidad</th>
+                                        <th>SubTotal</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </section>
+        </div>
     </div>
 
-    <!-- Tabs inferiores (SubRecetas / Insumos) -->
-    <ul class="nav nav-tabs cc-tabs mt-4" id="tabs-detalle" Rol="tablist">
-        <li class="nav-item" Rol="presentation">
-            <a class="nav-link active" id="Recetas-tab" data-bs-toggle="tab" href="#Recetas" Rol="tab"
-               aria-contRoles="Recetas" aria-selected="true">SubRecetas</a>
-        </li>
-        <li class="nav-item" Rol="presentation">
-            <a class="nav-link" id="insumos-tab" data-bs-toggle="tab" href="#insumos" Rol="tab"
-               aria-contRoles="insumos" aria-selected="false">Insumos</a>
-        </li>
-    </ul>
-
-    <div class="tab-content mt-4" id="tabs-detalle-content">
-        <!-- SubRecetas detalle -->
-        <section class="tab-pane fade show active" id="Recetas" Rol="tabpanel" aria-labelledby="Recetas-tab">
-            <div class="cc-section cc-card">
-                <div class="cc-titlebar">
-                    <h3 class="m-0"><i class="fa fa-sitemap me-2"></i>SubRecetas</h3>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-new" onclick="anadirSubReceta()">
-                            <i class="fa fa-plus me-1"></i> Añadir
-                        </button>
-                    </div>
-                </div>
-
-                <div class="cc-table">
-                    <table class="display nowrap table w-100" id="grd_SubRecetas" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Costo Unitario</th>
-                                <th>Cantidad</th>
-                                <th>SubTotal</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- Insumos detalle -->
-        <section class="tab-pane fade" id="insumos" Rol="tabpanel" aria-labelledby="insumos-tab">
-            <div class="cc-section cc-card">
-                <div class="cc-titlebar">
-                    <h3 class="m-0"><i class="fa fa-cubes me-2"></i>Insumos</h3>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-success" onclick="anadirInsumo()">
-                            <i class="fa fa-plus"></i> Añadir
-                        </button>
-                    </div>
-                </div>
-
-                <div class="cc-table">
-                    <table class="display nowrap table w-100" id="grd_Insumos" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Costo Unitario</th>
-                                <th>Cantidad</th>
-                                <th>SubTotal</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <div class="d-flex justify-content-end gap-2 my-3">
+    <footer class="rm-action-bar">
         <button type="submit" id="btnNuevoModificar" class="btn btn-new" onclick="guardarCambios()">
-            <i class="fa fa-save me-1"></i> Registrar
+            <i class="fa fa-save"></i> Registrar Receta
         </button>
-    </div>
-</main>
+    </footer>
+</div>
 
 <!-- MODAL: INSUMO -->
-<div class="modal fade" id="insumosModal" tabindex="-1" Rol="dialog" aria-labelledby="insumosModalLabel" aria-hidden="true" data-editing="false">
+<div class="modal fade" id="insumosModal" tabindex="-1" role="dialog" aria-labelledby="insumosModalLabel" aria-hidden="true" data-editing="false">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content cc-modal cc-modal--elevated">
             <div class="modal-header cc-modal-header">
@@ -256,7 +221,6 @@
                 </div>
                 <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-
             <div class="modal-body">
                 <form id="formInsumo" class="cc-form-grid cc-form-2col">
                     <div class="cc-field full">
@@ -266,32 +230,29 @@
                         </select>
                         <div class="invalid-feedback d-none">Campo requerido</div>
                     </div>
-
                     <div class="cc-field">
                         <label for="precioInput" class="form-label">Precio</label>
-                        <input type="text" id="precioInput" class="form-control" data-required="true" data-min="0.0000001" placeholder="Ingrese precio manual" readonly>
-                        <div class="invalid-feedback d-none" data-msg-required="Campo requerido" data-msg-min="Debe ser mayor que 0">Debe ser mayor que 0</div>
+                        <input type="text" id="precioInput" class="form-control" data-required="true" data-min="0.0000001" readonly>
+                        <div class="invalid-feedback d-none">Debe ser mayor que 0</div>
                     </div>
-
                     <div class="cc-field">
                         <label for="cantidadInput" class="form-label">Cantidad</label>
-                        <input type="number" id="cantidadInput" class="form-control" data-required="true" data-min="0.0000001" placeholder="Ingrese cantidad">
-                        <div class="invalid-feedback d-none" data-msg-required="Campo requerido" data-msg-min="Debe ser mayor que 0">Debe ser mayor que 0</div>
+                        <input type="number" id="cantidadInput" class="form-control" data-required="true" data-min="0.0000001">
+                        <div class="invalid-feedback d-none">Debe ser mayor que 0</div>
                     </div>
-
                     <div class="cc-field full">
                         <label for="totalInput" class="form-label">Total</label>
                         <input type="text" id="totalInput" class="form-control" disabled>
                     </div>
-
-                    <!-- ALERTA MODAL -->
+                    <div id="insumoSinVinculoAlert" class="cc-alert-inline cc-alert-inline--warning d-none" style="grid-column:1/-1">
+                        <i class="fa fa-link"></i>
+                        <span data-rp-vinculo-msg>Este insumo no tiene proveedor vinculado con precio.</span>
+                    </div>
                     <div id="modalAlertInsumo" class="cc-alert-inline d-none" style="grid-column:1/-1">
-                        <i class="fa fa-exclamation-triangle"></i>
-                        Debes completar los campos obligatorios.
+                        <i class="fa fa-exclamation-triangle"></i> Debes completar los campos obligatorios.
                     </div>
                 </form>
             </div>
-
             <div class="modal-footer cc-modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" id="btnGuardarInsumo" class="btn btn-new" onclick="guardarInsumo()">
@@ -302,8 +263,8 @@
     </div>
 </div>
 
-<!-- MODAL: SUBReceta -->
-<div class="modal fade" id="RecetasModal" tabindex="-1" Rol="dialog" aria-labelledby="RecetasModalLabel" aria-hidden="true" data-editing="false">
+<!-- MODAL: SUBRECETA -->
+<div class="modal fade" id="RecetasModal" tabindex="-1" role="dialog" aria-labelledby="RecetasModalLabel" aria-hidden="true" data-editing="false">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content cc-modal cc-modal--elevated">
             <div class="modal-header cc-modal-header">
@@ -313,7 +274,6 @@
                 </div>
                 <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-
             <div class="modal-body">
                 <form id="formSubReceta" class="cc-form-grid cc-form-2col">
                     <div class="cc-field full">
@@ -323,32 +283,25 @@
                         </select>
                         <div class="invalid-feedback d-none">Campo requerido</div>
                     </div>
-
                     <div class="cc-field">
                         <label for="precioSubRecetaInput" class="form-label">Precio</label>
-                        <input type="text" id="precioSubRecetaInput" class="form-control" data-required="true" data-min="0.0000001" placeholder="Precio" readonly>
-                        <div class="invalid-feedback d-none" data-msg-required="Campo requerido" data-msg-min="Debe ser mayor que 0">Debe ser mayor que 0</div>
+                        <input type="text" id="precioSubRecetaInput" class="form-control" data-required="true" data-min="0.0000001" readonly>
+                        <div class="invalid-feedback d-none">Debe ser mayor que 0</div>
                     </div>
-
                     <div class="cc-field">
                         <label for="cantidadRecetaInput" class="form-label">Cantidad</label>
-                        <input type="number" id="cantidadRecetaInput" class="form-control" data-required="true" data-min="0.0000001" placeholder="Ingrese cantidad">
-                        <div class="invalid-feedback d-none" data-msg-required="Campo requerido" data-msg-min="Debe ser mayor que 0">Debe ser mayor que 0</div>
+                        <input type="number" id="cantidadRecetaInput" class="form-control" data-required="true" data-min="0.0000001">
+                        <div class="invalid-feedback d-none">Debe ser mayor que 0</div>
                     </div>
-
                     <div class="cc-field full">
                         <label for="totalRecetaInput" class="form-label">Total</label>
                         <input type="text" id="totalRecetaInput" class="form-control" disabled>
                     </div>
-
-                    <!-- ALERTA MODAL -->
                     <div id="modalAlertSub" class="cc-alert-inline d-none" style="grid-column:1/-1">
-                        <i class="fa fa-exclamation-triangle"></i>
-                        Debes completar los campos obligatorios.
+                        <i class="fa fa-exclamation-triangle"></i> Debes completar los campos obligatorios.
                     </div>
                 </form>
             </div>
-
             <div class="modal-footer cc-modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" id="btnGuardarReceta" class="btn btn-new" onclick="guardarSubReceta()">
@@ -360,20 +313,11 @@
 </div>
 
 @section Scripts {
-    <!-- DataTables / Select2 -->
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
-
-    <!-- Moment (orden como venías) -->
+    <partial name="~/Views/Shared/Partials/DataTablesCoreScripts.cshtml" />
     <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/locale/es.js"></script>
-
-    <!-- JS GENÉRICO VALIDACIONES -->
-    <script src="~/js/cc.validators.js?v=1.0"></script>
-
-    <!-- Página -->
-    <script src="~/js/RecetasNuevoModif.js?v=2.2"></script>
-    <script src="~/js/site.js"></script>
+    <script src="~/js/cc.validators.js" asp-append-version="true"></script>
+    <script src="~/js/RecetasNuevoModif.js" asp-append-version="true"></script>
 }
 
 <script>

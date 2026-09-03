@@ -1,10 +1,11 @@
 ﻿using SistemaKyoGroup.Models;
+using SistemaKyoGroup.Models.Common;
 
 namespace SistemaKyoGroup.BLL.Service
 {
     public interface ILocalesService
     {
-        Task<bool> Eliminar(int id);
+        Task<DeleteResult> Eliminar(int id, bool cascade = false);
         Task<bool> Actualizar(Local model);
         Task<bool> Insertar(Local model);
 

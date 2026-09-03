@@ -1,101 +1,271 @@
 .modal-edicion {
-    max-width: 60%; /* o lo que necesites */
+    max-width: 60%;
 }
-
 
 @media (max-width: 1300px) {
     .modal-edicion {
-        max-width: 80%; /* o lo que necesites */
+        max-width: 80%;
     }
 }
 
 @media (max-width: 900px) {
     .modal-edicion {
-        max-width: 98%; /* o lo que necesites */
+        max-width: 98%;
     }
 }
 
-#modalProveedoresAsignados .modal-content {
-    background-color: #323844 !important;
-    border-radius: 0 0 0.5rem 0.5rem;
-    box-shadow: none;
-}
-
-
+#modalProveedoresAsignados .modal-content,
 #modalEdicion .modal-content {
-    background-color: #323844 !important;
-    border-radius: 0 0 0.5rem 0.5rem;
+    background-color: #fff !important;
+    border-radius: 0 0 1rem 1rem;
     box-shadow: none;
+    color: #3d3548;
 }
 
+#modalProveedoresAsignados .form-label,
+#modalEdicion .form-label,
 #lblDescripcion {
-    color: white !important;
+    color: #7a7088 !important;
+}
+
+/* ===== Modal Proveedores Asignados (rediseÃ±o) ===== */
+#modalProveedoresAsignados .pa-modal {
+    border: 0;
+    border-radius: 1.15rem !important;
+    overflow: hidden;
+    box-shadow: 0 18px 48px rgba(61, 45, 70, 0.18) !important;
+}
+
+#modalProveedoresAsignados .pa-modal__header {
+    background: linear-gradient(120deg, #f8d4de 0%, #f0e4f4 55%, #e8dff5 100%);
+    border-bottom: 1px solid rgba(90, 70, 100, 0.08);
+    padding: 1rem 1.25rem;
+}
+
+#modalProveedoresAsignados .pa-modal__title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+#modalProveedoresAsignados .pa-modal__icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.72);
+    color: #c45a78;
+    box-shadow: inset 0 0 0 1px rgba(196, 90, 120, 0.15);
+}
+
+#modalProveedoresAsignados .pa-modal__subtitle {
+    color: #7a7088;
+    display: block;
+    margin-top: 0.15rem;
+}
+
+#modalProveedoresAsignados .pa-modal__body {
+    padding: 1rem 1.25rem 0.75rem;
+    background:
+        radial-gradient(900px 220px at 10% -20%, rgba(244, 164, 184, 0.14), transparent 60%),
+        #fbf9fc;
+}
+
+#modalProveedoresAsignados .pa-toolbar {
+    display: grid;
+    grid-template-columns: 1.4fr 0.9fr 0.9fr auto;
+    gap: 0.65rem;
+    margin-bottom: 0.85rem;
+    align-items: center;
+}
+
+@media (max-width: 900px) {
+    #modalProveedoresAsignados .pa-toolbar {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+#modalProveedoresAsignados .pa-search {
+    position: relative;
+}
+
+#modalProveedoresAsignados .pa-search i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a396b0;
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+
+#modalProveedoresAsignados .pa-search input {
+    width: 100%;
+    border: 1.5px solid rgba(90, 70, 100, 0.14);
+    border-radius: 0.8rem;
+    padding: 0.55rem 0.75rem 0.55rem 2.1rem;
+    background: #fff;
+    color: #3d3548;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+#modalProveedoresAsignados .pa-search input:focus {
+    border-color: #f4a4b8;
+    box-shadow: 0 0 0 3px rgba(244, 164, 184, 0.22);
+}
+
+#modalProveedoresAsignados .pa-stats {
+    display: flex;
+    gap: 0.45rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+#modalProveedoresAsignados .pa-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.65rem;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid rgba(90, 70, 100, 0.1);
+    color: #6b6280;
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+#modalProveedoresAsignados .pa-stat--ok {
+    background: #eef8ea;
+    border-color: rgba(76, 140, 70, 0.2);
+    color: #3d7a3a;
+}
+
+#modalProveedoresAsignados .pa-table-wrap {
+    position: relative;
+    max-height: min(52vh, 480px);
+    overflow: auto;
+    border-radius: 0.95rem;
+    border: 1px solid rgba(90, 70, 100, 0.1);
+    background: #fff;
+}
+
+#modalProveedoresAsignados .pa-table {
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#modalProveedoresAsignados .pa-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #f7f2f6;
+    color: #6b6280;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    border-bottom: 1px solid rgba(90, 70, 100, 0.1);
+    padding: 0.7rem 0.85rem;
+    white-space: nowrap;
+}
+
+#modalProveedoresAsignados .pa-table tbody td {
+    padding: 0.7rem 0.85rem;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(90, 70, 100, 0.06);
+    color: #3d3548;
+}
+
+#modalProveedoresAsignados .pa-table tbody tr:hover td {
+    background: rgba(244, 164, 184, 0.08);
+}
+
+#modalProveedoresAsignados .pa-table tbody tr.fila-asignada td {
+    background: #eef8ea !important;
+}
+
+#modalProveedoresAsignados .pa-prov {
+    font-weight: 700;
+}
+
+#modalProveedoresAsignados .pa-desc {
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+#modalProveedoresAsignados .pa-meta {
+    margin-top: 0.15rem;
+    font-size: 0.78rem;
+    color: #8a8098;
+}
+
+#modalProveedoresAsignados .pa-code {
+    font-size: 0.82rem;
+    color: #6b6280;
+    background: #f4f1f6;
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.4rem;
+}
+
+#modalProveedoresAsignados .pa-check-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.78rem;
+    color: #6b6280;
+}
+
+#modalProveedoresAsignados .chk-asignacion {
+    width: 1.15rem;
+    height: 1.15rem;
+    cursor: pointer;
+}
+
+#modalProveedoresAsignados .pa-empty {
+    position: absolute;
+    inset: 3.2rem 0 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    color: #9a90a8;
+    background: rgba(255, 255, 255, 0.92);
+}
+
+#modalProveedoresAsignados .pa-empty i {
+    font-size: 1.5rem;
+    opacity: 0.7;
+}
+
+#modalProveedoresAsignados .pa-modal__footer {
+    background: #fff;
+    border-top: 1px solid rgba(90, 70, 100, 0.08);
+    padding: 0.85rem 1.25rem;
+    gap: 0.5rem;
+}
+
+#badgeProveedoresAsignados {
+    background: #c45a78;
+    color: #fff;
+    font-weight: 700;
 }
 
 .fila-asignada {
-    background-color: #d4edda !important; /* verde suave */
+    background-color: #eef8ea !important;
 }
 
+/* El grupo select + [+] se estiliza en RpSelect2.css (.input-plus) */
 
-/* Wrap para select + botón a la derecha */
-.input-plus {
-    align-items: stretch;
-}
-
-    .input-plus .form-select {
-        background-color: #2e2f47; /* tu tono dark */
-        color: #e6e6f0;
-        border: 1px solid rgba(255,255,255,0.12);
-    }
-
-        .input-plus .form-select:focus {
-            box-shadow: 0 0 0 .25rem rgba(99,102,241,.25); /* indigo glow */
-            border-color: rgba(99,102,241,.6);
-        }
-
-
-
-/* Estado inválido coherente */
 .form-select.is-invalid,
 .was-validated .form-select:invalid {
-    border-color: #dc3545 !important;
+    border-color: #e57373 !important;
     box-shadow: none !important;
 }
-
-/* Si usás Select2: que respete la altura y se vea integrado */
-.input-plus .select2-container--default .select2-selection--single {
-    height: 100%;
-    background-color: #2e2f47;
-    border: 1px solid rgba(255,255,255,0.12);
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-}
-
-    .input-plus .select2-container--default .select2-selection--single .select2-selection__rendered {
-        line-height: 38px; /* ajustá si tu form-control es más alto */
-        color: #e6e6f0;
-    }
-
-    .input-plus .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 100%;
-    }
-
-
-
-/* El menú original puede quedar como está (position:absolute dentro de la celda) */
-/* Este es el clonado que vive en <body> */
-.acciones-dropdown-clone {
-    z-index: 999999; /* por encima de todo */
-    min-width: 150px;
-    background: #fff; /* o tu panel */
-    border-radius: 6px;
-    box-shadow: 0 6px 18px rgba(0,0,0,.25);
-    overflow: hidden; /* por estética */
-}
-
-/* Opcional: evita que el contenedor de la tabla recorte cosas por padding */
-.dataTables_scrollBody {
-    overflow: auto;
-}
-
-

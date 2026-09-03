@@ -1,4 +1,4 @@
-﻿/********************  SubRecetaS.JS (COMPLETO)  ********************/
+/********************  SubRecetaS.JS (COMPLETO)  ********************/
 let gridSubRecetas;
 let isEditing = false;
 
@@ -20,13 +20,13 @@ async function fetchJson(url, options = {}) {
 
 /* ================== CONFIG DE FILTROS POR COLUMNA ================== */
 const columnConfig = [
-    { index: 1, filterType: 'text' },                                   // Descripción
-    { index: 2, filterType: 'text' },                                   // SKU
-    { index: 3, filterType: 'select', fetchDataFunc: listaUnidadesNegocioFilter }, // Unidad Negocio
-    { index: 4, filterType: 'select', fetchDataFunc: listaUnidadesMedidaFilter },  // Unidad Medida
-    { index: 5, filterType: 'select', fetchDataFunc: listaSubRecetasCategoriaFilter }, // Categoría
-    { index: 6, filterType: 'text' },                                   // Costo SubRecetas
-    { index: 7, filterType: 'text' },                                   // Costo Insumos
+    { index: 2, filterType: 'text' },                                   // Descripción
+    { index: 3, filterType: 'text' },                                   // SKU
+    { index: 4, filterType: 'select', fetchDataFunc: listaUnidadesNegocioFilter }, // Unidad Negocio
+    { index: 5, filterType: 'select', fetchDataFunc: listaUnidadesMedidaFilter },  // Unidad Medida
+    { index: 6, filterType: 'select', fetchDataFunc: listaSubRecetasCategoriaFilter }, // CategorÍa
+    { index: 7, filterType: 'text' },                                   // Costo SubRecetas
+    { index: 8, filterType: 'text' },                                   // Costo Insumos
 ];
 
 /* ================== FORMATOS / KPIs ================== */
@@ -57,8 +57,9 @@ function setFiltrosState(show) {
     const panel = document.getElementById('formFiltrosSubRec');
     const icon = document.getElementById('iconFiltrosI');
     if (panel) panel.style.display = show ? 'block' : 'none';
+    // Los filtros por columna del thead siempre visibles
     const row = document.querySelector('#grd_SubRecetas thead tr.filters');
-    if (row) row.style.display = show ? '' : 'none';
+    if (row) row.style.display = '';
     if (icon) icon.className = show ? 'fa fa-arrow-up me-2' : 'fa fa-arrow-down me-2';
     localStorage.setItem(LS_FILTROS_VISIBLE, show ? '1' : '0');
     setTimeout(() => gridSubRecetas?.columns?.adjust(), 60);
@@ -66,10 +67,10 @@ function setFiltrosState(show) {
 function initToggleFiltrosI() {
     const btn = document.getElementById('btnToggleFiltrosI');
     if (!btn) return;
-    const visible = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '0') === '1';
+    const visible = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '1') === '1';
     setFiltrosState(visible);
     btn.addEventListener('click', () => {
-        const now = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '0') === '1';
+        const now = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '1') === '1';
         setFiltrosState(!now);
     });
 }
@@ -89,7 +90,12 @@ $(document).ready(() => {
 
 /* ================== CRUD ================== */
 function guardarCambios() {
-    if (validarCampos()) {
+    if (!validarCampos()) {
+        errorModal('Debes completar los campos requeridos');
+        return;
+    }
+
+    return withBusy("#btnGuardar", () => {
         const idSubReceta = $("#txtId").val();
         const nuevoModelo = {
             "Id": idSubReceta !== "" ? idSubReceta : 0,
@@ -104,7 +110,7 @@ function guardarCambios() {
         const url = idSubReceta === "" ? "SubRecetas/Insertar" : "SubRecetas/Actualizar";
         const method = idSubReceta === "" ? "POST" : "PUT";
 
-        fetch(url, {
+        return fetch(url, {
             method: method,
             headers: authHeaders({ 'Content-Type': 'application/json;charset=utf-8' }),
             body: JSON.stringify(nuevoModelo)
@@ -120,9 +126,7 @@ function guardarCambios() {
                 aplicarFiltros();
             })
             .catch(error => console.error('Error:', error));
-    } else {
-        errorModal('Debes completar los campos requeridos');
-    }
+    });
 }
 
 function validarCampos() {
@@ -188,21 +192,33 @@ async function listaSubRecetas(IdUnidadNegocio) {
 }
 
 function editarSubReceta(id) { window.location.href = '/SubRecetas/NuevoModif/' + id; }
+function duplicarSubReceta(id) { window.location.href = '/SubRecetas/NuevoModif?duplicar=' + id; }
+
+async function verHistorialSubReceta(id) {
+    try {
+        const data = await fetchJson(`/SubRecetas/Historial?id=${id}`, { headers: authHeaders() });
+        renderHistorialModal(data || [], `Historial SubReceta #${id}`);
+    } catch (e) {
+        console.error(e);
+        errorModal('No se pudo cargar el historial.');
+    }
+}
 
 async function eliminarSubReceta(id) {
-    let resultado = window.confirm("¿Desea eliminar la SubReceta?");
-    if (!resultado) return;
-
-    try {
-        const response = await fetch("/SubRecetas/Eliminar?id=" + id, { method: "DELETE", headers: authHeaders() });
-        if (!response.ok) throw new Error("Error al eliminar la SubReceta.");
-        const dataJson = await response.json();
-        if (dataJson.valor) { aplicarFiltros(); exitoModal(dataJson.mensaje); }
-        else { advertenciaModal(dataJson.mensaje); }
-    } catch (error) { console.error("Ha ocurrido un error:", error); }
+    return eliminarConCascada({
+        url: '/SubRecetas/Eliminar',
+        id,
+        confirmMsg: '¿Desea eliminar la SubReceta?',
+        headers: () => authHeaders(),
+        onSuccess: async (j) => {
+            aplicarFiltros();
+            exitoModal(j.mensaje || 'SubReceta eliminada correctamente');
+        }
+    });
 }
 
 async function configurarDataTable(data) {
+    if (window.ensureKyoExportLibs) await window.ensureKyoExportLibs();
     if (!gridSubRecetas) {
         // Clonar fila de filtros por columna
         $('#grd_SubRecetas thead tr').clone(true).addClass('filters').appendTo('#grd_SubRecetas thead');
@@ -211,35 +227,14 @@ async function configurarDataTable(data) {
             data: data,
             language: {
                 sLengthMenu: "Mostrar MENU registros",
-                lengthMenu: "Anzeigen von _MENU_ Einträgen",
+                lengthMenu: "Anzeigen von _MENU_ Einträge",
                 url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
             },
-            scrollX: "100px",
+            scrollX: false,
             scrollCollapse: true,
             columns: [
-                {
-                    data: "Id",
-                    title: '',
-                    width: "1%",
-                    render: function (data) {
-                        return `
-      <div class="acciones-menu" data-id="${data}">
-        <button class='btn btn-sm btnacciones' type='button' title='Acciones'>
-          <i class='fa fa-ellipsis-v fa-lg text-white'></i>
-        </button>
-        <div class="acciones-dropdown" style="display:none">
-          <button class='btn btn-sm btneditar' type='button' onclick='editarSubReceta(${data})'>
-            <i class='fa fa-pencil-square-o text-success'></i> Editar
-          </button>
-          <button class='btn btn-sm btneliminar' type='button' onclick='eliminarSubReceta(${data})'>
-            <i class='fa fa-trash-o text-danger'></i> Eliminar
-          </button>
-        </div>
-      </div>`;
-                    },
-                    orderable: false,
-                    searchable: false,
-                },
+                columnaGridAcciones({ editar: 'editarSubReceta', duplicar: 'duplicarSubReceta', historial: 'verHistorialSubReceta', eliminar: 'eliminarSubReceta' }),
+                columnaGridId(),
                 { data: 'Descripcion', title: 'Descripción' },
                 { data: 'Sku', title: 'SKU' },
                 { data: 'UnidadNegocio', title: 'Unidad Negocio' },
@@ -247,6 +242,18 @@ async function configurarDataTable(data) {
                 { data: 'Categoria', title: 'Categoría' },
                 { data: 'CostoSubRecetas', title: 'Costo SubRecetas' },
                 { data: 'CostoInsumos', title: 'Costo Insumos' },
+                {
+                    data: 'FechaRegistra', title: 'Creado',
+                    render: (d, t, row) => t === 'display'
+                        ? `${row.UsuarioRegistra || '—'}<br><small class="text-muted">${d ? new Date(d).toLocaleString('es-AR') : '—'}</small>`
+                        : d
+                },
+                {
+                    data: 'FechaModifica', title: 'Últ. modificación',
+                    render: (d, t, row) => t === 'display'
+                        ? `${row.UsuarioModifica || '—'}<br><small class="text-muted">${d ? new Date(d).toLocaleString('es-AR') : '—'}</small>`
+                        : d
+                },
             ],
 
             dom: 'Bfrtip',
@@ -257,72 +264,30 @@ async function configurarDataTable(data) {
                 'pageLength'
             ],
             orderCellsTop: true,
-            fixedHeader: true,
+            fixedHeader: false,
             columnDefs: [
-                { targets: [6, 7], render: function (d) { return fmtARS(d); } },
+                { targets: [7, 8], render: function (d) { return fmtARS(d); } },
             ],
 
             initComplete: async function () {
                 var api = this.api();
 
-                // Filtros por columna
-                columnConfig.forEach(async (config) => {
-                    var cell = $('.filters th').eq(config.index);
-
-                    if (config.filterType === 'select') {
-                        var select = $('<select id="filter' + config.index + '"><option value="">Seleccionar</option></select>')
-                            .appendTo(cell.empty())
-                            .on('change', async function () {
-                                var selectedText = $(this).find('option:selected').text();
-                                await api.column(config.index).search(this.value ? '^' + selectedText + '$' : '', true, false).draw();
-                            });
-
-                        var lst = await config.fetchDataFunc();
-                        lst.forEach(function (item) {
-                            select.append('<option value="' + item.Id + '">' + item.Nombre + '</option>')
-                        });
-
-                    } else if (config.filterType === 'text') {
-                        var input = $('<input type="text" placeholder="Buscar..." />')
-                            .appendTo(cell.empty())
-                            .off('keyup change')
-                            .on('keyup change', function (e) {
-                                e.stopPropagation();
-                                var regexr = '({search})';
-                                var cursorPosition = this.selectionStart;
-                                api.column(config.index)
-                                    .search(this.value !== '' ? regexr.replace('{search}', '(((' + this.value + ')))') : '', this.value !== '', this.value === '')
-                                    .draw();
-                                $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
-                            });
-                    }
+                await kyoBindColumnFilters(api, {
+                    columns: columnConfig,
+                    skipIndexes: [0]
                 });
-
-                // sin filtro en columna de acciones
-                $('.filters th').eq(0).html('');
 
                 configurarOpcionesColumnas();
 
                 setTimeout(() => gridSubRecetas.columns.adjust(), 10);
-
-                // UX
-                $('#grd_SubRecetas tbody').on('mouseenter', 'tr', function () { $(this).css('cursor', 'pointer'); });
 
                 $('#grd_SubRecetas tbody').on('dblclick', 'tr', function () {
                     var id = gridSubRecetas.row(this).data()?.Id;
                     if (id) editarSubReceta(id);
                 });
 
-                let filaSeleccionada = null;
-                $('#grd_SubRecetas tbody').on('click', 'tr', function () {
-                    if (filaSeleccionada) { $(filaSeleccionada).removeClass('seleccionada'); $('td', filaSeleccionada).removeClass('seleccionada'); }
-                    filaSeleccionada = $(this);
-                    $(filaSeleccionada).addClass('seleccionada');
-                    $('td', filaSeleccionada).addClass('seleccionada');
-                });
-
                 // Reaplicar toggle ahora que existe thead.filters
-                const visible = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '0') === '1';
+                const visible = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '1') === '1';
                 setFiltrosState(visible);
             },
         });
@@ -331,57 +296,19 @@ async function configurarDataTable(data) {
         gridSubRecetas.clear().rows.add(data).draw();
         renderKpis(data || []);
         // asegurar que la visibilidad de filtros quede aplicada también en refresh
-        const visible = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '0') === '1';
+        const visible = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '1') === '1';
         setFiltrosState(visible);
     }
 }
 
 /* ================== CONFIGURAR OPCIONES COLUMNAS ================== */
 function configurarOpcionesColumnas() {
-    const grid = $('#grd_SubRecetas').DataTable();
-    const columnas = grid.settings().init().columns;
-    const container = $('#configColumnasMenu');
-
-    const storageKey = `SubRecetas_Columnas`;
-    const savedConfig = JSON.parse(localStorage.getItem(storageKey)) || {};
-
-    container.empty();
-
-    columnas.forEach((col, index) => {
-        if (col.data && col.data !== "Id") {
-            const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
-            grid.column(index).visible(isChecked);
-            const columnName = col.title || col.data || `Col ${index}`;
-            container.append(`
-                <li>
-                    <label class="dropdown-item">
-                        <input type="checkbox" class="toggle-column" data-column="${index}" ${isChecked ? 'checked' : ''}>
-                        ${columnName}
-                    </label>
-                </li>
-            `);
-        }
-    });
-
-    $('.toggle-column').on('change', function () {
-        const columnIdx = parseInt($(this).data('column'), 10);
-        const isChecked = $(this).is(':checked');
-        savedConfig[`col_${columnIdx}`] = isChecked;
-        localStorage.setItem(storageKey, JSON.stringify(savedConfig));
-        grid.column(columnIdx).visible(isChecked);
-        setTimeout(() => grid.columns.adjust(), 40);
+    initGridColumnConfig({
+        gridSelector: '#grd_SubRecetas',
+        menuSelector: '#configColumnasMenu',
+        storageKey: 'SubRecetas_Columnas',
     });
 }
-
-/* ================== DROPDOWN ACCIONES ================== */
-function toggleAcciones(id) {
-    const $menu = $(`.acciones-menu[data-id="${id}"] .acciones-dropdown`);
-    $('.acciones-dropdown').not($menu).hide();
-    $menu.toggle();
-}
-$(document).on('click', function (e) {
-    if (!$(e.target).closest('.acciones-menu').length) $('.acciones-dropdown').hide();
-});
 
 /* ================== LISTAS PARA COMBOS ================== */
 async function listaUnidadesNegocioFilter() {
@@ -438,4 +365,5 @@ async function listaUnidadesNegocioFiltro() {
         o.value = d.Id; o.text = d.Nombre; select.appendChild(o);
     });
 }
+
 /********************  FIN SubRecetaS.JS  ********************/

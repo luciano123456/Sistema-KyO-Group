@@ -1,0 +1,892 @@
+@{
+    Layout = "_LayoutModulo";
+    ViewData["Title"] = "Gestión de Proveedor";
+    var pgId = ViewBag.Id ?? 0;
+}
+
+@section Estilos {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="~/css/ProveedoresGestion.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/ProveedorAnalisisTab.css" asp-append-version="true" />
+}
+
+<div class="container-fluid page-99 pg-hub">
+    <!-- Header -->
+    <div class="cc-header shadow-lg rounded-4 p-4 mb-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <a href="@Url.Action("Index", "Proveedores")" class="btn btn-outline-light btn-sm pg-back-link">
+                <i class="fa fa-angle-left me-1"></i> Volver
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <span class="cc-badge"><i class="fa fa-truck"></i></span>
+                <div>
+                    <h2 class="m-0 fw-800" id="pgTitulo">@(pgId > 0 ? "Editar Proveedor" : "Nuevo Proveedor")</h2>
+                    <small class="text-muted-cc" id="pgSubtitulo">Datos, precios, órdenes de compra, cuenta corriente y compras</small>
+                </div>
+            </div>
+            <div class="ms-auto d-flex gap-2 align-items-center flex-wrap cc-header-actions cc-header-actions--inline">
+                <small id="lblUltimaModif" class="text-new me-2"></small>
+                <a href="@Url.Action("Analisis", "Proveedores")" class="cc-header-link cc-header-link--analisis cc-header-link--compact d-none" id="pgBtnAnalisis">
+                    <span class="cc-header-link-icon" aria-hidden="true">
+                        <i class="fa fa-bar-chart"></i>
+                    </span>
+                    <span class="cc-header-link-text">
+                        <span class="cc-header-link-title">Análisis</span>
+                        <span class="cc-header-link-sub">Compras y deuda</span>
+                    </span>
+                    <span class="cc-header-link-chevron" aria-hidden="true">
+                        <i class="fa fa-angle-right"></i>
+                    </span>
+                </a>
+                <button type="button" class="btn btn-new" id="btnGuardarProveedor" onclick="pgGuardarProveedor()">
+                    <i class="fa fa-save me-1"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="pgId" value="@pgId" />
+
+    <!-- Tabs -->
+    <div class="card-glass pg-tabs-card">
+        <div class="pg-resumen-row d-none" id="pgResumenRow">
+            <div class="pg-kpi-mini pg-kpi-sage">
+                <div class="pg-kpi-label">Insumos en lista</div>
+                <div class="pg-kpi-value" id="pgKpiInsumos">—</div>
+            </div>
+            <div class="pg-kpi-mini">
+                <div class="pg-kpi-label">Compras registradas</div>
+                <div class="pg-kpi-value" id="pgKpiCompras">—</div>
+            </div>
+            <div class="pg-kpi-mini pg-kpi-sky">
+                <div class="pg-kpi-label">Saldo cuenta corriente</div>
+                <div class="pg-kpi-value" id="pgKpiSaldo">—</div>
+            </div>
+            <div class="pg-kpi-mini">
+                <div class="pg-kpi-label">Total comprado</div>
+                <div class="pg-kpi-value" id="pgKpiTotalComprado">—</div>
+            </div>
+            <div class="pg-kpi-mini pg-kpi-sage">
+                <div class="pg-kpi-label">Últ. actualización precio</div>
+                <div class="pg-kpi-value" id="pgKpiUltPrecio" style="font-size:0.9rem">—</div>
+            </div>
+        </div>
+        <div class="pg-tabs-nav">
+            <div class="pg-tabs-pills nav nav-tabs" id="pgTabs" role="tablist">
+                <button class="pg-tab-pill nav-link active" id="tab-datos-btn" data-bs-toggle="tab" data-bs-target="#tab-datos" type="button" role="tab">
+                    <i class="fa fa-id-card-o"></i><span>Datos</span>
+                </button>
+                <button class="pg-tab-pill nav-link pg-tab-secondary" id="tab-precios-btn" data-bs-toggle="tab" data-bs-target="#tab-precios" type="button" role="tab" data-pg-tab="precios">
+                    <i class="fa fa-list-alt"></i><span>Lista de precios</span>
+                </button>
+                <button class="pg-tab-pill nav-link pg-tab-secondary" id="tab-cc-btn" data-bs-toggle="tab" data-bs-target="#tab-cc" type="button" role="tab" data-pg-tab="cc">
+                    <i class="fa fa-exchange"></i><span>Cuenta corriente</span>
+                </button>
+                <button class="pg-tab-pill nav-link pg-tab-secondary" id="tab-ordenes-btn" data-bs-toggle="tab" data-bs-target="#tab-ordenes" type="button" role="tab" data-pg-tab="ordenes">
+                    <i class="fa fa-shopping-basket"></i><span>Órdenes de compra</span>
+                </button>
+                <button class="pg-tab-pill nav-link pg-tab-secondary" id="tab-compras-btn" data-bs-toggle="tab" data-bs-target="#tab-compras" type="button" role="tab" data-pg-tab="compras">
+                    <i class="fa fa-cart-arrow-down"></i><span>Compras</span>
+                </button>
+                <button class="pg-tab-pill nav-link pg-tab-secondary" id="tab-pagos-btn" data-bs-toggle="tab" data-bs-target="#tab-pagos" type="button" role="tab" data-pg-tab="pagos">
+                    <i class="fa fa-money"></i><span>Pagos</span>
+                </button>
+                <button class="pg-tab-pill nav-link pg-tab-secondary" id="tab-analisis-btn" data-bs-toggle="tab" data-bs-target="#tab-analisis" type="button" role="tab" data-pg-tab="analisis">
+                    <i class="fa fa-line-chart"></i><span>Análisis</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="tab-content pg-tab-content" id="pgTabsContent">
+            <!-- Datos -->
+            <div class="tab-pane fade show active" id="tab-datos" role="tabpanel">
+                <form id="formProveedorGestion" class="row g-3 p-3 pg-form-grid" autocomplete="off">
+                    <div class="col-md-6">
+                        <label for="pgNombre" class="form-label">Nombre (*)</label>
+                        <input type="text" class="form-control" id="pgNombre" required />
+                        <div class="invalid-feedback">Campo obligatorio</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="pgApodo" class="form-label">Apodo</label>
+                        <input type="text" class="form-control" id="pgApodo" />
+                    </div>
+                    <div class="col-md-6">
+                        <label for="pgUbicacion" class="form-label">Ubicación</label>
+                        <input type="text" class="form-control" id="pgUbicacion" />
+                    </div>
+                    <div class="col-md-6">
+                        <label for="pgTelefono" class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="pgTelefono" />
+                    </div>
+                    <div class="col-md-6">
+                        <label for="pgCbu" class="form-label">CBU</label>
+                        <input type="text" class="form-control" id="pgCbu" />
+                    </div>
+                    <div class="col-md-6">
+                        <label for="pgCuit" class="form-label">CUIT</label>
+                        <input type="text" class="form-control" id="pgCuit" />
+                    </div>
+                    <div class="col-12">
+                        <div id="pgErrorCampos" class="alert alert-danger d-none mt-2">
+                            Debes completar los campos requeridos.
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Lista de precios -->
+            <div class="tab-pane fade" id="tab-precios" role="tabpanel">
+                <div class="pg-precios-panel">
+                    <div class="pg-precios-hero">
+                        <div class="pg-precios-hero-icon" aria-hidden="true">
+                            <i class="fa fa-tags"></i>
+                        </div>
+                        <div class="pg-precios-hero-text">
+                            <h5 class="pg-precios-hero-title">Lista de precios</h5>
+                            <p class="pg-precios-hero-sub">Gestioná insumos, costos y actualizaciones sin salir de este proveedor</p>
+                        </div>
+                        <div class="pg-precios-hero-actions">
+                            <span class="pg-precios-count badge rounded-pill" id="pgPreciosCount">0 ítems</span>
+                            <button type="button" class="btn btn-new btn-sm" onclick="pgAbrirModalInsumo()">
+                                <i class="fa fa-plus me-1"></i> Agregar insumo
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="pgPreciosEmpty" class="pg-empty-state pg-precios-empty d-none">
+                        <div class="pg-precios-empty-card">
+                            <div class="pg-precios-empty-icon" aria-hidden="true">
+                                <i class="fa fa-inbox"></i>
+                            </div>
+                            <h5>Todavía no hay insumos cargados</h5>
+                            <p>Agregá el primer ítem de la lista de precios de este proveedor. Podés registrar código, descripción, costo y cantidad desde acá.</p>
+                            <button type="button" class="btn btn-new" onclick="pgAbrirModalInsumo()">
+                                <i class="fa fa-plus me-1"></i> Agregar primer insumo
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pg-precios-table-area" id="pgPreciosTableWrap">
+                        <div class="dt-dark-wrap">
+                            <table class="dt-dark display compact" id="grd_PreciosProveedor" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>Acciones</th>
+                                        <th>Id</th>
+                                        <th>Código</th>
+                                        <th>Descripción</th>
+                                        <th>Costo Unit.</th>
+                                        <th>Cantidad</th>
+                                        <th>Costo</th>
+                                        <th>Actualización</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cuenta corriente -->
+            <div class="tab-pane fade" id="tab-cc" role="tabpanel">
+                <div class="p-3">
+                    <div class="d-flex gap-3 flex-wrap mb-3 pg-kpi-row">
+                        <div class="cc-stat">
+                            <div class="label">Saldo anterior</div>
+                            <div class="value" id="pgCcSaldoAnterior">—</div>
+                        </div>
+                        <div class="cc-stat">
+                            <div class="label">Debe</div>
+                            <div class="value" id="pgCcDebe">—</div>
+                        </div>
+                        <div class="cc-stat">
+                            <div class="label">Haber</div>
+                            <div class="value" id="pgCcHaber">—</div>
+                        </div>
+                        <div class="cc-stat">
+                            <div class="label">Saldo actual</div>
+                            <div class="value" id="pgCcSaldoActual">—</div>
+                        </div>
+                    </div>
+                    <div class="filter-bar rounded-3 p-3 mb-3">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label">Desde</label>
+                                <input type="date" id="pgCcFechaDesde" class="form-control" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Hasta</label>
+                                <input type="date" id="pgCcFechaHasta" class="form-control" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Tipo</label>
+                                <select id="pgCcTipoMov" class="form-select">
+                                    <option value="">Todos</option>
+                                    <option value="COMPRA">Compra</option>
+                                    <option value="PAGO">Pago</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex gap-2">
+                                <button type="button" class="btn btn-primary flex-fill" onclick="pgCargarCuentaCorriente()">
+                                    <i class="fa fa-search me-1"></i> Buscar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dt-dark-wrap">
+                        <table class="dt-dark display compact" id="grd_CcProveedor" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Concepto</th>
+                                    <th>Debe</th>
+                                    <th>Haber</th>
+                                    <th>Saldo</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Órdenes de compra -->
+            <div class="tab-pane fade" id="tab-ordenes" role="tabpanel">
+                <div class="pg-ordenes-panel">
+                    <div class="pg-panel-hero pg-panel-hero--ordenes">
+                        <div class="pg-panel-hero-icon" aria-hidden="true">
+                            <i class="fa fa-shopping-basket"></i>
+                        </div>
+                        <div class="pg-panel-hero-text">
+                            <h5 class="pg-panel-hero-title">Órdenes de compra</h5>
+                            <p class="pg-panel-hero-sub">Generá y gestioná pedidos a este proveedor</p>
+                        </div>
+                        <div class="pg-precios-hero-actions">
+                            <span class="pg-precios-count badge rounded-pill" id="pgOrdenesCount">0 órdenes</span>
+                            <button type="button" class="btn btn-new btn-sm" onclick="pgAbrirModalOc()">
+                                <i class="fa fa-plus me-1"></i> Nueva orden
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="pgOrdenesEmpty" class="pg-empty-state pg-precios-empty d-none">
+                        <div class="pg-precios-empty-card">
+                            <div class="pg-precios-empty-icon" aria-hidden="true">
+                                <i class="fa fa-shopping-basket"></i>
+                            </div>
+                            <h5>Sin órdenes de compra</h5>
+                            <p>Creá la primera orden de compra para este proveedor seleccionando unidad de negocio, local e insumos.</p>
+                            <button type="button" class="btn btn-new" onclick="pgAbrirModalOc()">
+                                <i class="fa fa-plus me-1"></i> Nueva orden de compra
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pg-precios-table-area" id="pgOrdenesTableWrap">
+                        <div class="dt-dark-wrap">
+                            <table class="dt-dark display compact" id="grd_OrdenesProveedor" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>Acciones</th>
+                                        <th>Id</th>
+                                        <th>F. Emisión</th>
+                                        <th>Local</th>
+                                        <th>F. Entrega</th>
+                                        <th>Estado</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compras -->
+            <div class="tab-pane fade" id="tab-compras" role="tabpanel">
+                <div class="pg-compras-panel">
+                    <div class="pg-panel-hero pg-panel-hero--compras">
+                        <div class="pg-panel-hero-icon" aria-hidden="true">
+                            <i class="fa fa-cart-arrow-down"></i>
+                        </div>
+                        <div class="pg-panel-hero-text">
+                            <h5 class="pg-panel-hero-title">Compras del proveedor</h5>
+                            <p class="pg-panel-hero-sub">Registrá recepciones contra órdenes de compra pendientes</p>
+                        </div>
+                        <div class="pg-precios-hero-actions">
+                            <span class="pg-precios-count badge rounded-pill" id="pgComprasCount">0 compras</span>
+                            <button type="button" class="btn btn-new btn-sm" onclick="pgAbrirModalCompra()">
+                                <i class="fa fa-plus me-1"></i> Nueva compra
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="pgComprasEmpty" class="pg-empty-state pg-precios-empty d-none">
+                        <div class="pg-precios-empty-card">
+                            <div class="pg-precios-empty-icon" aria-hidden="true">
+                                <i class="fa fa-shopping-cart"></i>
+                            </div>
+                            <h5>Sin compras registradas</h5>
+                            <p>Registrá la primera compra de este proveedor seleccionando una orden de compra pendiente.</p>
+                            <button type="button" class="btn btn-new" onclick="pgAbrirModalCompra()">
+                                <i class="fa fa-plus me-1"></i> Registrar compra
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pg-precios-table-area" id="pgComprasTableWrap">
+                        <div class="dt-dark-wrap">
+                            <table class="dt-dark display compact" id="grd_ComprasProveedor" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>Acciones</th>
+                                        <th>Id</th>
+                                        <th>Fecha</th>
+                                        <th>Local</th>
+                                        <th>O.C.</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagos -->
+            <div class="tab-pane fade" id="tab-pagos" role="tabpanel">
+                <div class="pg-pagos-panel">
+                    <div class="pg-panel-hero pg-panel-hero--pago">
+                        <div class="pg-panel-hero-icon" aria-hidden="true">
+                            <i class="fa fa-money"></i>
+                        </div>
+                        <div class="pg-panel-hero-text">
+                            <h5 class="pg-panel-hero-title">Pagos del proveedor</h5>
+                            <p class="pg-panel-hero-sub">Historial de pagos e impacto en cuenta corriente</p>
+                        </div>
+                        <div class="pg-precios-hero-actions">
+                            <span class="pg-precios-count badge rounded-pill" id="pgPagosCount">0 pagos</span>
+                            <div class="pg-pago-saldo-chip" id="pgPagoSaldoWrap">
+                                <span class="pg-pago-saldo-label">Saldo actual</span>
+                                <span class="pg-pago-saldo-value" id="pgPagoSaldoActual">—</span>
+                            </div>
+                            <button type="button" class="btn btn-new btn-sm" onclick="pgAbrirModalPago()">
+                                <i class="fa fa-plus me-1"></i> Registrar pago
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="pgPagosEmpty" class="pg-empty-state pg-precios-empty d-none">
+                        <div class="pg-precios-empty-card">
+                            <div class="pg-precios-empty-icon" aria-hidden="true">
+                                <i class="fa fa-money"></i>
+                            </div>
+                            <h5>Sin pagos registrados</h5>
+                            <p>Registrá el primer pago para impactarlo en la cuenta corriente de este proveedor.</p>
+                            <button type="button" class="btn btn-new" onclick="pgAbrirModalPago()">
+                                <i class="fa fa-plus me-1"></i> Registrar pago
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pg-panel-body pg-pagos-list-wrap" id="pgPagosListWrap">
+                        <div class="pg-pagos-list" id="pgPagosAccordion"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análisis del proveedor -->
+            <div class="tab-pane fade" id="tab-analisis" role="tabpanel">
+                <div class="pg-ax-panel" id="pgAnalisisPanel">
+                    <div class="pg-panel-hero pg-panel-hero--analisis">
+                        <div class="pg-panel-hero-icon" aria-hidden="true">
+                            <i class="fa fa-line-chart"></i>
+                        </div>
+                        <div class="pg-panel-hero-text">
+                            <h5 class="pg-panel-hero-title">Análisis del proveedor</h5>
+                            <p class="pg-panel-hero-sub">Te contamos en criollo si conviene seguirle comprando, cómo vienen los precios y qué mirar</p>
+                        </div>
+                        <div class="pg-precios-hero-actions">
+                            <div class="pa-field mb-0">
+                                <label class="form-label mb-0 small text-muted">Desde</label>
+                                <input type="date" class="form-control form-control-sm" id="pgAxDesde" />
+                            </div>
+                            <div class="pa-field mb-0">
+                                <label class="form-label mb-0 small text-muted">Hasta</label>
+                                <input type="date" class="form-control form-control-sm" id="pgAxHasta" />
+                            </div>
+                            <button type="button" class="btn btn-new btn-sm" id="pgAxActualizar" onclick="pgCargarAnalisisProveedor(true)">
+                                <i class="fa fa-refresh me-1"></i> Actualizar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pg-ax-loading d-none" id="pgAxLoading">
+                        <div class="pg-ax-spinner"></div>
+                        <span>Analizando proveedor…</span>
+                    </div>
+
+                    <div class="pg-ax-body" id="pgAxBody">
+                        <!-- Verdict -->
+                        <div class="pg-ax-verdict" id="pgAxVerdict">
+                            <div class="pg-ax-score-ring" id="pgAxScoreRing">
+                                <strong id="pgAxScore">—</strong>
+                                <span>/100</span>
+                            </div>
+                            <div class="pg-ax-verdict-text">
+                                <span class="pg-ax-badge" id="pgAxNivel">—</span>
+                                <h4 id="pgAxTitulo">—</h4>
+                                <p class="pg-ax-resumen" id="pgAxResumen">Seleccioná un rango y actualizá para leer el análisis en criollo.</p>
+                                <div class="pg-ax-reco" id="pgAxRecoWrap">
+                                    <div class="pg-ax-reco-label"><i class="fa fa-lightbulb-o me-1"></i> Qué te conviene hacer</div>
+                                    <p id="pgAxReco">—</p>
+                                </div>
+                                <div class="pg-ax-cols">
+                                    <div class="pg-ax-col pg-ax-col--ok">
+                                        <h5><i class="fa fa-thumbs-up me-1"></i> A favor</h5>
+                                        <ul id="pgAxAFavor"></ul>
+                                    </div>
+                                    <div class="pg-ax-col pg-ax-col--warn">
+                                        <h5><i class="fa fa-exclamation-triangle me-1"></i> Ojo con esto</h5>
+                                        <ul id="pgAxOjoCon"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- KPIs -->
+                        <div class="pg-ax-kpis" id="pgAxKpis">
+                            <div class="pg-ax-kpi"><span>Le compraste</span><strong id="pgAxKpiComprado">—</strong><em>en el período</em></div>
+                            <div class="pg-ax-kpi"><span>Compras hechas</span><strong id="pgAxKpiCant">—</strong><em>veces que le compraste</em></div>
+                            <div class="pg-ax-kpi"><span>Ticket promedio</span><strong id="pgAxKpiTicket">—</strong><em>por compra</em></div>
+                            <div class="pg-ax-kpi"><span>Saldo con él</span><strong id="pgAxKpiSaldo">—</strong><em>cuenta corriente</em></div>
+                            <div class="pg-ax-kpi"><span>Productos en lista</span><strong id="pgAxKpiLista">—</strong><em>ítems que te vende</em></div>
+                            <div class="pg-ax-kpi"><span>Más barato que otros</span><strong id="pgAxKpiBarato">—</strong><em>baratos / comparados</em></div>
+                            <div class="pg-ax-kpi"><span>Precios que subieron</span><strong id="pgAxKpiSubas" class="pg-ax-bad">—</strong><em>en el período</em></div>
+                            <div class="pg-ax-kpi"><span>Precios que bajaron</span><strong id="pgAxKpiBajas" class="pg-ax-good">—</strong><em>en el período</em></div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-lg-7">
+                                <div class="pg-ax-card">
+                                    <h6><i class="fa fa-area-chart me-1"></i> Evolución de compras</h6>
+                                    <div class="pg-ax-chart"><canvas id="pgAxChartSerie"></canvas></div>
+                                </div>
+                            </div>
+                            <div class="col-lg-5">
+                                <div class="pg-ax-card">
+                                    <h6><i class="fa fa-pie-chart me-1"></i> Señales del score</h6>
+                                    <div class="pg-ax-chart pg-ax-chart--sm"><canvas id="pgAxChartScore"></canvas></div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="pg-ax-card">
+                                    <h6><i class="fa fa-arrow-up text-danger me-1"></i> Productos que más subieron</h6>
+                                    <div class="pg-ax-list" id="pgAxSubas"></div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="pg-ax-card">
+                                    <h6><i class="fa fa-arrow-down text-success me-1"></i> Productos que más bajaron</h6>
+                                    <div class="pg-ax-list" id="pgAxBajas"></div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="pg-ax-card">
+                                    <h6><i class="fa fa-thumbs-up me-1"></i> Recomendados (más baratos acá)</h6>
+                                    <div class="pg-ax-list" id="pgAxRecomendados"></div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="pg-ax-card">
+                                    <h6><i class="fa fa-thumbs-down me-1"></i> Caros vs otros proveedores</h6>
+                                    <div class="pg-ax-list" id="pgAxCaros"></div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="pg-ax-card">
+                                    <h6><i class="fa fa-exchange me-1"></i> Desvíos factura vs lista (compras)</h6>
+                                    <div class="pg-ax-list" id="pgAxDesvios"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal insumo (lista de precios del proveedor) -->
+<div class="modal fade" id="pgModalInsumo" tabindex="-1" aria-labelledby="pgModalInsumoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content pg-insumo-modal">
+            <div class="modal-header colorEncabezado">
+                <h5 class="modal-title fw-bold" id="pgModalInsumoLabel">Nuevo insumo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="pgFormInsumo" class="row g-3" autocomplete="off">
+                    <input type="hidden" id="pgInsId" value="" />
+                    <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <span class="pg-insumo-prov-badge">
+                            <i class="fa fa-truck me-1"></i>
+                            <span id="pgInsProveedorNombre">Proveedor</span>
+                        </span>
+                        <small id="pgInsUltimaModif" class="text-new"></small>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="pgInsCodigo" class="form-label">Código</label>
+                        <input type="text" class="form-control" id="pgInsCodigo" placeholder="Opcional" />
+                    </div>
+                    <div class="col-md-9">
+                        <label for="pgInsDescripcion" class="form-label">Descripción (*)</label>
+                        <input type="text" class="form-control" id="pgInsDescripcion" required />
+                        <div class="invalid-feedback">Campo obligatorio</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="pgInsCosto" class="form-label">Costo total (*)</label>
+                        <input type="text" class="form-control" id="pgInsCosto" required />
+                        <div class="invalid-feedback">Campo obligatorio</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="pgInsCantidad" class="form-label">Cantidad (*)</label>
+                        <input type="text" class="form-control" id="pgInsCantidad" value="1" required />
+                        <div class="invalid-feedback">Campo obligatorio</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="pgInsPorcDesc" class="form-label">% Descuento</label>
+                        <input type="text" class="form-control" id="pgInsPorcDesc" value="0" />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="pgInsCostoUnitario" class="form-label">Costo unitario</label>
+                        <input type="text" class="form-control" id="pgInsCostoUnitario" readonly />
+                    </div>
+                    <div class="col-12">
+                        <div id="pgInsErrorCampos" class="alert alert-danger d-none">Completa los campos requeridos.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fa fa-times me-1"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-new" id="pgBtnGuardarInsumo" onclick="pgGuardarInsumo()">
+                    <i class="fa fa-check me-1"></i> Registrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal orden de compra -->
+<div class="modal fade" id="pgModalOc" tabindex="-1" aria-labelledby="pgModalOcLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content pg-compra-modal">
+            <div class="modal-header colorEncabezado">
+                <h5 class="modal-title fw-bold" id="pgModalOcLabel">Nueva orden de compra</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="pgOcId" value="0" />
+                <input type="hidden" id="pgOcIdEstado" value="0" />
+                <input type="hidden" id="pgOcBloqueada" value="0" />
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label for="pgOcUN" class="form-label">Unidad de negocio <span class="pg-req">*</span></label>
+                        <select id="pgOcUN" class="form-select">
+                            <option value="">Seleccionar…</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="pgOcLocal" class="form-label">Local <span class="pg-req">*</span></label>
+                        <select id="pgOcLocal" class="form-select" disabled>
+                            <option value="">Seleccione UN…</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Proveedor</label>
+                        <input type="text" class="form-control" id="pgOcProveedor" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="pgOcFechaEmision" class="form-label">Fecha emisión <span class="pg-req">*</span></label>
+                        <input type="date" class="form-control" id="pgOcFechaEmision" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="pgOcFechaEntrega" class="form-label">Fecha entrega</label>
+                        <input type="date" class="form-control" id="pgOcFechaEntrega" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Costo total</label>
+                        <input type="text" class="form-control" id="pgOcCostoTotal" readonly />
+                    </div>
+                    <div class="col-12">
+                        <label for="pgOcNota" class="form-label">Nota interna</label>
+                        <input type="text" class="form-control" id="pgOcNota" placeholder="Opcional" />
+                    </div>
+                </div>
+
+                <div id="pgOcBloqueadaAlert" class="alert alert-warning d-none">
+                    <i class="fa fa-lock me-1"></i>
+                    Esta orden tiene compras asociadas y no puede modificarse desde acá.
+                    <a href="#" id="pgOcLinkVer" class="alert-link ms-1">Ver en módulo de órdenes</a>
+                </div>
+
+                <div id="pgOcDetalleSection">
+                    <div class="pg-compra-detalle-head">
+                        <h6 class="mb-0"><i class="fa fa-cubes me-1"></i> Detalle de insumos</h6>
+                        <button type="button" class="btn btn-new btn-sm" id="pgBtnAddOcInsumo" onclick="pgAbrirModalOcInsumo()">
+                            <i class="fa fa-plus me-1"></i> Agregar insumo
+                        </button>
+                    </div>
+                    <div class="table-responsive pg-compra-table-wrap">
+                        <table class="table table-sm pg-compra-table" id="pgOcDetalleTable">
+                            <thead>
+                                <tr>
+                                    <th>Insumo</th>
+                                    <th class="text-end">P. unitario</th>
+                                    <th class="text-center">Cantidad</th>
+                                    <th class="text-end">Subtotal</th>
+                                    <th class="text-center pg-compra-actions-col"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="pgOcDetalleBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="pgOcError" class="alert alert-danger d-none mt-2"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fa fa-times me-1"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-new" id="pgBtnGuardarOc" onclick="pgGuardarOc()">
+                    <i class="fa fa-check me-1"></i> Registrar orden
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal insumo en orden de compra -->
+<div class="modal fade" id="pgModalOcInsumo" tabindex="-1" aria-labelledby="pgModalOcInsumoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content pg-insumo-modal">
+            <div class="modal-header colorEncabezado">
+                <h5 class="modal-title fw-bold" id="pgModalOcInsumoLabel">Agregar insumo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="pgOcInsIndex" value="" />
+                <div class="mb-3">
+                    <label for="pgOcInsSelect" class="form-label">Insumo <span class="pg-req">*</span></label>
+                    <select id="pgOcInsSelect" class="form-select">
+                        <option value="">Seleccionar insumo…</option>
+                    </select>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="pgOcInsPrecio" class="form-label">Precio unitario <span class="pg-req">*</span></label>
+                        <input type="text" class="form-control" id="pgOcInsPrecio" inputmode="decimal" />
+                    </div>
+                    <div class="col-md-6">
+                        <label for="pgOcInsCantidad" class="form-label">Cantidad <span class="pg-req">*</span></label>
+                        <input type="text" class="form-control" id="pgOcInsCantidad" value="1" inputmode="decimal" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Subtotal</label>
+                        <input type="text" class="form-control" id="pgOcInsSubtotal" readonly />
+                    </div>
+                </div>
+                <div id="pgOcInsError" class="alert alert-danger d-none mt-2">Complete los campos requeridos.</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-new" id="pgBtnGuardarOcInsumoLinea" onclick="pgGuardarOcInsumoLinea()">
+                    <i class="fa fa-check me-1"></i> Agregar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal compra -->
+<div class="modal fade" id="pgModalCompra" tabindex="-1" aria-labelledby="pgModalCompraLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content pg-compra-modal">
+            <div class="modal-header colorEncabezado">
+                <h5 class="modal-title fw-bold" id="pgModalCompraLabel">Nueva compra</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="pgCompraId" value="0" />
+                <input type="hidden" id="pgCompraIdUN" value="0" />
+                <input type="hidden" id="pgCompraIdLocal" value="0" />
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="pgCompraOc" class="form-label">Orden de compra <span class="pg-req">*</span></label>
+                        <select id="pgCompraOc" class="form-select">
+                            <option value="">Seleccionar OC pendiente…</option>
+                        </select>
+                        <small class="text-muted-cc" id="pgCompraOcHint">Solo órdenes pendientes de este proveedor</small>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="pgCompraFecha" class="form-label">Fecha <span class="pg-req">*</span></label>
+                        <input type="date" class="form-control" id="pgCompraFecha" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label for="pgCompraDescuentos" class="form-label">Descuentos</label>
+                        <input type="text" class="form-control pg-input-money" id="pgCompraDescuentos" value="0" inputmode="decimal" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Unidad de negocio</label>
+                        <input type="text" class="form-control" id="pgCompraUN" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Local</label>
+                        <input type="text" class="form-control" id="pgCompraLocal" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Proveedor</label>
+                        <input type="text" class="form-control" id="pgCompraProveedor" readonly />
+                    </div>
+                    <div class="col-12">
+                        <label for="pgCompraNota" class="form-label">Nota interna</label>
+                        <input type="text" class="form-control" id="pgCompraNota" placeholder="Opcional" />
+                    </div>
+                </div>
+
+                <div id="pgCompraSinOc" class="alert alert-info d-none">
+                    <i class="fa fa-info-circle me-1"></i>
+                    No hay órdenes de compra pendientes para este proveedor. Creá una desde la solapa <strong>Órdenes de compra</strong>.
+                </div>
+
+                <div id="pgCompraDetalleWrap" class="d-none">
+                    <div class="pg-compra-detalle-head">
+                        <h6 class="mb-0"><i class="fa fa-cubes me-1"></i> Detalle de insumos</h6>
+                        <div class="pg-compra-totales">
+                            <span>Subtotal: <strong id="pgCompraSubtotal">$ 0,00</strong></span>
+                            <span>Total: <strong id="pgCompraTotal">$ 0,00</strong></span>
+                        </div>
+                    </div>
+                    <div class="table-responsive pg-compra-table-wrap">
+                        <table class="table table-sm pg-compra-table" id="pgCompraDetalleTable">
+                            <thead>
+                                <tr>
+                                    <th>Insumo</th>
+                                    <th class="text-center">Pedida</th>
+                                    <th class="text-center">Pendiente</th>
+                                    <th class="text-center">Recibida</th>
+                                    <th class="text-center">Dif. cant.</th>
+                                    <th class="text-end">P. lista</th>
+                                    <th class="text-end">P. factura</th>
+                                    <th class="text-end">Dif. precio</th>
+                                    <th class="text-end">Dif. subt.</th>
+                                    <th class="text-center">Estado</th>
+                                    <th class="text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pgCompraDetalleBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="pgCompraError" class="alert alert-danger d-none mt-2"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fa fa-times me-1"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-new" id="pgBtnGuardarCompra" onclick="pgGuardarCompra()">
+                    <i class="fa fa-check me-1"></i> Registrar compra
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal registrar pago -->
+<div class="modal fade" id="pgModalPago" tabindex="-1" aria-labelledby="pgModalPagoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content pg-pago-modal">
+            <div class="modal-header colorEncabezado">
+                <h5 class="modal-title fw-bold" id="pgModalPagoLabel">Registrar pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="pg-pago-modal-intro mb-3">
+                    <i class="fa fa-info-circle me-1"></i>
+                    El movimiento impactará en la solapa <strong>Cuenta corriente</strong> de este proveedor.
+                </p>
+                <div class="pg-pago-form-shell">
+                    <form id="formPagoProveedor" class="row g-3" autocomplete="off">
+                        <div class="col-md-4">
+                            <label for="pgPagoFecha" class="form-label">Fecha del pago <span class="pg-req">*</span></label>
+                            <input type="date" class="form-control" id="pgPagoFecha" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="pgPagoImporte" class="form-label">Importe <span class="pg-req">*</span></label>
+                            <div class="pg-input-money-wrap">
+                                <span class="pg-input-money-prefix">$</span>
+                                <input type="text" class="form-control pg-input-money" id="pgPagoImporte" placeholder="0,00" required inputmode="decimal" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="pgPagoCuenta" class="form-label">Cuenta de origen <span class="pg-req">*</span></label>
+                            <div class="input-group input-plus">
+                                <select id="pgPagoCuenta" class="form-select" required
+                                        data-s2-config-nombre="Cuentas"
+                                        data-s2-config-controller="Cuentas"
+                                        data-s2-config-reload="/Cuentas/Lista"
+                                        data-s2-config-title="Nueva cuenta">
+                                    <option value="">Seleccionar cuenta…</option>
+                                </select>
+                                <button type="button" class="btn btn-plus" title="Nueva cuenta">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="pgPagoConcepto" class="form-label">Concepto <span class="pg-req">*</span></label>
+                            <input type="text" class="form-control" id="pgPagoConcepto" placeholder="Ej: Transferencia, cheque, efectivo…" required list="pgPagoConceptosList" />
+                            <datalist id="pgPagoConceptosList">
+                                <option value="Transferencia bancaria"></option>
+                                <option value="Cheque"></option>
+                                <option value="Efectivo"></option>
+                                <option value="Débito automático"></option>
+                            </datalist>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="pgPagoNota" class="form-label">Nota interna</label>
+                            <input type="text" class="form-control" id="pgPagoNota" placeholder="Opcional" />
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fa fa-times me-1"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-new" id="pgBtnRegistrarPago" onclick="pgRegistrarPago()">
+                    <i class="fa fa-check me-1"></i> Registrar pago
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="~/Views/Utils/Modals.cshtml" />
+
+@section Scripts {
+    <partial name="~/Views/Shared/Partials/DataTablesCoreScripts.cshtml" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="~/js/ProveedoresGestion.js" asp-append-version="true"></script>
+}

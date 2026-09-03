@@ -1,0 +1,210 @@
+/* =========================================================================
+ * RpSelect2.css — Select2 + botón [+] global (patrón oro ambiental)
+ * ========================================================================= */
+
+/* -------------------------------------------------------------------------
+ * Grupo "select + [+]" = UN solo control.
+ * El borde, el radio y el fondo viven en el wrapper (.input-plus); el select
+ * y el botón van sin borde ni radio propios, así nunca se ve la costura.
+ * Las reglas duplican la clase (.input-plus.input-plus) para ganarle a los
+ * `!important` de kyo-modals.css / DisenoPantallas.css sin depender del orden.
+ * ---------------------------------------------------------------------- */
+.input-plus {
+    --plus-h: 38px;
+    --plus-radius: 12px;
+    --plus-border: rgba(90, 70, 90, 0.18);
+    --plus-border-focus: #f4a4b8;
+    --plus-ring: rgba(244, 164, 184, 0.22);
+    --plus-accent: #22c55e;
+    --plus-accent-dark: #16a34a;
+}
+
+.input-group.input-plus,
+.input-plus {
+    position: relative;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    width: 100%;
+    min-height: var(--plus-h);
+    background: #fff;
+    border: 1.5px solid var(--plus-border);
+    border-radius: var(--plus-radius);
+    overflow: hidden;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input-plus:focus-within {
+    border-color: var(--plus-border-focus);
+    box-shadow: 0 0 0 3px var(--plus-ring);
+}
+
+/* El foco de Select2 se va al buscador del dropdown (que cuelga del modal) */
+.input-plus:has(.select2-container--open) {
+    border-color: var(--plus-border-focus);
+    box-shadow: 0 0 0 3px var(--plus-ring);
+}
+
+.input-plus:has(.is-invalid),
+.input-plus.is-invalid {
+    border-color: #e57373;
+    box-shadow: none;
+}
+
+/* El <select> oculto no debe ocupar espacio en el flex */
+.input-group.input-plus > select.select2-hidden-accessible,
+.input-plus > select.select2-hidden-accessible {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Select2 ocupa el espacio disponible; el + queda pegado a la derecha */
+.input-group.input-plus > .select2-container,
+.input-plus > .select2-container {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+}
+
+.input-plus.input-plus .select2-container .select2-selection--single,
+.input-plus.input-plus .select2-container--default .select2-selection--single {
+    display: flex !important;
+    align-items: center !important;
+    height: 100% !important;
+    min-height: calc(var(--plus-h) - 3px) !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+.input-plus.input-plus .select2-selection--single .select2-selection__rendered {
+    line-height: 1.2 !important;
+    padding-left: 12px !important;
+    padding-right: 26px !important;
+    color: #3d3548 !important;
+}
+
+.input-plus.input-plus .select2-selection--single .select2-selection__arrow {
+    top: 0 !important;
+    right: 6px !important;
+    height: 100% !important;
+}
+
+/* Select o input nativos (sin Select2 aplicado) */
+.input-plus.input-plus > .form-select,
+.input-plus.input-plus > .form-control,
+.input-plus.input-plus > select:not(.select2-hidden-accessible) {
+    flex: 1 1 0%;
+    min-width: 0;
+    min-height: calc(var(--plus-h) - 3px);
+    padding-left: 12px;
+    background-color: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Botón [+]: una celda más del control, separada sólo por un filete */
+.input-plus.input-plus .btn-plus,
+.btn-plus {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto !important;
+    align-self: stretch;
+    width: var(--plus-h, 38px);
+    min-width: var(--plus-h, 38px);
+    padding: 0;
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1;
+    background: rgba(34, 197, 94, 0.1);
+    border: 0 !important;
+    border-left: 1px solid var(--plus-border, rgba(90, 70, 90, 0.18)) !important;
+    border-radius: 0 !important;
+    color: var(--plus-accent-dark, #16a34a);
+    box-shadow: none !important;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.input-plus.input-plus .btn-plus:hover,
+.input-plus.input-plus .btn-plus:focus-visible,
+.btn-plus:hover,
+.btn-plus:focus-visible {
+    background: var(--plus-accent, #22c55e);
+    color: #fff;
+    box-shadow: none !important;
+}
+
+.input-plus.input-plus .btn-plus:active,
+.btn-plus:active {
+    background: var(--plus-accent-dark, #16a34a);
+    color: #fff;
+}
+
+.btn-plus > i,
+.btn-plus > svg {
+    pointer-events: none;
+}
+
+/* Alturas/radios propios de las pantallas que usan su propio sistema */
+.oc-page .input-plus {
+    --plus-h: var(--oc-input-h, 44px);
+    --plus-radius: var(--oc-radius-sm, 10px);
+}
+
+.rm-page .input-plus {
+    --plus-h: var(--rm-input-h, 42px);
+    --plus-radius: var(--rm-radius-sm, 10px);
+}
+
+/* Select2 en filtros de tabla — misma altura que inputs */
+thead.filters .select2-container,
+tr.filters .select2-container {
+    width: 100% !important;
+}
+
+thead.filters .select2-container--default .select2-selection--single,
+tr.filters .select2-container--default .select2-selection--single {
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    font-size: 0.82rem !important;
+    border-radius: 10px !important;
+    border: 1.5px solid rgba(90, 70, 90, 0.16) !important;
+    background: #fff !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+thead.filters .select2-container--default .select2-selection--single .select2-selection__rendered,
+tr.filters .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 32px !important;
+    padding-left: 10px !important;
+    padding-right: 28px !important;
+    color: #3d3548 !important;
+    font-size: 0.82rem !important;
+}
+
+thead.filters .select2-container--default .select2-selection--single .select2-selection__arrow,
+tr.filters .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 32px !important;
+    top: 1px !important;
+    right: 4px !important;
+}
+
+thead.filters .select2-container--default .select2-selection--single .select2-selection__clear,
+tr.filters .select2-container--default .select2-selection--single .select2-selection__clear {
+    margin-right: 2px;
+    font-size: 0.9rem;
+}

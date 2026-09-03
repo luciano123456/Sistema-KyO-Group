@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaKyoGroup.Application.Models;
 using SistemaKyoGroup.Application.Models.ViewModels;
+using SistemaKyoGroup.BLL.Common;
 using SistemaKyoGroup.BLL.Service;
 using SistemaKyoGroup.Models;
 using System.Diagnostics;
+using System.Linq;
 
 namespace SistemaKyoGroup.Application.Controllers
 {
@@ -38,13 +40,16 @@ namespace SistemaKyoGroup.Application.Controllers
                 return Ok(lista);
             } catch (Exception ex)
             {
-                return null;
+                return Ok(Array.Empty<VMGenericModelConfCombo>());
             }
         }
 
         [HttpGet]
-        public async Task<IActionResult> ListaPorUnidad(int idUnidadNegocio)
+        public async Task<IActionResult> ListaPorUnidad([FromQuery(Name = "IdUnidadNegocio")] int idUnidadNegocio)
         {
+            if (idUnidadNegocio <= 0)
+                return Ok(Array.Empty<VMGenericModelConfCombo>());
+
             try
             {
                 var Locales = await _LocalesService.ObtenerPorUnidad(idUnidadNegocio);
@@ -62,7 +67,7 @@ namespace SistemaKyoGroup.Application.Controllers
             }
             catch (Exception ex)
             {
-                return null;
+                return Ok(Array.Empty<VMGenericModelConfCombo>());
             }
         }
 
@@ -98,26 +103,29 @@ namespace SistemaKyoGroup.Application.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Eliminar(int id)
+        public async Task<IActionResult> Eliminar(int id, bool cascade = false)
         {
-            bool respuesta = await _LocalesService.Eliminar(id);
-
-            return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
+            var sr = await DeleteOperationHelper.ExecuteDeleteAsync(
+                c => _LocalesService.Eliminar(id, c),
+                "el local",
+                cascade,
+                id);
+            return Ok(sr.ToEliminarJson());
         }
 
         [HttpGet]
         public async Task<IActionResult> EditarInfo(int id)
         {
-             var Local = await _LocalesService.Obtener(id);
+            var local = await _LocalesService.Obtener(id);
+            if (local == null)
+                return NotFound();
 
-            if (Local != null)
+            return Ok(new VMGenericModelConfCombo
             {
-                return StatusCode(StatusCodes.Status200OK, Local);
-            }
-            else
-            {
-                return StatusCode(StatusCodes.Status404NotFound);
-            }
+                Id = local.Id,
+                IdCombo = local.IdUnidadNegocio ?? 0,
+                Nombre = local.Nombre
+            });
         }
         public IActionResult Privacy()
         {

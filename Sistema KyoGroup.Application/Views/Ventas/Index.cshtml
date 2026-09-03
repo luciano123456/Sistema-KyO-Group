@@ -1,0 +1,93 @@
+@{
+    Layout = "_LayoutModulo";
+    ViewData["Title"] = "Ventas";
+}
+
+@section Estilos {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="~/css/Ventas.css" asp-append-version="true" />
+}
+
+<div class="container page-99 vt-page">
+    <header class="vt-hero">
+        <div class="vt-hero-glow vt-hero-glow--rose"></div>
+        <div class="vt-hero-glow vt-hero-glow--sage"></div>
+        <div class="vt-hero-inner">
+            <div class="vt-hero-left">
+                <span class="vt-hero-icon"><i class="fa fa-shopping-bag"></i></span>
+                <div>
+                    <h1 class="vt-hero-title">Ventas</h1>
+                    <p class="vt-hero-sub">Importaciones Maxi Rest por local y fecha</p>
+                </div>
+            </div>
+            <div class="vt-hero-actions">
+                <a href="@Url.Action("Analisis", "Ventas")" class="cc-header-link cc-header-link--analisis cc-header-link--compact">
+                    <span class="cc-header-link-icon"><i class="fa fa-bar-chart"></i></span>
+                    <span class="cc-header-link-text">
+                        <span class="cc-header-link-title">Análisis</span>
+                        <span class="cc-header-link-sub">Promedios y rankings</span>
+                    </span>
+                </a>
+                <div class="vt-kpi-row">
+                    <div class="vt-kpi"><div class="label">Importaciones</div><div class="value" id="kpiImportaciones">0</div></div>
+                    <div class="vt-kpi"><div class="label">Venta período</div><div class="value" id="kpiVenta">$0</div></div>
+                    <div class="vt-kpi vt-kpi--sage"><div class="label">Locales</div><div class="value" id="kpiLocales">0</div></div>
+                    <div class="vt-kpi vt-kpi--warn" title="Producto del Excel = SKU de una receta o insumo del sistema">
+                        <div class="label">Sin vínculo</div><div class="value" id="kpiSinMatch">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="card-glass vt-toolbar">
+        <div class="vt-filters">
+            <div class="vt-filter-field">
+                <label for="fltDesde">Desde</label>
+                <input type="date" class="form-control vt-toolbar-control" id="fltDesde" />
+            </div>
+            <div class="vt-filter-field">
+                <label for="fltHasta">Hasta</label>
+                <input type="date" class="form-control vt-toolbar-control" id="fltHasta" />
+            </div>
+            <div class="vt-filter-field vt-filter-field--grow">
+                <label for="fltLocal">Local</label>
+                <select class="form-select vt-toolbar-control" id="fltLocal"><option value="0">Todos</option></select>
+            </div>
+            <div class="vt-filter-field vt-filter-field--action">
+                <label class="vt-label-spacer" aria-hidden="true">&nbsp;</label>
+                <button type="button" class="btn btn-outline-secondary vt-toolbar-btn" id="btnFiltrar">
+                    <i class="fa fa-filter"></i> Filtrar
+                </button>
+            </div>
+        </div>
+        <a class="btn btn-new vt-toolbar-cta" href="@Url.Action("Importar", "Ventas")">
+            <i class="fa fa-upload me-1"></i> Importar Excel
+        </a>
+    </div>
+
+    <div class="card-glass vt-table-card">
+        <div class="dt-dark-wrap">
+            <table class="dt-dark display nowrap compact" id="grd_Ventas" data-dt-row-select="multi" style="width:100%">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Id</th>
+                        <th>Fecha</th>
+                        <th>Local</th>
+                        <th>UN</th>
+                        <th>Venta</th>
+                        <th>Costo</th>
+                        <th>Usuario</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="~/Views/Shared/Partials/DataTablesCoreScripts.cshtml" />
+    <script src="~/js/VentasFiltros.js" asp-append-version="true"></script>
+    <script src="~/js/Ventas.js" asp-append-version="true"></script>
+}

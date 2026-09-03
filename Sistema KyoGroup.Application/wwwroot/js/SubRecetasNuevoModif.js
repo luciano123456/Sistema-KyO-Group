@@ -1,4 +1,4 @@
-﻿/* ================== SubRecetasNuevoModif.js (ADAPTADO + validaciones genéricas) ================== */
+/* ================== SubRecetasNuevoModif.js (ADAPTADO + validaciones genéricas) ================== */
 
 let gridInsumos = null, gridSubRecetas = null;
 let insumosCache = [];       // cache del modal Insumos
@@ -42,18 +42,35 @@ function removeRowByIndex(dt, rowIndex) {
     dt.row(rowIndex).remove().draw(false);
 }
 
+function repoblarModalSelect(sel) {
+    if (!sel) return;
+    const $el = $(sel);
+    if ($el.data('select2')) $el.select2('destroy');
+    if (window.KyoSelect2?.init) window.KyoSelect2.init(sel);
+    else $el.select2({ width: '100%', dropdownParent: $el.closest('.modal').length ? $el.closest('.modal') : $(document.body) });
+}
+
 /* ===== INIT ===== */
 $(document).ready(async () => {
-    await listaUnidadesNegocio();
-    await listaCategorias();
-    await listaUnidadMedidas();
+    try {
+        await listaUnidadesNegocio();
+        await listaCategorias();
+        await listaUnidadMedidas();
 
-    if (typeof SubRecetaData !== 'undefined' && SubRecetaData && SubRecetaData > 0) {
-        await cargarDatosSubReceta();
-    } else {
-        await configurarDataTableInsumos(null);
-        await configurarDataTableSubRecetas(null);
-        $("#tituloSubReceta").text("Nueva SubReceta");
+        const duplicarId = typeof kyoQueryInt === 'function' ? kyoQueryInt('duplicar') : 0;
+        const subRecetaId = Number(SubRecetaData);
+        if (duplicarId > 0) {
+            await cargarDatosSubRecetaComoCopia(duplicarId);
+        } else if (!Number.isNaN(subRecetaId) && subRecetaId > 0) {
+            await cargarDatosSubReceta();
+        } else {
+            await configurarDataTableInsumos(null);
+            await configurarDataTableSubRecetas(null);
+            $("#tituloSubReceta").text("Nueva SubReceta");
+        }
+    } catch (err) {
+        console.error(err);
+        if (typeof errorModal === 'function') errorModal('Error al cargar la pantalla. Recargá con Ctrl+F5.');
     }
 
     // Listeners
@@ -62,10 +79,7 @@ $(document).ready(async () => {
         gridSubRecetas?.clear().draw();
         calcularDatosSubReceta();
     });
-
-    // Select2 en modales
-    $("#SubRecetaSelect").select2({ dropdownParent: $("#SubRecetasModal"), width: "100%", placeholder: "Selecciona una opción", allowClear: false });
-    $("#insumoSelect").select2({ dropdownParent: $("#insumosModal"), width: "100%", placeholder: "Selecciona una opción", allowClear: false });
+    // Select2 en modales: inicializado globalmente por site-select2.js
 
     // Bind validaciones blur para FORM pantalla (idéntico a Recetas)
     ccValidators.bindBlurValidation(document.getElementById('frmSubReceta'));
@@ -75,7 +89,7 @@ $(document).ready(async () => {
         document.getElementById('alertRequeridos')
     );
 
-    // — INSUMOS —
+    // → INSUMOS →
     $('#insumosModal').on('shown.bs.modal', () => {
         const f = document.getElementById('formInsumo');
         const a = document.getElementById('modalAlertInsumo');
@@ -84,37 +98,87 @@ $(document).ready(async () => {
         ccValidators.autoHideOnInput(f, a);
     });
 
-    // — SUBRecetaS —
+    // → SUBRecetaS →
     $('#SubRecetasModal').on('shown.bs.modal', () => {
         const f = document.getElementById('formSubReceta');
         const a = document.getElementById('modalAlertSub');
+        a?.classList.add('d-none');
         ccValidators.clearGroup(f, a);
         ccValidators.bindBlurValidation(f);
         ccValidators.autoHideOnInput(f, a);
     });
+
+    $('#insumosModal').on('hidden.bs.modal', () => {
+        $('#insumoSelect').prop('disabled', false);
+    });
+    $('#SubRecetasModal').on('hidden.bs.modal', () => {
+        $('#SubRecetaSelect').prop('disabled', false);
+    });
 });
 
 /* ===== CARGA / EDICIÓN ===== */
+function unwrapJsonList(data) {
+    if (data == null) return [];
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.$values)) return data.$values;
+    if (Array.isArray(data.values)) return data.values;
+    return [];
+}
+
 async function ObtenerDatosSubReceta(id) {
     return await fetchJson(`/SubRecetas/EditarInfo?id=${id}`);
 }
 async function cargarDatosSubReceta() {
-    if (!(typeof SubRecetaData !== 'undefined' && SubRecetaData && SubRecetaData > 0)) return;
+    const subRecetaId = Number(SubRecetaData);
+    if (Number.isNaN(subRecetaId) || subRecetaId <= 0) return;
     const datos = await ObtenerDatosSubReceta(SubRecetaData);
     const payload = (typeof datos === 'string') ? JSON.parse(datos) : datos;
 
     await insertarDatosSubReceta(payload.SubReceta || payload.subReceta || {});
-    await configurarDataTableInsumos(payload.Insumos || []);
-    await configurarDataTableSubRecetas(payload.SubRecetas || []);
+    await configurarDataTableInsumos(unwrapJsonList(payload.Insumos || payload.insumos));
+    await configurarDataTableSubRecetas(unwrapJsonList(payload.SubRecetas || payload.subRecetas));
+    calcularDatosSubReceta();
+}
+
+async function cargarDatosSubRecetaComoCopia(idOrigen) {
+    const datos = await ObtenerDatosSubReceta(idOrigen);
+    const payload = (typeof datos === 'string') ? JSON.parse(datos) : datos;
+    const sub = { ...(payload.SubReceta || payload.subReceta || {}) };
+    const sku = String(sub.Sku || '').trim();
+
+    sub.Id = 0;
+    sub.Descripcion = typeof kyoTextoCopia === 'function'
+        ? kyoTextoCopia(sub.Descripcion)
+        : `${(sub.Descripcion || '').trim()} (copia)`.trim();
+    sub.Sku = sku ? `${sku}-COPIA` : '';
+
+    const insumos = unwrapJsonList(payload.Insumos || payload.insumos)
+        .map(x => ({ ...x, Id: 0, IdSubReceta: 0 }));
+    const subRecetas = unwrapJsonList(payload.SubRecetas || payload.subRecetas)
+        .map(x => ({ ...x, Id: 0, IdSubReceta: 0 }));
+
+    await insertarDatosSubReceta(sub);
+    $("#idSubReceta").val("");
+    $("#btnNuevoModificar").html('<i class="fa fa-save"></i> Registrar');
+    $("#tituloSubReceta").text("Duplicar SubReceta");
+
+    await configurarDataTableInsumos(insumos);
+    await configurarDataTableSubRecetas(subRecetas);
     calcularDatosSubReceta();
 }
 async function insertarDatosSubReceta(d) {
     $("#idSubReceta").val(d.Id);
-    $("#UnidadesNegocio").val(d.IdUnidadNegocio);
+    if (window.KyoSelect2?.setValue) {
+        KyoSelect2.setValue(document.getElementById('UnidadesNegocio'), d.IdUnidadNegocio);
+        KyoSelect2.setValue(document.getElementById('Categorias'), d.IdCategoria);
+        KyoSelect2.setValue(document.getElementById('UnidadMedidas'), d.IdUnidadMedida);
+    } else {
+        $("#UnidadesNegocio").val(d.IdUnidadNegocio);
+        $("#Categorias").val(d.IdCategoria);
+        $("#UnidadMedidas").val(d.IdUnidadMedida);
+    }
     $("#descripcion").val(d.Descripcion);
     $("#sku").val(d.Sku);
-    $("#Categorias").val(d.IdCategoria);
-    $("#UnidadMedidas").val(d.IdUnidadMedida);
 
     $("#costoInsumos").val(fmtMon(d.CostoInsumos ?? 0));
     $("#costoSubRecetas").val(fmtMon(d.CostoSubRecetas ?? 0));
@@ -122,7 +186,10 @@ async function insertarDatosSubReceta(d) {
     $("#Rendimiento").val(d.Rendimiento ?? 0);
     $("#CostoUnitario").val(fmtMon(d.CostoUnitario ?? 0));
 
-    $("#btnNuevoModificar").text("Guardar");
+    const kpiRend = document.getElementById('rmKpiRendimiento');
+    if (kpiRend) kpiRend.value = (d.Rendimiento ?? 0) > 0 ? String(d.Rendimiento) : '—';
+
+    $("#btnNuevoModificar").html('<i class="fa fa-save"></i> Guardar');
     $("#tituloSubReceta").text("Editar SubReceta");
 }
 
@@ -133,7 +200,7 @@ async function configurarDataTableSubRecetas(data) {
         gridSubRecetas = $('#grd_SubRecetas').DataTable({
             data: rows,
             language: { url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json" },
-            scrollX: "100px",
+            scrollX: false,
             scrollCollapse: true,
             columns: [
                 { data: 'Nombre', title: 'Nombre' },
@@ -151,7 +218,7 @@ async function configurarDataTableSubRecetas(data) {
                 }
             ],
             orderCellsTop: true,
-            fixedHeader: true,
+            fixedHeader: false,
             initComplete: function () { setTimeout(() => gridSubRecetas.columns.adjust(), 10); }
         });
     } else {
@@ -164,7 +231,7 @@ async function configurarDataTableInsumos(data) {
         gridInsumos = $('#grd_Insumos').DataTable({
             data: rows,
             language: { url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json" },
-            scrollX: "100px",
+            scrollX: false,
             scrollCollapse: true,
             columns: [
                 { data: 'Nombre', title: 'Nombre' },
@@ -182,7 +249,7 @@ async function configurarDataTableInsumos(data) {
                 }
             ],
             orderCellsTop: true,
-            fixedHeader: true,
+            fixedHeader: false,
             initComplete: function () { setTimeout(() => gridInsumos.columns.adjust(), 10); }
         });
     } else {
@@ -191,36 +258,62 @@ async function configurarDataTableInsumos(data) {
 }
 
 /* =========================================================================
- * CRUD — INSUMOS
+ * CRUD → INSUMOS
  * ========================================================================= */
 async function anadirInsumo() {
     const IdUnidadNegocio = $("#UnidadesNegocio").val();
+    if (!IdUnidadNegocio) {
+        advertenciaModal("Seleccioná una unidad de negocio primero.");
+        return;
+    }
     insumosCache = await obtenerInsumosUnidadNegocio(IdUnidadNegocio);
 
     const yaAgregados = new Set();
     gridInsumos?.rows().every(function () { yaAgregados.add(Number(this.data().IdInsumo)); });
 
+    const disponibles = insumosCache.filter(p => !yaAgregados.has(Number(p.Id)));
+    if (!disponibles.length) {
+        advertenciaModal("Ya agregaste todos los insumos de esta unidad de negocio.");
+        return;
+    }
+
+    const conPrecio = disponibles.filter(p =>
+        RpInsumoVinculo.tieneVinculo(p) && Number(p.CostoUnitario) > 0
+    );
+    if (!conPrecio.length) {
+        advertenciaModal(
+            "No tenés insumos vinculados a ningún proveedor con precio. " +
+            "Primero vinculalos en Proveedores → Lista de precios (o Insumos de proveedores) y después volvé a agregarlos acá."
+        );
+        return;
+    }
+
     const $sel = $("#insumoSelect").off('change').empty();
+    conPrecio.forEach(p => $sel.append(new Option(p.Descripcion, p.Id)));
+    const firstId = conPrecio[0].Id;
 
-    let firstId = null;
-    insumosCache.forEach(p => {
-        if (!yaAgregados.has(p.Id)) {
-            if (firstId === null) firstId = p.Id;
-            $sel.append(new Option(p.Descripcion, p.Id));
-        }
-    });
-
-    if (firstId === null) { advertenciaModal("¡Ya agregaste todos los insumos de esta unidad de negocio!"); return; }
-
-    $sel.val(firstId).trigger('change');
+    repoblarModalSelect(document.getElementById('insumoSelect'));
+    $("#insumoSelect").prop("disabled", false);
 
     $("#insumoSelect").off('change').on('change', function () {
-        const selId = parseInt(this.value);
-        const p = insumosCache.find(x => x.Id === selId) || { CostoUnitario: 0 };
+        const selId = parseInt(this.value, 10);
+        const p = insumosCache.find(x => x.Id === selId) || null;
         $("#cantidadInput").val(1);
-        $("#precioInput").val(fmtMon(p.CostoUnitario));
-        $("#totalInput").val(fmtMon(p.CostoUnitario));
-    }).trigger('change');
+        RpInsumoVinculo.aplicarSeleccionModal({
+            insumo: p,
+            alertEl: '#insumoSinVinculoAlert',
+            precioEl: '#precioInput',
+            totalEl: '#totalInput',
+            btnEl: '#btnGuardarInsumo',
+            cantidadEl: '#cantidadInput',
+            fmtMon: fmtMon,
+        });
+        if (!p || Number(p.CostoUnitario) <= 0) {
+            $('#btnGuardarInsumo').prop('disabled', true);
+            $('#precioInput').val(fmtMon(0));
+            $('#totalInput').val(fmtMon(0));
+        }
+    });
 
     $("#precioInput").off('input blur').on('input', calcularTotalInsumo).on('blur', function () {
         this.value = formatMoneda(convertirMonedaAFloat(this.value));
@@ -232,7 +325,9 @@ async function anadirInsumo() {
     $modal.data('edit-index', -1);
     $('#btnGuardarInsumo').text('Añadir');
     $('#modalAlertInsumo').addClass('d-none');
+    $('#insumoSinVinculoAlert').addClass('d-none');
     ccValidators.clearGroup($('#formInsumo')[0], $('#modalAlertInsumo')[0]);
+    $sel.val(String(firstId)).trigger('change');
     $modal.modal('show');
 }
 function calcularTotalInsumo() {
@@ -263,45 +358,67 @@ function upsertInsumo({ IdInsumo, Nombre, CostoUnitario, Cantidad }) {
     }
 }
 async function guardarInsumo() {
-    const form = $('#formInsumo')[0];
-    const alert = $('#modalAlertInsumo')[0];
+    const form = document.getElementById('formInsumo');
+    const alert = document.getElementById('modalAlertInsumo');
+    alert?.classList.add('d-none');
     const ok = ccValidators.validateGroup(form, alert);
-    if (!ok) return;
-
-    const id = Number($('#insumoSelect').val());
-    const nombre = $('#insumoSelect option:selected').text();
-    const precio = toNumberFromMoney($('#precioInput').val());
-    const cant = fmtN($('#cantidadInput').val() || 1);
-
-    const $modal = $('#insumosModal');
-    const editIndex = Number($modal.data('edit-index') ?? -1);
-
-    if (editIndex >= 0) {
-        updateRowByIndex(gridInsumos, editIndex, {
-            IdInsumo: id,
-            Nombre: nombre,
-            CostoUnitario: precio,
-            Cantidad: cant,
-            SubTotal: precio * cant
-        });
-    } else {
-        // merge si ya existe
-        let merged = false;
-        gridInsumos.rows().every(function () {
-            const d = this.data();
-            if (Number(d.IdInsumo) === id) {
-                d.Cantidad = fmtN(cant);
-                d.CostoUnitario = precio;
-                d.SubTotal = precio * d.Cantidad;
-                this.data(d).draw();
-                merged = true;
-            }
-        });
-        if (!merged) upsertInsumo({ IdInsumo: id, Nombre: nombre, CostoUnitario: precio, Cantidad: cant });
+    if (!ok) {
+        alert?.classList.remove('d-none');
+        form.querySelector('.is-invalid')?.focus();
+        return;
     }
 
-    $modal.modal('hide');
-    calcularDatosSubReceta();
+    const id = Number($('#insumoSelect').val());
+    const insumoSel = insumosCache.find(x => x.Id === id);
+    const precio = toNumberFromMoney($('#precioInput').val());
+    if (!RpInsumoVinculo.tieneVinculo(insumoSel) || precio <= 0) {
+        RpInsumoVinculo.aplicarSeleccionModal({
+            insumo: insumoSel,
+            alertEl: '#insumoSinVinculoAlert',
+            precioEl: '#precioInput',
+            totalEl: '#totalInput',
+            btnEl: '#btnGuardarInsumo',
+            cantidadEl: '#cantidadInput',
+            fmtMon: fmtMon,
+        });
+        advertenciaModal('No podés agregar un insumo sin precio. Vinculalo a un proveedor con precio primero.');
+        return;
+    }
+
+    return withBusy("#btnGuardarInsumo", async () => {
+        const nombre = $('#insumoSelect option:selected').text();
+        const cant = fmtN($('#cantidadInput').val() || 1);
+
+        const $modal = $('#insumosModal');
+        const editIndex = Number($modal.data('edit-index') ?? -1);
+
+        if (editIndex >= 0) {
+            updateRowByIndex(gridInsumos, editIndex, {
+                IdInsumo: id,
+                Nombre: nombre,
+                CostoUnitario: precio,
+                Cantidad: cant,
+                SubTotal: precio * cant
+            });
+        } else {
+            // merge si ya existe
+            let merged = false;
+            gridInsumos.rows().every(function () {
+                const d = this.data();
+                if (Number(d.IdInsumo) === id) {
+                    d.Cantidad = fmtN(cant);
+                    d.CostoUnitario = precio;
+                    d.SubTotal = precio * d.Cantidad;
+                    this.data(d).draw();
+                    merged = true;
+                }
+            });
+            if (!merged) upsertInsumo({ IdInsumo: id, Nombre: nombre, CostoUnitario: precio, Cantidad: cant });
+        }
+
+        $modal.modal('hide');
+        calcularDatosSubReceta();
+    }, { label: "Añadiendo..." });
 }
 async function editarInsumo(id) {
     const idx = findRowIndex(gridInsumos, r => Number(r.IdInsumo) === Number(id));
@@ -315,6 +432,7 @@ async function editarInsumo(id) {
     const actual = insumosCache.find(x => x.Id === Number(row.IdInsumo));
     if (actual) $sel.append(new Option(actual.Descripcion, actual.Id, true, true));
 
+    repoblarModalSelect(document.getElementById('insumoSelect'));
     $("#insumoSelect").prop("disabled", true);
     $("#cantidadInput").val(row.Cantidad);
     $("#precioInput").val(fmtMon(row.CostoUnitario));
@@ -330,6 +448,8 @@ async function editarInsumo(id) {
     $modal.data('edit-index', idx);
     $('#btnGuardarInsumo').text('Editar');
     $('#modalAlertInsumo').addClass('d-none');
+    $('#insumoSinVinculoAlert').addClass('d-none');
+    $('#btnGuardarInsumo').prop('disabled', false);
     ccValidators.clearGroup($('#formInsumo')[0], $('#modalAlertInsumo')[0]);
     $modal.modal('show');
 }
@@ -340,11 +460,17 @@ function eliminarInsumo(id) {
 }
 
 /* =========================================================================
- * CRUD — SUBRecetaS
+ * CRUD → SUBRecetaS
  * ========================================================================= */
 async function anadirSubReceta() {
     const IdUnidadNegocio = $("#UnidadesNegocio").val();
-    subRecetasCache = await obtenerSubRecetasUnidadNegocio(IdUnidadNegocio);
+    if (!IdUnidadNegocio) {
+        advertenciaModal("Seleccioná una unidad de negocio primero.");
+        return;
+    }
+    const currentId = parseInt($("#idSubReceta").val()) || 0;
+    subRecetasCache = (await obtenerSubRecetasUnidadNegocio(IdUnidadNegocio))
+        .filter(p => p.Id !== currentId);
 
     const yaAgregadas = new Set();
     gridSubRecetas?.rows().every(function () { yaAgregadas.add(Number(this.data().IdSubRecetaHija)); });
@@ -359,8 +485,10 @@ async function anadirSubReceta() {
         }
     });
 
-    if (firstId === null) { advertenciaModal("¡Ya agregaste todas las subRecetas de esta unidad de negocio!"); return; }
+    if (firstId === null) { advertenciaModal("Ya agregaste todas las sub-recetas disponibles."); return; }
 
+    repoblarModalSelect(document.getElementById('SubRecetaSelect'));
+    $("#SubRecetaSelect").prop("disabled", false);
     $sel.val(firstId).trigger('change');
 
     $sel.off('change').on('change', function () {
@@ -413,46 +541,53 @@ function upsertSubReceta({ IdSubRecetaHija, Nombre, CostoUnitario, Cantidad }) {
     }
 }
 async function guardarSubReceta() {
-    const form = $('#formSubReceta')[0];
-    const alert = $('#modalAlertSub')[0];
+    const form = document.getElementById('formSubReceta');
+    const alert = document.getElementById('modalAlertSub');
+    alert?.classList.add('d-none');
     const ok = ccValidators.validateGroup(form, alert);
-    if (!ok) return;
-
-    const id = Number($('#SubRecetaSelect').val());
-    const nombre = $('#SubRecetaSelect option:selected').text();
-    const precio = toNumberFromMoney($('#precioSubRecetaInput').val());
-    const cant = fmtN($('#cantidadSubRecetaInput').val() || 1);
-
-    const modal = $('#SubRecetasModal');
-    const editIndex = Number(modal.data('edit-index') ?? -1);
-
-    if (editIndex >= 0) {
-        updateRowByIndex(gridSubRecetas, editIndex, {
-            IdSubReceta: id,
-            IdSubRecetaHija: id,
-            Nombre: nombre,
-            CostoUnitario: precio,
-            Cantidad: cant,
-            SubTotal: precio * cant
-        });
-    } else {
-        // merge si ya existe
-        let merged = false;
-        gridSubRecetas.rows().every(function () {
-            const d = this.data();
-            if (parseInt(d.IdSubRecetaHija) === id) {
-                d.Cantidad = fmtN(cant);
-                d.CostoUnitario = precio;
-                d.SubTotal = precio * d.Cantidad;
-                this.data(d).draw();
-                merged = true;
-            }
-        });
-        if (!merged) upsertSubReceta({ IdSubRecetaHija: id, Nombre: nombre, CostoUnitario: precio, Cantidad: cant });
+    if (!ok) {
+        alert?.classList.remove('d-none');
+        form.querySelector('.is-invalid')?.focus();
+        return;
     }
 
-    modal.modal('hide').data({ 'edit-index': '', 'data-editing': false });
-    calcularDatosSubReceta();
+    return withBusy("#btnGuardarSubReceta", async () => {
+        const id = Number($('#SubRecetaSelect').val());
+        const nombre = $('#SubRecetaSelect option:selected').text();
+        const precio = toNumberFromMoney($('#precioSubRecetaInput').val());
+        const cant = fmtN($('#cantidadSubRecetaInput').val() || 1);
+
+        const modal = $('#SubRecetasModal');
+        const editIndex = Number(modal.data('edit-index') ?? -1);
+
+        if (editIndex >= 0) {
+            updateRowByIndex(gridSubRecetas, editIndex, {
+                IdSubReceta: id,
+                IdSubRecetaHija: id,
+                Nombre: nombre,
+                CostoUnitario: precio,
+                Cantidad: cant,
+                SubTotal: precio * cant
+            });
+        } else {
+            // merge si ya existe
+            let merged = false;
+            gridSubRecetas.rows().every(function () {
+                const d = this.data();
+                if (parseInt(d.IdSubRecetaHija) === id) {
+                    d.Cantidad = fmtN(cant);
+                    d.CostoUnitario = precio;
+                    d.SubTotal = precio * d.Cantidad;
+                    this.data(d).draw();
+                    merged = true;
+                }
+            });
+            if (!merged) upsertSubReceta({ IdSubRecetaHija: id, Nombre: nombre, CostoUnitario: precio, Cantidad: cant });
+        }
+
+        modal.modal('hide').data({ 'edit-index': '', 'data-editing': false });
+        calcularDatosSubReceta();
+    }, { label: "Añadiendo..." });
 }
 async function editarSubReceta(id) {
     const idx = findRowIndex(gridSubRecetas, r => Number(r.IdSubRecetaHija) === Number(id));
@@ -466,6 +601,7 @@ async function editarSubReceta(id) {
     const actual = subRecetasCache.find(x => x.Id === Number(row.IdSubRecetaHija));
     if (actual) $sel.append(new Option(actual.Descripcion, actual.Id, true, true));
 
+    repoblarModalSelect(document.getElementById('SubRecetaSelect'));
     $("#SubRecetaSelect").prop("disabled", true);
     $("#cantidadSubRecetaInput").val(row.Cantidad);
     $("#precioSubRecetaInput").val(fmtMon(row.CostoUnitario));
@@ -491,15 +627,38 @@ function eliminarSubReceta(id) {
 }
 
 /* ===== LISTAS / combos ===== */
+function repoblarSelectConSelect2(sel, items, { placeholder = 'Seleccionar...', autoSelectSingle = true } = {}) {
+    if (!sel) return;
+    const $el = $(sel);
+    if ($el.data('select2')) $el.select2('destroy');
+
+    sel.innerHTML = '';
+    const ph = document.createElement('option');
+    ph.value = '';
+    ph.textContent = placeholder;
+    ph.disabled = true;
+    ph.selected = true;
+    sel.appendChild(ph);
+
+    (items || []).forEach(d => sel.appendChild(new Option(d.Nombre, d.Id)));
+
+    if (window.KyoSelect2?.init) window.KyoSelect2.init(sel);
+    else $el.select2({ width: '100%', placeholder, allowClear: false });
+
+    if (autoSelectSingle && items?.length === 1) {
+        sel.value = String(items[0].Id);
+        $el.trigger('change.select2');
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+}
+
 async function listaUnidadesNegocioFilter() {
-    const data = await fetchJson(`/UnidadesNegocio/Lista`, { headers: authHeaders() });
+    const data = await fetchJson(`/UnidadesNegocio/ListaUsuario`, { headers: authHeaders() });
     return data.map(x => ({ Id: x.Id, Nombre: x.Nombre }));
 }
 async function listaUnidadesNegocio() {
     const data = await listaUnidadesNegocioFilter();
-    const sel = document.getElementById("UnidadesNegocio");
-    sel.innerHTML = '';
-    data.forEach(d => sel.appendChild(new Option(d.Nombre, d.Id)));
+    repoblarSelectConSelect2(document.getElementById('UnidadesNegocio'), data);
 }
 async function listaCategoriasFilter() {
     const data = await fetchJson(`/SubRecetasCategoria/Lista`, { headers: authHeaders() });
@@ -507,9 +666,7 @@ async function listaCategoriasFilter() {
 }
 async function listaCategorias() {
     const data = await listaCategoriasFilter();
-    const sel = document.getElementById("Categorias");
-    sel.innerHTML = '';
-    data.forEach(d => sel.appendChild(new Option(d.Nombre, d.Id)));
+    repoblarSelectConSelect2(document.getElementById('Categorias'), data, { autoSelectSingle: false });
 }
 async function listaUnidadMedidasFilter() {
     const data = await fetchJson(`/UnidadesMedida/Lista`, { headers: authHeaders() });
@@ -517,13 +674,11 @@ async function listaUnidadMedidasFilter() {
 }
 async function listaUnidadMedidas() {
     const data = await listaUnidadMedidasFilter();
-    const sel = document.getElementById("UnidadMedidas");
-    sel.innerHTML = '';
-    data.forEach(d => sel.appendChild(new Option(d.Nombre, d.Id)));
+    repoblarSelectConSelect2(document.getElementById('UnidadMedidas'), data, { autoSelectSingle: false });
 }
 async function obtenerInsumosUnidadNegocio(id) {
     const data = await fetchJson(`/Insumos/Lista?IdUnidadNegocio=${id}`, { headers: authHeaders() });
-    return data.map(x => ({ Id: x.Id, Descripcion: x.Descripcion, CostoUnitario: x.CostoUnitario }));
+    return (data || []).map(x => RpInsumoVinculo.normalizar(x));
 }
 async function obtenerSubRecetasUnidadNegocio(id) {
     const data = await fetchJson(`/SubRecetas/Lista?IdUnidadNegocio=${id}`, { headers: authHeaders() });
@@ -539,6 +694,7 @@ document.addEventListener('shown.bs.tab', (ev) => {
 
 /* ===== Cálculos totales ===== */
 document.getElementById('Rendimiento')?.addEventListener('blur', calcularDatosSubReceta);
+document.getElementById('Rendimiento')?.addEventListener('input', calcularDatosSubReceta);
 async function calcularDatosSubReceta() {
     let insumoTotal = 0, subTotal = 0;
 
@@ -557,15 +713,22 @@ async function calcularDatosSubReceta() {
     $("#CostoPorcion").val(fmtMon(costoPorcion));
     $("#costoInsumos").val(fmtMon(insumoTotal));
     $("#costoSubRecetas").val(fmtMon(subTotal));
+
+    const kpiRend = document.getElementById('rmKpiRendimiento');
+    if (kpiRend) kpiRend.value = rendimiento > 0 ? String(rendimiento) : '—';
 }
 
 /* ===== Guardar ===== */
 function guardarCambios() {
-    // Validación de pantalla (form principal) — exactamente igual al de Recetas
     const form = document.getElementById('frmSubReceta');
     const alert = document.getElementById('alertRequeridos');
+    alert?.classList.add('d-none');
     const ok = ccValidators.validateGroup(form, alert);
-    if (!ok) { return; }
+    if (!ok) {
+        alert?.classList.remove('d-none');
+        form.querySelector('.is-invalid')?.focus();
+        return;
+    }
 
     const idSub = $("#idSubReceta").val();
 
@@ -609,160 +772,43 @@ function guardarCambios() {
         return;
     }
 
-    const payload = {
-        "Id": idSub ? parseInt(idSub) : 0,
-        "IdUnidadNegocio": parseInt($("#UnidadesNegocio").val()),
-        "Descripcion": $("#descripcion").val(),
-        "Sku": $("#sku").val(),
-        "IdCategoria": parseInt($("#Categorias").val()),
-        "IdUnidadMedida": parseInt($("#UnidadMedidas").val()),
-        "CostoPorcion": toNumberFromMoney($("#CostoPorcion").val()),
-        "Rendimiento": parseFloat($("#Rendimiento").val()),
-        "CostoUnitario": toNumberFromMoney($("#CostoUnitario").val()),
-        "CostoSubRecetas": toNumberFromMoney($("#costoSubRecetas").val()),
-        "CostoInsumos": toNumberFromMoney($("#costoInsumos").val()),
-        "SubRecetasInsumos": insumos,
-        "SubRecetasSubRecetaIdSubRecetaPadreNavigations": subRecetas
-    };
+    return withBusy("#btnNuevoModificar", () => {
+        const payload = {
+            "Id": idSub ? parseInt(idSub) : 0,
+            "IdUnidadNegocio": parseInt($("#UnidadesNegocio").val()),
+            "Descripcion": $("#descripcion").val(),
+            "Sku": $("#sku").val(),
+            "IdCategoria": parseInt($("#Categorias").val()),
+            "IdUnidadMedida": parseInt($("#UnidadMedidas").val()),
+            "CostoPorcion": toNumberFromMoney($("#CostoPorcion").val()),
+            "Rendimiento": parseFloat($("#Rendimiento").val()),
+            "CostoUnitario": toNumberFromMoney($("#CostoUnitario").val()),
+            "CostoSubRecetas": toNumberFromMoney($("#costoSubRecetas").val()),
+            "CostoInsumos": toNumberFromMoney($("#costoInsumos").val()),
+            "SubRecetasInsumos": insumos,
+            "SubRecetasSubRecetaIdSubRecetaPadreNavigations": subRecetas
+        };
 
-    const url = payload.Id ? "/SubRecetas/Actualizar" : "/SubRecetas/Insertar";
-    const method = payload.Id ? "PUT" : "POST";
+        const url = payload.Id ? "/SubRecetas/Actualizar" : "/SubRecetas/Insertar";
+        const method = payload.Id ? "PUT" : "POST";
 
-    fetch(url, {
-        method,
-        headers: authHeaders({ 'Content-Type': 'application/json;charset=utf-8' }),
-        body: JSON.stringify(payload)
-    })
-        .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json(); })
-        .then(res => {
-            if (res.valor) {
-                exitoModal(payload.Id ? "SubReceta modificada correctamente" : "SubReceta registrada correctamente");
-                window.location.href = "/SubRecetas/Index";
-            } else {
-                errorModal(res.mensaje || (payload.Id ? "Error al modificar la SubReceta" : "Error al crear la SubReceta"));
-            }
+        return fetch(url, {
+            method,
+            headers: authHeaders({ 'Content-Type': 'application/json;charset=utf-8' }),
+            body: JSON.stringify(payload)
         })
-        .catch(err => {
-            console.error(err);
-            errorModal("Ha ocurrido un error al guardar la SubReceta.");
-        });
+            .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json(); })
+            .then(res => {
+                if (res.valor) {
+                    exitoModal(res.mensaje || (payload.Id ? "SubReceta modificada correctamente" : "SubReceta registrada correctamente"));
+                    window.location.href = "/SubRecetas/Index";
+                } else {
+                    errorModal(res.mensaje || (payload.Id ? "Error al modificar la SubReceta" : "Error al crear la SubReceta"));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                errorModal("Ha ocurrido un error al guardar la SubReceta.");
+            });
+    });
 }
-
-
-
-
-
-async function recargarCategoriasSubRecetaYSeleccionar(idSeleccionar = null) {
-    const sel = document.getElementById('Categorias');
-    if (!sel) return;
-
-    let data;
-    try { data = await fetchJson('/SubRecetasCategoria/Lista'); } catch { data = []; }
-    if (!Array.isArray(data)) data = [];
-
-    // Limpiar y volver a poner placeholder
-    sel.innerHTML = '';
-    const opt0 = new Option('Seleccionar...', '', false, false);
-    opt0.disabled = true; opt0.selected = true;
-    sel.add(opt0);
-
-    // Normalizo claves: { id, text } (select2) o { Id, Nombre } etc.
-    const norm = (data || []).map(x => {
-        const id = x.id ?? x.Id ?? x.ID ?? x.IdCategoria ?? x.IdSubRecetaCategoria ?? x.IdCategoriaSubReceta;
-        const texto = x.text ?? x.nombre ?? x.Nombre ?? x.descripcion ?? x.Descripcion ?? '';
-        return { id, texto: String(texto) };
-    }).filter(x => x.id != null && x.texto?.length);
-
-    // Agrego opciones
-    norm.forEach(x => sel.add(new Option(x.texto, String(x.id))));
-
-    // Selección
-    if (idSeleccionar != null) {
-        sel.value = String(idSeleccionar);
-    } else if (sel.options.length > 1) {
-        // último option real (ignora placeholder en 0)
-        sel.value = sel.options[sel.options.length - 1].value;
-    } else {
-        sel.value = '';
-    }
-
-    // Disparar change (nativo y select2)
-    sel.dispatchEvent(new Event('change'));
-    try { $('#Categorias').trigger('change.select2'); } catch { }
-
-    // Limpiar inválido si lo tuviera
-    sel.classList.remove('is-invalid');
-    const fb = sel.closest('.form-group')?.querySelector('.invalid-feedback');
-    if (fb) fb.classList.add('d-none');
-}
-
-// Botón ➕ de Categorías (abre config y al volver recarga + selecciona último)
-document.getElementById('btnAddCategoria')?.addEventListener('click', async () => {
-    try {
-        // Abrí tu pantalla de configuraciones en la sección de categorías de subRecetas
-        await openConfigAndWait({ nombre: 'Categorías de SubRecetas', controller: 'SubRecetasCategoria' });
-    } catch (_) {
-        // usuario canceló: no hacemos nada
-    } finally {
-        // Siempre actualizar lista y seleccionar el último
-        await recargarCategoriasSubRecetaYSeleccionar();
-    }
-});
-
-
-async function recargarUnidadMedidaSubRecetaYSeleccionar(idSeleccionar = null) {
-    const sel = document.getElementById('UnidadMedidas');
-    if (!sel) return;
-
-    // Traer datos
-    let data;
-    try { data = await fetchJson('/UnidadesMedida/Lista'); } catch { data = []; }
-    if (!Array.isArray(data)) data = [];
-
-    // Reset + placeholder
-    sel.innerHTML = '';
-    const opt0 = new Option('Seleccionar...', '', false, false);
-    opt0.disabled = true; opt0.selected = true;
-    sel.add(opt0);
-
-    // Normalizar: admite {id,text} (select2) o {Id, Nombre, Abreviatura} etc.
-    const norm = (data || []).map(x => {
-        const id = x.id ?? x.Id ?? x.ID ?? x.IdUnidadMedida ?? x.idUnidadMedida;
-        const nom = x.text ?? x.nombre ?? x.Nombre ?? x.descripcion ?? x.Descripcion ?? '';
-        const abr = x.abreviatura ?? x.Abreviatura ?? x.sigla ?? x.Sigla ?? '';
-        const texto = abr ? `${nom} (${abr})` : String(nom);
-        return { id, texto };
-    }).filter(x => x.id != null && x.texto);
-
-    // Poblar
-    norm.forEach(x => sel.add(new Option(x.texto, String(x.id))));
-
-    // Selección
-    if (idSeleccionar != null) {
-        sel.value = String(idSeleccionar);
-    } else if (sel.options.length > 1) {
-        sel.value = sel.options[sel.options.length - 1].value; // último real
-    } else {
-        sel.value = '';
-    }
-
-    // Notificar cambios (nativo + select2)
-    sel.dispatchEvent(new Event('change'));
-    try { $('#UnidadMedidas').trigger('change.select2'); } catch { }
-
-    // Quitar inválido si estaba
-    sel.classList.remove('is-invalid');
-    const fb = sel.closest('.form-group')?.querySelector('.invalid-feedback');
-    if (fb) fb.classList.add('d-none');
-}
-
-// Botón ➕: abrir config y al volver recargar + seleccionar
-document.getElementById('btnAddUMSub')?.addEventListener('click', async () => {
-    try {
-        await openConfigAndWait({ nombre: 'Unidades de Medida', controller: 'UnidadesMedida' });
-    } catch (_) {
-        // cancelado: nada
-    } finally {
-        await recargarUnidadMedidaSubRecetaYSeleccionar();
-    }
-});

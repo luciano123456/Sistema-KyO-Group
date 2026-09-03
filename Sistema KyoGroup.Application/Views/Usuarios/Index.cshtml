@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Usuarios";
 }
 
@@ -13,7 +13,6 @@
 
     <!-- Estilos base -->
     <link rel="stylesheet" href="~/css/usuarios.css" />
-    <link rel="stylesheet" href="~/css/DisenoPantallas.css" />
 }
 
 <div class="container page-99">
@@ -46,21 +45,21 @@
                             <i class="fa fa-plus-square me-2"></i> Nuevo Usuario
                         </button>
 
-                        <div class="dropdown">
-                            <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="btnConfigColsG"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fa fa-cog me-2"></i> Config. Columnas
-                            </button>
-                            <ul class="dropdown-menu" id="configColumnasMenu" aria-labelledby="btnConfigColsG"></ul>
-                        </div>
+                        @{
+                            ViewData["ColConfigBtnId"] = "btnConfigColsG";
+                            ViewData["ColConfigMenuId"] = "configColumnasMenu";
+                        }
+                        <partial name="~/Views/Shared/Partials/GridColumnConfigDropdown.cshtml" />
                     </div>
 
                     <div class="dt-dark-wrap">
-                        <table class="dt-dark display nowrap compact" id="grd_Usuarios" style="width:100%">
+                        <table class="dt-dark display nowrap compact" id="grd_Usuarios" data-dt-row-select="multi" style="width:100%">
                             <thead>
                                 <tr>
                                     <th></th>
+                                    <th>Id</th>
                                     <th>Usuario</th>
+                                    <th>Dónde está</th>
                                     <th>Nombre</th>
                                     <th>Apellido</th>
                                     <th>DNI</th>
@@ -110,12 +109,12 @@
                 </ul>
 
                 <div class="tab-content">
-                    <!-- Pestaña: Datos -->
+                    <!-- Pesta6a: Datos -->
                     <div class="tab-pane fade show active" id="pane-datos" Rol="tabpanel" aria-labelledby="tab-datos">
                         <form id="formEditarUsuario" class="row g-3">
                             <input type="text" id="txtId" hidden readonly>
 
-                            <!-- Línea 1 -->
+                            <!-- LÍnea 1 -->
                             <div class="col-md-4">
                                 <label for="txtUsuario" class="form-label" id="lblUsuario">Usuario (*)</label>
                                 <input type="text" class="form-control" id="txtUsuario" required>
@@ -131,7 +130,7 @@
                                 <input type="text" class="form-control" id="txtApellido">
                             </div>
 
-                            <!-- Línea 2 -->
+                            <!-- LÍnea 2 -->
                             <div class="col-md-4">
                                 <label for="txtDni" class="form-label" id="lblDni">DNI</label>
                                 <input type="text" class="form-control" id="txtDni">
@@ -145,7 +144,7 @@
                                 <input type="text" class="form-control" id="txtDireccion">
                             </div>
 
-                            <!-- Línea 3 -->
+                            <!-- LÍnea 3 -->
                             <div class="col-md-4">
                                 <label for="Roles" class="form-label" id="lblRol">Rol</label>
                                 <select id="Roles" class="form-control">
@@ -159,9 +158,9 @@
                                 </select>
                             </div>
 
-                            <!-- Línea 4 -->
+                            <!-- LÍnea 4 -->
                             <div class="col-md-4" id="divContrasena">
-                                <label for="txtContrasena" class="form-label" id="lblContrasena">Contraseña (*)</label>
+                                <label for="txtContrasena" class="form-label" id="lblContrasena">Contrase6a (*)</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="txtContrasena">
                                     <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('txtContrasena')">
@@ -172,7 +171,7 @@
                             </div>
 
                             <div class="col-md-4" id="divContrasenaNueva">
-                                <label for="txtContrasenaNueva" class="form-label" id="lblContrasenaNueva">Contraseña Nueva</label>
+                                <label for="txtContrasenaNueva" class="form-label" id="lblContrasenaNueva">Contrase6a Nueva</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="txtContrasenaNueva">
                                     <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('txtContrasenaNueva')">
@@ -191,51 +190,61 @@
 
                     <!-- Pestaña: Accesos -->
                     <div class="tab-pane fade" id="pane-accesos" Rol="tabpanel" aria-labelledby="tab-accesos">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <h6 class="fw-bold m-0"><i class="fa fa-sitemap me-2"></i>Accesos por Unidades & Locales</h6>
-                            <div class="acc-toolbar">
-                                <button type="button" id="btnQuitarTodo" class="btn btn-outline-danger btn-sm">
-                                    <i class="fa fa-ban me-1"></i> Quitar acceso a TODO
-                                </button>
-                                <button type="button" id="btnRefrescarAccesos" class="btn btn-outline-secondary btn-sm">
-                                    <i class="fa fa-refresh me-1"></i> Refrescar
-                                </button>
-                            </div>
-                        </div>
-
-                      
-
-                        <div class="row g-3">
-
-                              <div class="col-12 col-lg-5">
-                            <div class="card-glass p-3 h-100">
-                                <h6 class="fw-bold mb-2"><i class="fa fa-building-o me-2"></i>Unidades de Negocio</h6>
-                                <div id="accUnidadesList" class="list-group acc-units-list slim"></div>
-                            </div>
-                        </div>
-
-                            <!-- Locales (IZQUIERDA) -->
-                            <div class="col-12 col-lg-7">
-                                <div class="card-glass p-3 h-100">
-                                    <div class="d-flex align-items-center justify-content-between mb-2" id="cardLocalesHeader">
-                                        <h6 class="fw-bold m-0"><i class="fa fa-map-marker me-2"></i>Locales</h6>
-                                        <div class="form-check form-switch header-actions">
-                                            <input class="form-check-input" type="checkbox" id="accSelectAllLocales">
-                                            <label class="form-check-label" for="accSelectAllLocales">Seleccionar todos los locales</label>
-                                        </div>
-                                    </div>
-
-                                    <!-- SOLO lista de checkboxes (sin select oculto) -->
-                                    <div id="accLocalesList" class="list-group"></div>
+                        <div class="acc-shell">
+                            <div class="acc-shell-head">
+                                <div class="acc-shell-head-text">
+                                    <h6 class="acc-shell-title"><i class="fa fa-sitemap"></i> Accesos por Unidades &amp; Locales</h6>
+                                    <p class="acc-shell-sub">Elegí una unidad de negocio y marcá los locales a los que el usuario puede ingresar.</p>
+                                </div>
+                                <div class="acc-toolbar">
+                                    <button type="button" id="btnQuitarTodo" class="acc-btn acc-btn-danger">
+                                        <i class="fa fa-ban"></i> Quitar acceso a TODO
+                                    </button>
+                                    <button type="button" id="btnRefrescarAccesos" class="acc-btn acc-btn-ghost">
+                                        <i class="fa fa-refresh"></i> Refrescar
+                                    </button>
                                 </div>
                             </div>
 
-                            <!-- Unidades (DERECHA) -->
-                            
-                        </div>
+                            <div class="row g-3 acc-panels-row">
+                                <div class="col-12 col-lg-5">
+                                    <div class="acc-panel">
+                                        <div class="acc-panel-head">
+                                            <span class="acc-panel-icon acc-panel-icon--unit"><i class="fa fa-building-o"></i></span>
+                                            <div>
+                                                <h6 class="acc-panel-title">Unidades de Negocio</h6>
+                                                <small class="acc-panel-hint">Activá el acceso con el interruptor</small>
+                                            </div>
+                                        </div>
+                                        <div id="accUnidadesList" class="acc-units-list"></div>
+                                    </div>
+                                </div>
 
-                        <!-- Resumen chips -->
-                        <div class="mt-3" id="accResumenChips"></div>
+                                <div class="col-12 col-lg-7">
+                                    <div class="acc-panel">
+                                        <div class="acc-panel-head acc-panel-head--split" id="cardLocalesHeader">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="acc-panel-icon acc-panel-icon--local"><i class="fa fa-map-marker"></i></span>
+                                                <div>
+                                                    <h6 class="acc-panel-title m-0" id="accLocalesTitle">Locales</h6>
+                                                    <small class="acc-panel-hint">Seleccioná los locales permitidos</small>
+                                                </div>
+                                            </div>
+                                            <div class="acc-selectall-wrap">
+                                                <input class="form-check-input" type="checkbox" id="accSelectAllLocales">
+                                                <label class="acc-selectall-label" for="accSelectAllLocales">Todos los locales</label>
+                                            </div>
+                                        </div>
+                                        <div id="accLocalesList" class="acc-locales-list"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="acc-resumen">
+                                <div class="acc-resumen-head"><i class="fa fa-tags"></i> Resumen de accesos</div>
+                                <div id="accResumenChips" class="acc-resumen-chips"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -248,17 +257,32 @@
     </div>
 </div>
 
+<!-- Historial de conexiones -->
+<div class="modal fade" id="modalHistorialConexionesUsr" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content cc-modal usr-conn-modal">
+            <div class="modal-header colorEncabezado usr-conn-modal-head">
+                <div class="usr-conn-modal-titlebox">
+                    <div class="usr-conn-kicker"><i class="fa fa-plug"></i> Control de acceso</div>
+                    <h5 class="modal-title fw-bold mb-0" id="usrConnTitulo">Usuario</h5>
+                    <p class="usr-conn-sub mb-0" id="usrConnSub">Historial de conexiones</p>
+                </div>
+                <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="usrConnKpis" class="usr-conn-kpis"></div>
+                <div id="usrConnTimeline" class="usr-conn-timeline"></div>
+            </div>
+            <div class="modal-footer modal-footer-cc">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <partial name="~/Views/Utils/Modals.cshtml" />
 
 @section Scripts {
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
-    <script src="~/js/site.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
-    <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
-    <script src="~/js/Usuarios.js?v=1.6"></script>
+    <partial name="~/Views/Shared/Partials/DataTablesCoreScripts.cshtml" />
+    <script src="~/js/Usuarios.js?v=1.9" defer></script>
 }

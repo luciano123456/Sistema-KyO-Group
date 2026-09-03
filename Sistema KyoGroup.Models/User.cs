@@ -25,6 +25,21 @@ public partial class User
 
     public int IdEstado { get; set; }
 
+    /// <summary>Color de fondo del avatar (hex, ej. #3b82f6).</summary>
+    public string? AvatarColor { get; set; }
+
+    /// <summary>Icono Font Awesome sin prefijo fa- (ej. user, star).</summary>
+    public string? AvatarIcono { get; set; }
+
+    /// <summary>Ruta web de la foto de avatar (ej. /Uploads/Avatares/...).</summary>
+    public string? AvatarFoto { get; set; }
+
+    /// <summary>Último latido de actividad en UTC; base del cálculo de "en línea".</summary>
+    public DateTime? FechaUltimaActividad { get; set; }
+
+    /// <summary>Módulo del navbar donde estuvo por última vez (ej. Proveedores).</summary>
+    public string? UltimoModulo { get; set; }
+
     public virtual ICollection<Caja> CajaIdUsuarioModificaNavigations { get; set; } = new List<Caja>();
 
     public virtual ICollection<Caja> CajaIdUsuarioRegistraNavigations { get; set; } = new List<Caja>();

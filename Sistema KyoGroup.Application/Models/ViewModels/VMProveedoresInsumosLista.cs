@@ -19,6 +19,9 @@ namespace KyoGroup.Application.Models.ViewModels
         public decimal? Costo { get; set; }
         public decimal? PorcDesc { get; set; }
 
+        /// <summary>Insumo de catálogo vinculado (si existe).</summary>
+        public int IdInsumo { get; set; }
+
         public int IdUsuarioRegistra { get; set; }
         public DateTime FechaRegistra { get; set; }
         public int? IdUsuarioModifica { get; set; }
@@ -38,6 +41,12 @@ namespace KyoGroup.Application.Models.ViewModels
     public class VMProveedoresInsumosMasivo
     {
         public List<int> ids { get; set; } = new();
+    }
+
+    public class VMAsegurarInsumoCatalogo
+    {
+        public int IdListaProveedor { get; set; }
+        public int IdUnidadNegocio { get; set; }
     }
 
 }

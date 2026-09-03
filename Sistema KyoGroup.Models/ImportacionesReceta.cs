@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SistemaKyoGroup.Models;
 
@@ -11,13 +12,31 @@ public partial class ImportacionesReceta
 
     public int? IdMovInventario { get; set; }
 
-    public int IdReceta { get; set; }
+    public int? IdReceta { get; set; }
+
+    /// <summary>En memoria/preview. No hay columna en DB (sin permiso ALTER).</summary>
+    [NotMapped]
+    public int? IdInsumo { get; set; }
+
+    /// <summary>Receta | Insumo | Ninguno — no mapeado a SQL.</summary>
+    [NotMapped]
+    public string? TipoVinculo { get; set; }
 
     public string Codigo { get; set; } = null!;
 
     public string Descripcion { get; set; } = null!;
 
-    public int Cantidad { get; set; }
+    public string? Rubro { get; set; }
+
+    public int? RubroCodigo { get; set; }
+
+    /// <summary>FK opcional al catálogo Rubros (si la columna existe en DB).</summary>
+    [NotMapped]
+    public int? IdRubro { get; set; }
+
+    public bool Matched { get; set; }
+
+    public decimal Cantidad { get; set; }
 
     public decimal PrecioUnitario { get; set; }
 
@@ -46,4 +65,14 @@ public partial class ImportacionesReceta
     public virtual ICollection<ImportacionesInsumo> ImportacionesInsumos { get; set; } = new List<ImportacionesInsumo>();
 
     public virtual ICollection<ImportacionesSubReceta> ImportacionesSubReceta { get; set; } = new List<ImportacionesSubReceta>();
+
+    public string ResolverTipoVinculo()
+    {
+        if (TipoVinculo == "Receta" || TipoVinculo == "Insumo" || TipoVinculo == "Ninguno")
+            return TipoVinculo;
+        if (IdReceta is > 0) return "Receta";
+        if (IdInsumo is > 0) return "Insumo";
+        if (Matched) return "Insumo";
+        return "Ninguno";
+    }
 }

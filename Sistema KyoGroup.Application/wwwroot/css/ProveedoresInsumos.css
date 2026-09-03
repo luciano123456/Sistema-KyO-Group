@@ -1,70 +1,64 @@
 
 :root {
-    --dt-row-hover: #152037;
-    --dt-row-zebra: #363659;
-    --dt-row-zebra2: #525285;
-    --dt-row-zebra3: #DE0EE8;
+    --dt-row-hover: #fce4ec;
+    --dt-row-zebra: #fff9fb;
+    --dt-row-zebra2: #fef8f6;
+    --dt-row-zebra3: #8bc34a;
 }
 
 .modal-edicion {
-    max-width: 60%; /* o lo que necesites */
+    max-width: 60%;
 }
 
 #modalImportar .modal-content {
-    background-color: #323844 !important;
-    border-radius: 0 0 0.5rem 0.5rem;
+    background-color: #fff !important;
+    border-radius: 0 0 1rem 1rem;
     box-shadow: none;
+    color: #3d3548;
 }
-
 
 @media (max-width: 1300px) {
     .modal-edicion {
-        max-width: 80%; /* o lo que necesites */
+        max-width: 80%;
     }
 }
 
 @media (max-width: 900px) {
     .modal-edicion {
-        max-width: 98%; /* o lo que necesites */
+        max-width: 98%;
     }
 }
-
-
 
 .tabla-scroll-limitada {
     overflow-y: auto;
     max-height: 400px !important;
 }
 
-
-
 .fila-sin-cambios {
-    background-color: var(--dt-row-zebra) !important;
-    color: white !important;
+    background-color: #fff9fb !important;
+    color: #3d3548 !important;
 }
 
 .fila-modificada {
-    background-color: #ffc107 !important;
-    color: black !important;
+    background-color: #fff3e0 !important;
+    color: #3d3548 !important;
 }
 
 .fila-nueva-insumo {
-    background-color: #063713 !important;
-    color: white !important;
+    background-color: #e8f5e0 !important;
+    color: #2e7d32 !important;
     font-weight: bold;
 }
 
-
 .colorEncabezadoTabla {
-    background: linear-gradient(90deg, var(--dt-row-zebra), var(--dt-row-zebra2));
-    color: white !important;
+    background: linear-gradient(180deg, #fce4ec 0%, #f8d7e3 100%);
+    color: #3d3548 !important;
 }
 
-    .colorEncabezadoTabla th {
-        background: inherit;
-        color: white !important;
-    }
-
+.colorEncabezadoTabla th {
+    background: inherit;
+    color: #3d3548 !important;
+}
 
 .col-descripcion {
     max-width: 200px;
@@ -80,37 +74,33 @@
     border-spacing: 0;
 }
 
-    #vistaPrevia th,
-    #vistaPrevia td {
-        border: 1px solid #007bff; /* o el color de borde que estés usando */
-    }
+#vistaPrevia th,
+#vistaPrevia td {
+    border: 1px solid rgba(244, 164, 184, 0.35);
+}
 
-    #vistaPrevia thead th {
-        position: sticky;
-        top: 0;
-        background: linear-gradient(90deg, var(--dt-row-zebra), var(--dt-row-zebra2));
-        color: white;
-        z-index: 2;
-        border-bottom: 2px solid #0040b0; /* evita borde blanco al fijar */
-    }
-
+#vistaPrevia thead th {
+    position: sticky;
+    top: 0;
+    background: linear-gradient(180deg, #fce4ec 0%, #f8d7e3 100%);
+    color: #3d3548;
+    z-index: 2;
+    border-bottom: 2px solid rgba(244, 164, 184, 0.4);
+}
 
 #resumenImportacion {
     padding: 0.75rem;
-    border: 1px solid #17a2b8;
-    background-color: #d1ecf1;
-    color: #0c5460;
-    border-radius: 0.25rem;
-}
-
-#resumenImportacion {
+    border: 1px solid rgba(100, 181, 246, 0.4);
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border-radius: 0.5rem;
     transition: all 0.3s ease;
+    display: none;
 }
 
-    #resumenImportacion.mostrar {
-        display: block !important;
-    }
-
+#resumenImportacion.mostrar {
+    display: block !important;
+}
 
 #vistaPrevia th,
 #vistaPrevia td {
@@ -123,16 +113,8 @@
     position: sticky;
     top: 0;
     z-index: 2;
-    background: linear-gradient(90deg, var(--dt-row-zebra), var(--dt-row-zebra2));
-    color: white;
-}
-
-#resumenImportacion.mostrar {
-    display: block !important;
-}
-
-#resumenImportacion {
-    display: none;
+    background: linear-gradient(180deg, #fce4ec 0%, #f8d7e3 100%);
+    color: #3d3548;
 }
 
 .col-descripcion {
@@ -141,106 +123,4 @@
     text-overflow: ellipsis;
 }
 
-
-/* FAB: oculto por defecto, solo visible con la clase .show-fab */
-#fabEliminarPI {
-    display: none !important; /* <-- forzamos oculto por defecto */
-    position: fixed;
-    right: 24px;
-    bottom: 24px;
-    z-index: 9999;
-    border-radius: 999px;
-    padding: 12px 18px;
-    border: 0;
-    background: #dc3545;
-    color: #fff;
-    box-shadow: 0 10px 24px rgba(0,0,0,.25);
-}
-
-    #fabEliminarPI.show-fab { /* visible solo cuando hay selección */
-        display: flex !important;
-    }
-
-/* cursor pointer al pasar por las filas */
-#grd_InsumosProveedor tbody tr {
-    cursor: pointer;
-}
-
-/* evitar pointer en los contRoles del menú de acciones */
-#grd_InsumosProveedor .acciones-menu,
-#grd_InsumosProveedor .acciones-menu * {
-    cursor: default;
-}
-
-/* fila seleccionada (rosa pastel, sin contorno) */
-#grd_InsumosProveedor tbody tr.row-selected {
-    background: #B727F5 !important;
-    outline: none !important;
-}
-
-    #grd_InsumosProveedor tbody tr.row-selected td {
-        background: transparent !important;
-        font-weight: bold;
-    }
-
-
-/* ===== Vista previa: celdas editables ===== */
-.vp-cell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: .5rem;
-}
-
-.vp-val {
-    min-width: 72px;
-    display: inline-block;
-}
-
-.vp-ctrl {
-    display: inline-flex;
-    gap: .25rem;
-    opacity: .65;
-    transition: opacity .15s ease;
-}
-
-    .vp-ctrl:hover {
-        opacity: 1;
-    }
-
-    .vp-ctrl .btn-ico {
-        border: 0;
-        outline: 0;
-        padding: .15rem .35rem;
-        border-radius: .375rem;
-        background: #142402;
-        color: white;
-        line-height: 1;
-    }
-
-        .vp-ctrl .btn-ico:hover {
-            background: rgba(255,255,255,.12);
-        }
-
-
-.vp-input {
-    width: 110px;
-    padding: .25rem .5rem;
-    border-radius: .375rem;
-    border: 1px solid rgba(255,255,255,.15);
-    background: rgba(10,10,20,.35);
-    color: #e9eef6;
-}
-
-    .vp-input:focus {
-        outline: 0;
-        border-color: rgba(0,170,255,.6);
-        box-shadow: 0 0 0 2px rgba(0,170,255,.15);
-    }
-
-
-.fila-sin-cambios {
-    opacity: .85;
-}
-
-
+/* FAB legado: estilos unificados en RpDataTable.css (.kyo-bulk-fab / #fabEliminarPI) */

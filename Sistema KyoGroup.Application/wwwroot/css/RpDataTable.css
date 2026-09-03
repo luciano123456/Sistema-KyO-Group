@@ -1,0 +1,688 @@
+@charset "UTF-8";
+/* =========================================================
+   RpDataTable v3 — skin pastel unificado (Sushi Club / Panera Rosa)
+   Cargar después de site.css y DisenoPantallas.css
+   ========================================================= */
+
+:root {
+    --rp-dt-bg: #ffffff;
+    --rp-dt-border: rgba(90, 70, 90, 0.1);
+    --rp-dt-head: #fce4ec;
+    --rp-dt-head-text: #3d3548;
+    --rp-dt-row-a: #ffffff;
+    --rp-dt-row-b: #fff9fb;
+    --rp-dt-hover: #fce4ec;
+    --rp-dt-selected: #f8d7e0;
+    --rp-dt-selected-strong: #f4c4d0;
+    --rp-dt-accent: #e8879f;
+    --rp-dt-pag-active: #e8879f;
+    /* Override DataTables CDN (azul Bootstrap) → rosa del tema */
+    --dt-row-selected: 248, 215, 224;
+    --dt-row-selected-text: 61, 53, 72;
+    --dt-row-selected-link: 201, 74, 107;
+}
+
+.dt-dark-wrap,
+.rp-table-wrap {
+    border-radius: 16px;
+    border: 1px solid var(--rp-dt-border);
+    background: var(--rp-dt-bg);
+    overflow: visible;
+    max-width: 100%;
+    box-shadow: 0 4px 24px rgba(90, 70, 90, 0.07);
+}
+
+/* Scroll H/V en la tabla (sin scrollX de DataTables → header/filtros/body alineados) */
+.kyo-dt-scroll,
+.dt-dark-wrap .kyo-dt-scroll,
+.rp-table-wrap .kyo-dt-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow: auto !important;
+    max-height: min(70vh, calc(100vh - 260px));
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #f4a4b8 transparent;
+    border-radius: 0 0 12px 12px;
+}
+
+.kyo-dt-scroll::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+
+.kyo-dt-scroll::-webkit-scrollbar-thumb {
+    background: #f4a4b8;
+    border-radius: 6px;
+}
+
+.kyo-dt-scroll::-webkit-scrollbar-track {
+    background: rgba(244, 164, 184, 0.12);
+    border-radius: 6px;
+}
+
+.kyo-dt-scroll > table.dataTable,
+.kyo-dt-scroll > table.dt-dark {
+    width: 100% !important;
+    margin: 0 !important;
+}
+
+/* Spacer en columnas sin filtro (acciones) para no desalinear */
+.kyo-col-filter-spacer {
+    display: block;
+    min-height: 34px;
+    min-width: 1px;
+}
+
+.dt-dark-wrap .dataTables_scroll,
+.rp-table-wrap .dataTables_scroll,
+.dataTables_wrapper .dataTables_scroll {
+    overflow: hidden !important;
+    width: 100% !important;
+    border-radius: 0 0 14px 14px;
+}
+
+.dt-dark-wrap > .dataTables_wrapper,
+.rp-table-wrap > .dataTables_wrapper,
+.dt-dark-wrap .dataTables_wrapper,
+.rp-grid-panel .dataTables_wrapper {
+    padding: 0.9rem 1.1rem 1.1rem !important;
+    box-sizing: border-box;
+}
+
+.dataTables_wrapper .dt-buttons,
+.dataTables_wrapper .dt-buttons.btn-group {
+    display: inline-flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem !important;
+    margin: 0 0 0.85rem 0 !important;
+    padding: 0.15rem 0.1rem 0.25rem !important;
+    vertical-align: middle;
+    width: auto !important;
+    max-width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 30;
+}
+
+.dataTables_wrapper .dt-buttons .dt-button,
+.dataTables_wrapper .dt-buttons.btn-group > .dt-button {
+    margin: 0 !important;
+    float: none !important;
+    position: relative !important;
+    background: #fff !important;
+    color: #3d3548 !important;
+    border: 1.5px solid rgba(90, 70, 90, 0.16) !important;
+    border-radius: 10px !important;
+    padding: 0.48rem 0.95rem !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    line-height: 1.25 !important;
+    box-shadow: none !important;
+    transition: background 0.15s, border-color 0.15s, transform 0.12s;
+}
+
+.dataTables_wrapper .dt-buttons .dt-button + .dt-button,
+.dataTables_wrapper .dt-buttons.btn-group > .dt-button + .dt-button,
+.dataTables_wrapper .dt-buttons.btn-group > .dt-button:not(:first-child) {
+    margin-left: 0 !important;
+    border-top-left-radius: 10px !important;
+    border-bottom-left-radius: 10px !important;
+}
+
+.dataTables_wrapper .dt-buttons .dt-button:hover,
+.dataTables_wrapper .dt-buttons .dt-button:focus {
+    background: #e8f5e0 !important;
+    border-color: rgba(139, 195, 74, 0.45) !important;
+    color: #3d3548 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(139, 195, 74, 0.15) !important;
+}
+
+div.dt-button-background { display: none !important; }
+
+div.dt-button-collection {
+    position: absolute !important;
+    margin-top: 0.35rem !important;
+    padding: 0.35rem !important;
+    min-width: 7.5rem !important;
+    background: #fff !important;
+    border: 1px solid rgba(90, 70, 90, 0.12) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 12px 40px rgba(90, 70, 90, 0.12) !important;
+    z-index: 100002 !important;
+}
+
+div.dt-button-collection .dt-button {
+    display: block !important;
+    width: 100% !important;
+    margin: 0.15rem 0 !important;
+    padding: 0.45rem 0.75rem !important;
+    text-align: center !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    color: #3d3548 !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+}
+
+div.dt-button-collection .dt-button:hover,
+div.dt-button-collection .dt-button:focus {
+    background: #fce4ec !important;
+    border-color: rgba(244, 164, 184, 0.35) !important;
+    color: #e8879f !important;
+}
+
+/* "Procesando…" nativo de DT: se dispara en cada filtro/orden.
+   El cartel kyo-table-loading cubre carga inicial y Buscar. */
+.dataTables_wrapper .dataTables_processing,
+div.dataTables_processing {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+    margin-bottom: 0.5rem;
+}
+
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input {
+    background: #fff !important;
+    color: #3d3548 !important;
+    border: 1.5px solid rgba(90, 70, 90, 0.16) !important;
+    border-radius: 10px !important;
+    padding: 0.35rem 0.65rem !important;
+    font-size: 0.82rem !important;
+}
+
+.dataTables_wrapper .dataTables_filter {
+    float: right;
+    text-align: right;
+}
+
+.dataTables_wrapper .dataTables_filter label {
+    color: #7a7088;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.dt-dark thead tr:first-child th,
+table.dataTable.dt-dark thead > tr:first-child > th {
+    background: linear-gradient(180deg, #f0c4d4 0%, #e8a8be 100%) !important;
+    color: var(--rp-dt-head-text) !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.75rem 0.85rem !important;
+    border-bottom: 2px solid rgba(244, 164, 184, 0.25) !important;
+    vertical-align: middle !important;
+    white-space: nowrap;
+}
+
+/* Siempre mostrar la fila de filtros por columna */
+table.dataTable thead tr.filters,
+.dt-dark thead tr.filters {
+    display: table-row !important;
+}
+
+.dt-dark thead tr.filters th,
+table.dataTable.dt-dark thead tr.filters th,
+table.dataTable thead tr.filters th {
+    background: #fff9fb !important;
+    padding: 7px 10px !important;
+    border-bottom: 1px solid rgba(90, 70, 90, 0.08) !important;
+    vertical-align: middle !important;
+}
+
+.rp-filter-thead,
+.kyo-col-filter,
+.dt-dark thead tr.filters th input:not([type="checkbox"]),
+table.dataTable thead tr.filters th input:not([type="checkbox"]) {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    padding: 0 8px !important;
+    font-size: 0.72rem !important;
+    line-height: 1.2 !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+    border: 1.5px solid rgba(90, 70, 90, 0.16) !important;
+    color: #3d3548 !important;
+    box-sizing: border-box;
+}
+
+select.rp-filter-thead,
+select.kyo-col-filter,
+.dt-dark thead tr.filters th select,
+table.dataTable thead tr.filters th select {
+    width: 100% !important;
+    height: 30px !important;
+    padding: 0 24px 0 8px !important;
+    font-size: 0.72rem !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+    border: 1.5px solid rgba(90, 70, 90, 0.16) !important;
+    color: #3d3548 !important;
+}
+
+.rp-filter-thead::placeholder,
+.kyo-col-filter::placeholder,
+.dt-dark thead tr.filters th input::placeholder {
+    color: #a89bb0 !important;
+    opacity: 1 !important;
+}
+
+.rp-filter-thead:focus,
+.kyo-col-filter:focus,
+.dt-dark thead tr.filters th input:focus,
+.dt-dark thead tr.filters th select:focus {
+    border-color: #f4a4b8 !important;
+    box-shadow: 0 0 0 2px rgba(244, 164, 184, 0.2) !important;
+    outline: none !important;
+    background: #fff !important;
+}
+
+table.dataTable.display tbody tr,
+table.dataTable.stripe tbody tr,
+table.dt-dark tbody tr {
+    background: transparent !important;
+    background-image: none !important;
+}
+
+table.dataTable.display tbody tr td,
+table.dataTable.stripe tbody tr td,
+table.dt-dark tbody tr td {
+    background-color: var(--rp-dt-row-a) !important;
+    background-image: none !important;
+    color: #3d3548 !important;
+    padding: 0.55rem 0.65rem !important;
+    border-bottom: 1px solid rgba(90, 70, 90, 0.06) !important;
+    vertical-align: middle !important;
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+table.dataTable.display tbody tr:nth-child(even) td,
+table.dataTable.stripe tbody tr.even td,
+table.dt-dark tbody tr:nth-child(even) td {
+    background-color: var(--rp-dt-row-b) !important;
+}
+
+table.dataTable.display tbody tr:hover td,
+table.dt-dark tbody tr:hover td {
+    background-color: var(--rp-dt-hover) !important;
+}
+
+/* Filas clicables */
+table.dataTable tbody tr,
+table.dt-dark tbody tr {
+    cursor: pointer;
+}
+
+table.dataTable thead tr,
+table.dt-dark thead tr {
+    cursor: default;
+}
+
+/* Fila seleccionada — rosa del tema, TODAS las columnas (incl. acciones) */
+table.dt-dark tbody tr.dt-row-selected,
+table.dataTable tbody tr.dt-row-selected,
+table.dataTable tbody tr.selected,
+table.dataTable tbody tr.seleccionada,
+table.dataTable tbody tr.row-selected,
+.dt-dark tbody tr.selected {
+    background: var(--rp-dt-selected) !important;
+}
+
+table.dt-dark tbody tr.dt-row-selected > *,
+table.dataTable tbody tr.dt-row-selected > *,
+table.dataTable tbody tr.selected > *,
+table.dataTable tbody tr.seleccionada > *,
+table.dataTable tbody tr.row-selected > *,
+.dt-dark tbody tr.selected > *,
+table.dt-dark tbody tr.dt-row-selected td,
+table.dataTable tbody tr.dt-row-selected td,
+table.dataTable tbody tr.selected td,
+table.dataTable tbody tr.seleccionada td,
+table.dataTable tbody tr.row-selected td,
+.dt-dark tbody tr.selected td,
+table.dt-dark tbody tr.dt-row-selected td.rp-col-acciones,
+table.dataTable tbody tr.selected td.rp-col-acciones,
+table.dataTable tbody tr.dt-row-selected td.rp-col-acciones {
+    background: var(--rp-dt-selected) !important;
+    background-color: var(--rp-dt-selected) !important;
+    background-image: none !important;
+    color: #3d3548 !important;
+    /* Anula el overlay azul de DataTables (box-shadow inset 9999px) */
+    box-shadow: none !important;
+}
+
+table.dt-dark tbody tr.dt-row-selected > *:first-child,
+table.dataTable tbody tr.dt-row-selected > *:first-child,
+table.dataTable tbody tr.selected > *:first-child,
+table.dataTable tbody tr.seleccionada > *:first-child,
+table.dataTable tbody tr.row-selected > *:first-child,
+.dt-dark tbody tr.selected > *:first-child,
+table.dt-dark tbody tr.dt-row-selected td:first-child,
+table.dataTable tbody tr.dt-row-selected td:first-child,
+table.dataTable tbody tr.selected td:first-child,
+table.dataTable tbody tr.seleccionada td:first-child,
+table.dataTable tbody tr.row-selected td:first-child,
+.dt-dark tbody tr.selected td:first-child,
+table.dt-dark tbody tr.dt-row-selected td.rp-col-acciones,
+table.dataTable tbody tr.selected td.rp-col-acciones {
+    background: var(--rp-dt-selected) !important;
+    background-color: var(--rp-dt-selected) !important;
+    box-shadow: inset 4px 0 0 var(--rp-dt-accent) !important;
+}
+
+table.dt-dark tbody tr.dt-row-selected:hover > *,
+table.dataTable tbody tr.dt-row-selected:hover > *,
+table.dataTable tbody tr.selected:hover > *,
+table.dataTable tbody tr.seleccionada:hover > *,
+table.dataTable tbody tr.row-selected:hover > *,
+table.dt-dark tbody tr.dt-row-selected:hover td,
+table.dataTable tbody tr.dt-row-selected:hover td,
+table.dataTable tbody tr.selected:hover td,
+table.dataTable tbody tr.seleccionada:hover td,
+table.dataTable tbody tr.row-selected:hover td {
+    background: var(--rp-dt-selected-strong) !important;
+    background-color: var(--rp-dt-selected-strong) !important;
+    box-shadow: none !important;
+}
+
+table.dt-dark tbody tr.dt-row-selected:hover > *:first-child,
+table.dataTable tbody tr.selected:hover > *:first-child,
+table.dt-dark tbody tr.dt-row-selected:hover td:first-child,
+table.dataTable tbody tr.selected:hover td:first-child,
+table.dataTable tbody tr.selected:hover td.rp-col-acciones {
+    background: var(--rp-dt-selected-strong) !important;
+    box-shadow: inset 4px 0 0 var(--rp-dt-accent) !important;
+}
+
+table.dt-dark td.rp-col-acciones,
+table.dt-dark th.rp-col-acciones {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    text-align: center !important;
+    padding: 4px 6px !important;
+}
+
+table.dt-dark td.rp-col-id,
+table.dt-dark th.rp-col-id {
+    width: 88px !important;
+    min-width: 88px !important;
+    max-width: 88px !important;
+    text-align: center !important;
+}
+
+.rp-row-actions {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    padding: 2px 4px !important;
+    margin: 0 auto !important;
+    white-space: nowrap !important;
+    background: #fff9fb !important;
+    border: 1px solid rgba(90, 70, 90, 0.08) !important;
+    border-radius: 10px !important;
+}
+
+.rp-act {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 8px !important;
+    padding: 0 !important;
+    background: #fff !important;
+}
+
+.rp-act i {
+    font-size: 13px !important;
+    line-height: 1 !important;
+}
+
+.rp-act-edit i { color: #8bc34a !important; }
+.rp-act-del i { color: #e57373 !important; }
+
+.rp-grid-id {
+    color: #8bc34a;
+    background: #e8f5e0;
+    border: 1px solid rgba(181, 217, 156, 0.5);
+    box-shadow: none;
+}
+
+.dataTables_wrapper .dataTables_paginate,
+.dataTables_wrapper .dataTables_info {
+    margin-top: 0.65rem !important;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    padding: 0.55rem 0.65rem;
+    background: #fff9fb;
+    border-radius: 12px;
+    border: 1px solid rgba(90, 70, 90, 0.1);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: #7a7088 !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    border-radius: 8px !important;
+    margin: 0 2px !important;
+    padding: 0.35rem 0.65rem !important;
+    font-size: 0.8rem !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    color: #e8879f !important;
+    background: #fce4ec !important;
+    border-color: rgba(244, 164, 184, 0.3) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.paginate_button.current {
+    color: #fff !important;
+    background: linear-gradient(135deg, #f4a4b8, #e8879f) !important;
+    border: 1px solid rgba(232, 135, 159, 0.4) !important;
+    box-shadow: 0 2px 8px rgba(244, 164, 184, 0.25) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+    color: rgba(122, 112, 136, 0.45) !important;
+    background: transparent !important;
+    border-color: transparent !important;
+}
+
+.dataTables_wrapper .dataTables_info {
+    color: #7a7088;
+    font-size: 0.8rem;
+    padding-top: 0.65rem;
+}
+
+/* Scroll nativo DataTables (solo si alguna pantalla usa scrollX a propósito) */
+.dataTables_scrollHead,
+.dataTables_scrollFoot {
+    overflow: hidden !important;
+    background: transparent !important;
+}
+
+.dataTables_scrollBody {
+    overflow: auto !important;
+    max-height: min(70vh, calc(100vh - 260px));
+    background: transparent !important;
+    scrollbar-width: thin;
+    scrollbar-color: #f4a4b8 transparent;
+    -webkit-overflow-scrolling: touch;
+}
+
+.dataTables_scrollHeadInner {
+    box-sizing: border-box !important;
+    width: 100% !important;
+}
+
+.dataTables_scrollHeadInner table,
+.dataTables_scrollBody table {
+    margin: 0 !important;
+}
+
+.dataTables_scrollBody::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+
+.dataTables_scrollBody::-webkit-scrollbar-thumb {
+    background: #f4a4b8;
+    border-radius: 6px;
+}
+
+.dataTables_scrollBody::-webkit-scrollbar-track {
+    background: rgba(244, 164, 184, 0.12);
+    border-radius: 6px;
+}
+
+table.dataTable thead > tr > th.sorting:before,
+table.dataTable thead > tr > th.sorting:after {
+    opacity: 0.25;
+    font-size: 0.6em;
+}
+
+table.dataTable thead > tr > th.sorting_asc:before,
+table.dataTable thead > tr > th.sorting_desc:after {
+    opacity: 0.6;
+    color: #e8879f;
+}
+
+table.dataTable.display tbody tr:nth-child(odd) td,
+table.dataTable.display tbody tr:nth-child(even) td {
+    background-image: none !important;
+}
+
+.page-99 .dataTables_wrapper .dataTables_length,
+.page-99 .dataTables_wrapper .dataTables_filter,
+.page-99 .dataTables_wrapper .dataTables_info,
+.page-99 .dataTables_wrapper .dataTables_paginate {
+    color: #7a7088;
+}
+
+.page-99 .dataTables_wrapper .dataTables_filter input {
+    background: #fff !important;
+    color: #3d3548 !important;
+    border: 1.5px solid rgba(90, 70, 90, 0.16) !important;
+    border-radius: 10px !important;
+}
+
+@media (max-width: 767.98px) {
+    .dt-dark-wrap > .dataTables_wrapper,
+    .dt-dark-wrap .dataTables_wrapper {
+        padding: 0.65rem !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter {
+        float: none;
+        text-align: left;
+        margin-top: 0.5rem;
+    }
+}
+
+/* FAB eliminación masiva — píldora, no círculo */
+.kyo-bulk-fab {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1080;
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 48px;
+    padding: 0.65rem 1.15rem;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #e57373, #ef5350);
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: 0 8px 24px rgba(229, 115, 115, 0.42);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.kyo-bulk-fab.is-visible {
+    display: inline-flex;
+}
+
+.kyo-bulk-fab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(229, 115, 115, 0.5);
+    color: #fff;
+}
+
+.kyo-bulk-fab:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+}
+
+.kyo-bulk-fab .fa {
+    font-size: 1rem;
+}
+
+.kyo-bulk-fab__count {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.95;
+}
+
+/* Legacy FAB ProveedoresInsumos → misma píldora */
+#fabEliminarPI {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1080;
+    display: none !important;
+    align-items: center;
+    gap: 0.5rem;
+    width: auto !important;
+    height: auto !important;
+    min-height: 48px;
+    padding: 0.65rem 1.15rem !important;
+    border: none;
+    border-radius: 999px !important;
+    background: linear-gradient(135deg, #e57373, #ef5350);
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(229, 115, 115, 0.42);
+    white-space: nowrap;
+}
+
+#fabEliminarPI.show-fab {
+    display: inline-flex !important;
+}
+
+@media (max-width: 575.98px) {
+    .kyo-bulk-fab,
+    #fabEliminarPI.show-fab {
+        right: 12px;
+        bottom: 12px;
+        padding: 0.55rem 0.95rem;
+        font-size: 0.875rem;
+    }
+}

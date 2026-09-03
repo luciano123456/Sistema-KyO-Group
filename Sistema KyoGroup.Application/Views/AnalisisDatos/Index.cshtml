@@ -1,0 +1,277 @@
+@{
+    Layout = "_LayoutModulo";
+    ViewData["Title"] = "Análisis de datos";
+}
+
+@section Estilos {
+    <link rel="stylesheet" href="~/css/AnalisisDatos.css" asp-append-version="true" />
+}
+
+<div class="ax-dashboard page-99" id="axDashboard">
+
+    <!-- Hero -->
+    <header class="ax-hero">
+        <div class="ax-hero-glow ax-hero-glow--rose"></div>
+        <div class="ax-hero-glow ax-hero-glow--sage"></div>
+        <div class="ax-hero-inner">
+            <div class="ax-hero-left">
+                <span class="ax-hero-icon"><i class="fa fa-line-chart"></i></span>
+                <div>
+                    <h1 class="ax-hero-title">Centro de Análisis</h1>
+                    <p class="ax-hero-sub">Compras, costos, insumos, recetas y cuenta corriente en un solo lugar</p>
+                </div>
+            </div>
+            <div class="ax-hero-right">
+                <div class="ax-hero-period">
+                    <i class="fa fa-calendar"></i>
+                    <span id="axPeriodoLabel">Últimos 3 meses</span>
+                </div>
+                <button type="button" class="btn btn-new ax-btn-refresh" id="btnAplicar">
+                    <i class="fa fa-refresh"></i> Actualizar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Filtros -->
+    <div class="ax-toolbar card-glass">
+        <div class="ax-chips" id="axPeriodos">
+            <button type="button" class="ax-chip" data-periodo="mes" data-label="Este mes">Este mes</button>
+            <button type="button" class="ax-chip active" data-periodo="3m" data-label="Últimos 3 meses">3 meses</button>
+            <button type="button" class="ax-chip" data-periodo="6m" data-label="Últimos 6 meses">6 meses</button>
+            <button type="button" class="ax-chip" data-periodo="ytd" data-label="Este año">Este año</button>
+            <button type="button" class="ax-chip" data-periodo="custom" data-label="Personalizado">Personalizado</button>
+        </div>
+        <div class="ax-dates">
+            <div class="ax-date-field">
+                <label for="fltDesde">Desde</label>
+                <input type="date" class="form-control form-control-sm" id="fltDesde" />
+            </div>
+            <div class="ax-date-field">
+                <label for="fltHasta">Hasta</label>
+                <input type="date" class="form-control form-control-sm" id="fltHasta" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Nav secciones -->
+    <nav class="ax-nav-sticky" id="axNav">
+        <a href="#axSecResumen" class="ax-nav-link active"><i class="fa fa-th-large"></i> Resumen</a>
+        <a href="#axSecCompras" class="ax-nav-link"><i class="fa fa-shopping-cart"></i> Compras</a>
+        <a href="#axSecCostos" class="ax-nav-link"><i class="fa fa-calculator"></i> Costos</a>
+        <a href="#axSecInsumos" class="ax-nav-link"><i class="fa fa-cubes"></i> Insumos</a>
+        <a href="#axSecRecetas" class="ax-nav-link"><i class="fa fa-cutlery"></i> Recetas</a>
+        <a href="#axSecCc" class="ax-nav-link"><i class="fa fa-balance-scale"></i> Cuenta corriente</a>
+    </nav>
+
+    <!-- Loading -->
+    <div class="ax-loading d-none" id="axLoading">
+        <div class="ax-loading-spinner"></div>
+        <span>Cargando datos...</span>
+    </div>
+
+    <!-- KPIs globales -->
+    <section class="ax-section" id="axSecResumen">
+        <div class="ax-kpi-grid">
+            <article class="ax-kpi-card ax-kpi-card--rose">
+                <div class="ax-kpi-icon"><i class="fa fa-shopping-cart"></i></div>
+                <div class="ax-kpi-body">
+                    <span class="ax-kpi-label">Total compras</span>
+                    <strong class="ax-kpi-value" id="kpiComprasTotal">—</strong>
+                    <small class="ax-kpi-meta"><span id="kpiComprasCant">0</span> operaciones</small>
+                </div>
+            </article>
+            <article class="ax-kpi-card ax-kpi-card--sage">
+                <div class="ax-kpi-icon"><i class="fa fa-calculator"></i></div>
+                <div class="ax-kpi-body">
+                    <span class="ax-kpi-label">Costos recetas</span>
+                    <strong class="ax-kpi-value" id="kpiCostosTotal">—</strong>
+                    <small class="ax-kpi-meta"><span id="kpiCostosCant">0</span> ítems</small>
+                </div>
+            </article>
+            <article class="ax-kpi-card ax-kpi-card--peach">
+                <div class="ax-kpi-icon"><i class="fa fa-cubes"></i></div>
+                <div class="ax-kpi-body">
+                    <span class="ax-kpi-label">Gasto en insumos</span>
+                    <strong class="ax-kpi-value" id="kpiInsumosTotal">—</strong>
+                    <small class="ax-kpi-meta"><span id="kpiInsumosCant">0</span> insumos activos</small>
+                </div>
+            </article>
+            <article class="ax-kpi-card ax-kpi-card--lavender">
+                <div class="ax-kpi-icon"><i class="fa fa-cutlery"></i></div>
+                <div class="ax-kpi-body">
+                    <span class="ax-kpi-label">Costo recetas</span>
+                    <strong class="ax-kpi-value" id="kpiRecetasTotal">—</strong>
+                    <small class="ax-kpi-meta"><span id="kpiRecetasCant">0</span> recetas</small>
+                </div>
+            </article>
+            <article class="ax-kpi-card ax-kpi-card--sky">
+                <div class="ax-kpi-icon"><i class="fa fa-balance-scale"></i></div>
+                <div class="ax-kpi-body">
+                    <span class="ax-kpi-label">Saldo CC proveedores</span>
+                    <strong class="ax-kpi-value" id="kpiCcTotal">—</strong>
+                    <small class="ax-kpi-meta"><span id="kpiCcMovs">0</span> movimientos</small>
+                </div>
+            </article>
+            <article class="ax-kpi-card ax-kpi-card--mint">
+                <div class="ax-kpi-icon"><i class="fa fa-truck"></i></div>
+                <div class="ax-kpi-body">
+                    <span class="ax-kpi-label">Top proveedor</span>
+                    <strong class="ax-kpi-value ax-kpi-value--sm" id="kpiTopProveedor">—</strong>
+                    <small class="ax-kpi-meta" id="kpiTopProveedorMonto">—</small>
+                </div>
+            </article>
+        </div>
+
+        <!-- Vista rápida -->
+        <div class="row g-3 mt-1">
+            <div class="col-lg-8">
+                <div class="ax-chart-card">
+                    <div class="ax-chart-head">
+                        <h3><i class="fa fa-area-chart text-new"></i> Evolución de compras</h3>
+                        <span class="ax-chart-badge">Serie mensual</span>
+                    </div>
+                    <div class="ax-chart-body ax-chart-body--tall">
+                        <canvas id="chartComprasLine"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="ax-chart-card h-100">
+                    <div class="ax-chart-head">
+                        <h3><i class="fa fa-pie-chart" style="color:#e8879f"></i> Top proveedores</h3>
+                    </div>
+                    <div class="ax-chart-body">
+                        <canvas id="chartComprasPie"></canvas>
+                    </div>
+                    <div class="ax-rank-list" id="rankComprasQuick"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Compras -->
+    <section class="ax-section" id="axSecCompras">
+        <div class="ax-section-head">
+            <h2><i class="fa fa-shopping-cart"></i> Compras</h2>
+            <p>Distribución y evolución del gasto con proveedores</p>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-7">
+                <div class="ax-chart-card">
+                    <div class="ax-chart-head"><h3>Evolución mensual</h3></div>
+                    <div class="ax-chart-body ax-chart-body--tall"><canvas id="chartCompras"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="ax-chart-card h-100">
+                    <div class="ax-chart-head"><h3>Ranking proveedores</h3></div>
+                    <div class="ax-chart-body"><canvas id="chartComprasRank"></canvas></div>
+                    <div class="ax-rank-list" id="rankCompras"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Costos -->
+    <section class="ax-section" id="axSecCostos">
+        <div class="ax-section-head">
+            <h2><i class="fa fa-calculator"></i> Costos</h2>
+            <p>Promedio de costos por categoría de recetas</p>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-6">
+                <div class="ax-chart-card">
+                    <div class="ax-chart-head"><h3>Evolución costo promedio</h3></div>
+                    <div class="ax-chart-body ax-chart-body--tall"><canvas id="chartCostos"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="ax-chart-card h-100">
+                    <div class="ax-chart-head"><h3>Por categoría</h3></div>
+                    <div class="ax-chart-body"><canvas id="chartCostosPie"></canvas></div>
+                    <div class="ax-rank-list" id="rankCostos"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Insumos -->
+    <section class="ax-section" id="axSecInsumos">
+        <div class="ax-section-head">
+            <h2><i class="fa fa-cubes"></i> Insumos</h2>
+            <p>Gasto en insumos comprados en el período</p>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-6">
+                <div class="ax-chart-card">
+                    <div class="ax-chart-head"><h3>Evolución de gasto</h3></div>
+                    <div class="ax-chart-body ax-chart-body--tall"><canvas id="chartInsumos"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="ax-chart-card h-100">
+                    <div class="ax-chart-head"><h3>Top 10 insumos</h3></div>
+                    <div class="ax-chart-body"><canvas id="chartInsumosRank"></canvas></div>
+                    <div class="ax-rank-list" id="rankInsumos"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recetas -->
+    <section class="ax-section" id="axSecRecetas">
+        <div class="ax-section-head">
+            <h2><i class="fa fa-cutlery"></i> Recetas</h2>
+            <p>Costos y composición de recetas actualizadas</p>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-6">
+                <div class="ax-chart-card">
+                    <div class="ax-chart-head"><h3>Evolución de costos</h3></div>
+                    <div class="ax-chart-body ax-chart-body--tall"><canvas id="chartRecetas"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="ax-chart-card h-100">
+                    <div class="ax-chart-head"><h3>Recetas más costosas</h3></div>
+                    <div class="ax-chart-body"><canvas id="chartRecetasRank"></canvas></div>
+                    <div class="ax-rank-list" id="rankRecetas"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cuenta corriente -->
+    <section class="ax-section" id="axSecCc">
+        <div class="ax-section-head">
+            <h2><i class="fa fa-balance-scale"></i> Cuenta corriente</h2>
+            <p>Debe, haber y saldos pendientes con proveedores</p>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-4">
+                <div class="ax-chart-card">
+                    <div class="ax-chart-head"><h3>Movimientos del período</h3></div>
+                    <div class="ax-chart-body"><canvas id="chartCc"></canvas></div>
+                    <div class="ax-cc-legend">
+                        <div class="ax-cc-legend-item"><span class="dot dot--rose"></span> Debe</div>
+                        <div class="ax-cc-legend-item"><span class="dot dot--sage"></span> Haber</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="ax-chart-card h-100">
+                    <div class="ax-chart-head"><h3>Deuda por proveedor</h3></div>
+                    <div class="ax-chart-body ax-chart-body--tall"><canvas id="chartCcRank"></canvas></div>
+                    <div class="ax-rank-list" id="rankCc"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="~/js/AnalisisDatos.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,42 @@
+---
+description: Versionado (cache-busting) obligatorio de los assets js/css al modificarlos
+globs: **/wwwroot/**/*.js,**/wwwroot/**/*.css,**/Views/**/*.cshtml
+alwaysApply: false
+---
+
+# Versionado de assets js/css
+
+Cada vez que modifiques un archivo `.js` o `.css` de `Sistema KyoGroup.Application/wwwroot/`,
+tenés que actualizar el cache-busting en **todas** las vistas `.cshtml` que lo referencian.
+Si no, el navegador sigue sirviendo la versión vieja del archivo.
+
+## Pasos
+
+1. Buscar en todo `Sistema KyoGroup.Application/Views/` (incluyendo `Views/Shared/` y
+   `Views/Shared/Partials/`) las referencias al asset modificado. Un mismo archivo puede
+   estar referenciado desde varias vistas, parciales y layouts: hay que actualizar **todas**
+   y dejarlas con la misma versión.
+2. Segun como este escrita la referencia:
+   - **Tiene `?v=N.N`** → subir la minor: `1.0` → `1.1`, `1.9` → `2.0`, `3.2` → `3.3`.
+   - **Tiene `asp-append-version="true"` y no tiene `?v=`** → **no tocar nada**. Ese tag
+     helper ya le calcula el hash al archivo y versiona solo. No le agregues `?v=` ni le
+     saques el `asp-append-version`.
+   - **No tiene ninguno de los dos** → agregarle `asp-append-version="true"` (preferido),
+     no un `?v=` manual.
+3. Los archivos nuevos (recién creados) no necesitan bump: la versión inicial ya es válida.
+
+## Ejemplo
+
+```html
+<!-- ANTES (se modificó wwwroot/js/NavBarLogin.js y wwwroot/css/Usuarios.css) -->
+<script src="~/js/NavBarLogin.js?v=1.5"></script>
+<link href="~/css/Usuarios.css?v=6.1" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/Insumos.css" />
+
+<!-- DESPUES -->
+<script src="~/js/NavBarLogin.js?v=1.6"></script>
+<link href="~/css/Usuarios.css?v=6.2" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />  <!-- sin cambios -->
+<link rel="stylesheet" href="~/css/Insumos.css" asp-append-version="true" />
+```

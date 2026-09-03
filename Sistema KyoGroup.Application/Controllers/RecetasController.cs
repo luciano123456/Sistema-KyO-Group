@@ -2,12 +2,14 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaKyoGroup.Application.Models;
 using SistemaKyoGroup.Application.Models.ViewModels;
+using SistemaKyoGroup.Application.Extensions;
 using SistemaKyoGroup.BLL.Service;
+using SistemaKyoGroup.DAL;
+using SistemaKyoGroup.DAL.DataContext;
 using SistemaKyoGroup.Models;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 using System.Text.Json;
-using SistemaKyoGroup.Application.Extensions;
 
 namespace SistemaKyoGroup.Application.Controllers
 {
@@ -15,10 +17,12 @@ namespace SistemaKyoGroup.Application.Controllers
     public class RecetasController : Controller
     {
         private readonly IRecetaService _RecetasService;
+        private readonly SistemaKyoGroupContext _db;
 
-        public RecetasController(IRecetaService RecetasService)
+        public RecetasController(IRecetaService RecetasService, SistemaKyoGroupContext db)
         {
             _RecetasService = RecetasService;
+            _db = db;
         }
 
         [AllowAnonymous]
@@ -32,7 +36,6 @@ namespace SistemaKyoGroup.Application.Controllers
         {
             try
             {
-
                 var userId = User.GetUserId();
 
                 var Recetas = await _RecetasService.ObtenerTodosUnidadNegocio(IdUnidadNegocio, (int)userId);
@@ -54,7 +57,11 @@ namespace SistemaKyoGroup.Application.Controllers
                         CostoInsumos = c.CostoInsumos,
                         CostoPorcion = c.CostoPorcion,
                         Rendimiento = c.Rendimiento,
-                        CostoUnitario = c.CostoUnitario
+                        CostoUnitario = c.CostoUnitario,
+                        FechaRegistra = c.FechaRegistra,
+                        UsuarioRegistra = c.IdUsuarioRegistraNavigation != null ? c.IdUsuarioRegistraNavigation.Usuario : null,
+                        FechaModifica = c.FechaModifica,
+                        UsuarioModifica = c.IdUsuarioModificaNavigation != null ? c.IdUsuarioModificaNavigation.Usuario : null
                     })
                     .ToList();
 
@@ -69,8 +76,9 @@ namespace SistemaKyoGroup.Application.Controllers
         [HttpPost]
         public async Task<IActionResult> Insertar([FromBody] VMReceta model)
         {
-
-            var userId = User.GetUserId();
+            var userId = User.GetUserId() ?? 0;
+            if (userId <= 0)
+                return Ok(new { valor = false, mensaje = "Sesión inválida. Volvé a iniciar sesión." });
 
             var Receta = new Receta
             {
@@ -85,7 +93,7 @@ namespace SistemaKyoGroup.Application.Controllers
                 CostoUnitario = model.CostoUnitario,
                 Rendimiento = model.Rendimiento,
                 FechaActualizacion = DateTime.Now,
-                IdUsuarioRegistra = userId ?? model.IdUsuarioRegistra, // fallback si hicieras pruebas sin token
+                IdUsuarioRegistra = userId,
                 FechaRegistra = DateTime.Now,
 
                 RecetasInsumos = model.RecetasInsumos?.Select(i => new RecetasInsumo
@@ -94,7 +102,7 @@ namespace SistemaKyoGroup.Application.Controllers
                     Cantidad = i.Cantidad,
                     CostoUnitario = i.CostoUnitario,
                     SubTotal = i.SubTotal,
-                    IdUsuarioRegistra = userId ?? model.IdUsuarioRegistra, // fallback si hicieras pruebas sin token
+                    IdUsuarioRegistra = userId,
                     FechaRegistra = DateTime.Now,
                 }).ToList(),
 
@@ -104,20 +112,21 @@ namespace SistemaKyoGroup.Application.Controllers
                     Cantidad = s.Cantidad,
                     CostoUnitario = s.CostoUnitario,
                     SubTotal = s.SubTotal,
-                    IdUsuarioRegistra = userId ?? model.IdUsuarioRegistra, // fallback si hicieras pruebas sin token
+                    IdUsuarioRegistra = userId,
                     FechaRegistra = DateTime.Now,
                 }).ToList()
             };
 
-            var resultado = await _RecetasService.Insertar(Receta);
-            return Ok(new { valor = resultado });
+            var (ok, mensaje) = await _RecetasService.Insertar(Receta);
+            return Ok(new { valor = ok, mensaje });
         }
 
         [HttpPut]
         public async Task<IActionResult> Actualizar([FromBody] VMReceta model)
         {
-
-            var userId = User.GetUserId();
+            var userId = User.GetUserId() ?? 0;
+            if (userId <= 0)
+                return Ok(new { valor = false, mensaje = "Sesión inválida. Volvé a iniciar sesión." });
 
             var Receta = new Receta
             {
@@ -133,7 +142,7 @@ namespace SistemaKyoGroup.Application.Controllers
                 CostoUnitario = model.CostoUnitario,
                 Rendimiento = model.Rendimiento,
                 FechaActualizacion = DateTime.Now,
-                IdUsuarioModifica = (int)userId, // fallback si hicieras pruebas sin token
+                IdUsuarioModifica = userId,
                 FechaModifica = DateTime.Now,
 
                 RecetasInsumos = model.RecetasInsumos?.Select(i => new RecetasInsumo
@@ -142,7 +151,7 @@ namespace SistemaKyoGroup.Application.Controllers
                     Cantidad = i.Cantidad,
                     CostoUnitario = i.CostoUnitario,
                     SubTotal = i.SubTotal,
-                    IdUsuarioModifica = (int)userId, // fallback si hicieras pruebas sin token
+                    IdUsuarioModifica = userId,
                     FechaModifica = DateTime.Now,
                 }).ToList(),
 
@@ -153,20 +162,52 @@ namespace SistemaKyoGroup.Application.Controllers
                     Cantidad = s.Cantidad,
                     CostoUnitario = s.CostoUnitario,
                     SubTotal = s.SubTotal,
-                    IdUsuarioModifica = (int)userId, // fallback si hicieras pruebas sin token
+                    IdUsuarioModifica = userId,
                     FechaModifica = DateTime.Now,
                 }).ToList()
             };
 
-            var resultado = await _RecetasService.Actualizar(Receta);
-            return Ok(new { valor = resultado });
+            var (ok, mensaje) = await _RecetasService.Actualizar(Receta);
+            return Ok(new { valor = ok, mensaje });
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Eliminar(int id)
+        public async Task<IActionResult> Eliminar(int id, bool cascade = false)
         {
-            bool respuesta = await _RecetasService.Eliminar(id);
-            return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
+            var r = await _RecetasService.Eliminar(id, cascade);
+            return Ok(new
+            {
+                valor = r.Ok,
+                mensaje = r.Mensaje,
+                tipo = r.Tipo,
+                cascadeDisponible = r.CascadeDisponible,
+                dependencias = r.Dependencias.Select(d => new
+                {
+                    entidad = d.Entidad,
+                    cantidad = d.Cantidad,
+                    detalle = d.Detalle,
+                    cascadeable = d.Cascadeable
+                })
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Historial(int id)
+        {
+            if (id <= 0)
+                return Ok(Array.Empty<object>());
+
+            var items = await RecetaHistorialHelper.ListarAsync(_db, RecetaHistorialHelper.TipoReceta, id);
+            return Ok(items.Select(h => new
+            {
+                h.Id,
+                h.Accion,
+                h.Resumen,
+                h.Detalle,
+                h.IdUsuario,
+                h.UsuarioNombre,
+                h.Fecha
+            }));
         }
 
         [HttpGet]
@@ -253,6 +294,5 @@ namespace SistemaKyoGroup.Application.Controllers
                 RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
             });
         }
-
     }
 }

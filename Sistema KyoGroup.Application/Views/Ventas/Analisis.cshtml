@@ -1,0 +1,257 @@
+@{
+    Layout = "_LayoutModulo";
+    ViewData["Title"] = "Análisis de ventas";
+}
+
+@section Estilos {
+    <link rel="stylesheet" href="~/css/AnalisisDatos.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/Ventas.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/VentasAnalisis.css" asp-append-version="true" />
+}
+
+<div class="ax-dashboard page-99 vt-page vt-ax" id="vtAxDashboard">
+    <header class="vt-ax-hero">
+        <div class="vt-ax-hero-glow vt-ax-hero-glow--gold"></div>
+        <div class="vt-ax-hero-glow vt-ax-hero-glow--sage"></div>
+        <div class="vt-ax-hero-pattern" aria-hidden="true"></div>
+        <div class="vt-ax-hero-inner">
+            <div class="vt-ax-hero-left">
+                <a href="@Url.Action("Index", "Ventas")" class="vt-ax-back" title="Volver a ventas">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+                <div class="vt-ax-hero-mark">
+                    <i class="fa fa-leaf"></i>
+                </div>
+                <div>
+                    <p class="vt-ax-eyebrow"><span class="vt-ax-dot"></span> Oro ambiental · KyO Ventas</p>
+                    <h1 class="vt-ax-title">Análisis de Ventas</h1>
+                    <p class="vt-ax-sub">KPIs, tendencias, rubros, ranking y matriz multi-mes</p>
+                </div>
+            </div>
+            <div class="vt-ax-hero-right">
+                <div class="vt-ax-period-pill">
+                    <i class="fa fa-calendar"></i>
+                    <span id="axPeriodoLabel">Este mes</span>
+                </div>
+                <button type="button" class="vt-ax-btn-primary" id="btnAplicar">
+                    <i class="fa fa-refresh"></i> Actualizar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="vt-ax-toolbar">
+        <div class="vt-ax-chips" id="axPeriodos">
+            <button type="button" class="vt-ax-chip active" data-periodo="mes" data-label="Este mes">Este mes</button>
+            <button type="button" class="vt-ax-chip" data-periodo="3m" data-label="Últimos 3 meses">3 meses</button>
+            <button type="button" class="vt-ax-chip" data-periodo="6m" data-label="Últimos 6 meses">6 meses</button>
+            <button type="button" class="vt-ax-chip" data-periodo="ytd" data-label="Este año">Este año</button>
+            <button type="button" class="vt-ax-chip" data-periodo="custom" data-label="Personalizado">Personalizado</button>
+        </div>
+        <div class="vt-ax-filters">
+            <div class="vt-ax-field">
+                <label>Desde</label>
+                <input type="date" class="form-control form-control-sm" id="fltDesde" />
+            </div>
+            <div class="vt-ax-field">
+                <label>Hasta</label>
+                <input type="date" class="form-control form-control-sm" id="fltHasta" />
+            </div>
+            <div class="vt-ax-field">
+                <label>Local</label>
+                <select class="form-select form-select-sm" id="fltLocal"><option value="0">Todos</option></select>
+            </div>
+        </div>
+    </div>
+
+    <nav class="vt-ax-nav" id="axNav">
+        <a href="#axSecResumen" class="vt-ax-nav-link active"><i class="fa fa-th-large"></i> Resumen</a>
+        <a href="#axSecSerie" class="vt-ax-nav-link"><i class="fa fa-line-chart"></i> Diario</a>
+        <a href="#axSecRubros" class="vt-ax-nav-link"><i class="fa fa-pie-chart"></i> Rubros</a>
+        <a href="#axSecTop" class="vt-ax-nav-link"><i class="fa fa-trophy"></i> Top</a>
+        <a href="#axSecMatriz" class="vt-ax-nav-link"><i class="fa fa-table"></i> Matriz</a>
+    </nav>
+
+    <div class="vt-ax-loading d-none" id="axLoading">
+        <div class="vt-ax-loading-spinner"></div>
+        <span>Cargando análisis…</span>
+    </div>
+
+    <section class="ax-section vt-ax-section" id="axSecResumen">
+        <div class="vt-ax-section-head">
+            <h2><i class="fa fa-th-large"></i> Resumen del período</h2>
+            <p>Indicadores clave y comparativas rápidas</p>
+        </div>
+        <div class="vt-ax-kpi-grid">
+            <article class="vt-ax-kpi vt-ax-kpi--gold">
+                <div class="vt-ax-kpi-icon"><i class="fa fa-usd"></i></div>
+                <div>
+                    <span class="vt-ax-kpi-label">Venta total</span>
+                    <strong class="vt-ax-kpi-value" id="kpiVenta">—</strong>
+                </div>
+            </article>
+            <article class="vt-ax-kpi vt-ax-kpi--peach">
+                <div class="vt-ax-kpi-icon"><i class="fa fa-calculator"></i></div>
+                <div>
+                    <span class="vt-ax-kpi-label">Costo</span>
+                    <strong class="vt-ax-kpi-value" id="kpiCosto">—</strong>
+                </div>
+            </article>
+            <article class="vt-ax-kpi vt-ax-kpi--sage">
+                <div class="vt-ax-kpi-icon"><i class="fa fa-percent"></i></div>
+                <div>
+                    <span class="vt-ax-kpi-label">Margen</span>
+                    <strong class="vt-ax-kpi-value" id="kpiMargen">—</strong>
+                </div>
+            </article>
+            <article class="vt-ax-kpi vt-ax-kpi--sky">
+                <div class="vt-ax-kpi-icon"><i class="fa fa-calendar"></i></div>
+                <div>
+                    <span class="vt-ax-kpi-label">Días cargados</span>
+                    <strong class="vt-ax-kpi-value" id="kpiDias">—</strong>
+                </div>
+            </article>
+            <article class="vt-ax-kpi vt-ax-kpi--lavender">
+                <div class="vt-ax-kpi-icon"><i class="fa fa-ticket"></i></div>
+                <div>
+                    <span class="vt-ax-kpi-label">Promedio / día</span>
+                    <strong class="vt-ax-kpi-value" id="kpiTicket">—</strong>
+                </div>
+            </article>
+            <article class="vt-ax-kpi vt-ax-kpi--mint">
+                <div class="vt-ax-kpi-icon"><i class="fa fa-users"></i></div>
+                <div>
+                    <span class="vt-ax-kpi-label">Cubiertos</span>
+                    <strong class="vt-ax-kpi-value" id="kpiCubiertos">—</strong>
+                </div>
+            </article>
+            <article class="vt-ax-kpi vt-ax-kpi--sage" title="Producto del Excel = SKU de una receta o insumo del sistema">
+                <div class="vt-ax-kpi-icon"><i class="fa fa-link"></i></div>
+                <div>
+                    <span class="vt-ax-kpi-label">Vinculados</span>
+                    <strong class="vt-ax-kpi-value" id="kpiMatch">—</strong>
+                    <span class="vt-ax-kpi-meta">Receta o Insumo por SKU</span>
+                </div>
+            </article>
+            <article class="vt-ax-kpi vt-ax-kpi--gold">
+                <div class="vt-ax-kpi-icon"><i class="fa fa-map-marker"></i></div>
+                <div>
+                    <span class="vt-ax-kpi-label">Locales</span>
+                    <strong class="vt-ax-kpi-value" id="kpiLocales">—</strong>
+                </div>
+            </article>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-7">
+                <div class="vt-ax-card">
+                    <div class="vt-ax-card-head">
+                        <h3><i class="fa fa-building"></i> Comparativa por local</h3>
+                        <span class="vt-ax-badge">Venta</span>
+                    </div>
+                    <div class="vt-ax-chart"><canvas id="chartLocales"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="vt-ax-card">
+                    <div class="vt-ax-card-head">
+                        <h3><i class="fa fa-tags"></i> Por rubro</h3>
+                        <span class="vt-ax-badge vt-ax-badge--sage">Top 8</span>
+                    </div>
+                    <div class="vt-ax-chart"><canvas id="chartRubrosMini"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="ax-section vt-ax-section" id="axSecSerie">
+        <div class="vt-ax-section-head">
+            <h2><i class="fa fa-line-chart"></i> Serie diaria</h2>
+            <p>Evolución de ventas día a día en el período</p>
+        </div>
+        <div class="vt-ax-card">
+            <div class="vt-ax-chart vt-ax-chart--tall"><canvas id="chartSerie"></canvas></div>
+        </div>
+    </section>
+
+    <section class="ax-section vt-ax-section" id="axSecRubros">
+        <div class="vt-ax-section-head">
+            <h2><i class="fa fa-pie-chart"></i> Ventas por rubro</h2>
+            <p>Distribución completa del período seleccionado</p>
+        </div>
+        <div class="vt-ax-card">
+            <div class="vt-ax-chart vt-ax-chart--tall"><canvas id="chartRubros"></canvas></div>
+        </div>
+    </section>
+
+    <section class="ax-section vt-ax-section" id="axSecTop">
+        <div class="vt-ax-section-head">
+            <h2><i class="fa fa-trophy"></i> Top productos</h2>
+            <p>Ranking por cantidad y venta</p>
+        </div>
+        <div class="vt-ax-card vt-ax-card--flush">
+            <div class="table-responsive">
+                <table class="table table-sm vt-ax-table" id="tblTop">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>SKU</th>
+                            <th>Descripción</th>
+                            <th>Rubro</th>
+                            <th>Cant.</th>
+                            <th>Venta</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="ax-section vt-ax-section" id="axSecMatriz">
+        <div class="vt-ax-section-head">
+            <h2><i class="fa fa-table"></i> Matriz mensual</h2>
+            <p>Cantidades por día — al elegir meses se carga sola</p>
+        </div>
+        <div class="vt-ax-card">
+            <div class="vt-ax-matriz-toolbar">
+                <div class="vt-ax-field">
+                    <label>Año</label>
+                    <div class="vt-ax-anio-wrap">
+                        <button type="button" class="vt-ax-anio-btn" id="btnAnioPrev" title="Año anterior"><i class="fa fa-chevron-left"></i></button>
+                        <input type="number" class="form-control form-control-sm" id="fltAnio" />
+                        <button type="button" class="vt-ax-anio-btn" id="btnAnioNext" title="Año siguiente"><i class="fa fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="vt-ax-meses-block">
+                    <div class="vt-ax-meses-head">
+                        <label>Meses</label>
+                        <div class="vt-ax-meses-actions">
+                            <button type="button" class="vt-ax-link-btn" id="btnMesesTodos">Todos</button>
+                            <button type="button" class="vt-ax-link-btn" id="btnMesesNinguno">Ninguno</button>
+                            <button type="button" class="vt-ax-link-btn" id="btnMesesTrimestre">Trimestre actual</button>
+                        </div>
+                    </div>
+                    <div class="vt-ax-meses" id="fltMeses"></div>
+                </div>
+                <button type="button" class="vt-ax-btn-primary vt-ax-btn-primary--solid" id="btnMatriz" title="Forzar recarga">
+                    <i class="fa fa-refresh"></i> Recargar
+                </button>
+            </div>
+
+            <div class="vt-ax-matriz-tabs d-none" id="matrizTabs"></div>
+            <div class="vt-ax-matriz-meta" id="matrizMeta"></div>
+            <div class="vt-ax-matriz-panels" id="matrizPanels">
+                <div class="vt-ax-empty" id="matrizEmpty">
+                    <div class="vt-ax-loading-spinner" style="margin:0 auto 0.75rem"></div>
+                    <p>Cargando matriz…</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="~/js/VentasFiltros.js" asp-append-version="true"></script>
+    <script src="~/js/VentasAnalisis.js" asp-append-version="true"></script>
+}

@@ -1,12 +1,6 @@
-﻿using SistemaKyoGroup.Models;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+﻿using Microsoft.EntityFrameworkCore;
 using SistemaKyoGroup.DAL.DataContext;
+using SistemaKyoGroup.Models;
 
 namespace SistemaKyoGroup.DAL.Repository
 {
@@ -22,7 +16,9 @@ namespace SistemaKyoGroup.DAL.Repository
 
         public async Task<User> Login(string username, string password)
         { 
-            User user = _dbcontext.Usuarios.Where(x => x.Usuario == username).FirstOrDefault();
+            User user = await _dbcontext.Usuarios
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Usuario == username);
 
             if (user != null)
             {

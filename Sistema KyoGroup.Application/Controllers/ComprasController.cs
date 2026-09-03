@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaKyoGroup.Application.Extensions;
 using SistemaKyoGroup.Application.Models.ViewModels;
+using SistemaKyoGroup.BLL.Common;
 using SistemaKyoGroup.BLL.Service;
 using SistemaKyoGroup.Models;
+using SistemaKyoGroup.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,11 +18,13 @@ namespace SistemaKyoGroup.Application.Controllers
     {
         private readonly ICompraService _svc;
         private readonly IOrdenCompraService _oc;
+        private readonly ICostoPropagacionService _costoPropagacion;
 
-        public ComprasController(ICompraService svc, IOrdenCompraService oc)
+        public ComprasController(ICompraService svc, IOrdenCompraService oc, ICostoPropagacionService costoPropagacion)
         {
             _svc = svc;
             _oc = oc;
+            _costoPropagacion = costoPropagacion;
         }
 
         [AllowAnonymous]
@@ -267,10 +271,73 @@ namespace SistemaKyoGroup.Application.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Eliminar(int id)
+        public async Task<IActionResult> Eliminar(int id, bool cascade = false)
         {
-            var (eliminado, mensaje) = await _svc.Eliminar(id);
-            return Ok(new { valor = eliminado, mensaje });
+            var sr = await DeleteOperationHelper.ExecuteDeleteAsync(
+                async _ =>
+                {
+                    var (ok, msg) = await _svc.Eliminar(id);
+                    if (!ok)
+                        return DeleteResult.Error(string.IsNullOrWhiteSpace(msg)
+                            ? "No se pudo eliminar la compra."
+                            : msg);
+                    return DeleteResult.Success(string.IsNullOrWhiteSpace(msg)
+                        ? "Compra eliminada correctamente."
+                        : msg);
+                },
+                "la compra",
+                cascade,
+                id);
+            return Ok(sr.ToEliminarJson());
+        }
+
+        /// <summary>
+        /// Precios de lista que se actualizarían al registrar/actualizar la compra.
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> ImpactoPreciosGuardar([FromBody] VMCompra model)
+        {
+            var lineas = (model?.ComprasInsumos ?? new List<VMCompraInsumo>())
+                .Where(d => d.Cantidad > 0)
+                .Select(d => new ComprasInsumo
+                {
+                    IdInsumo = d.IdInsumo,
+                    IdProveedorLista = d.IdProveedorLista,
+                    PrecioFinal = d.PrecioFinal != 0 ? d.PrecioFinal : d.PrecioFactura
+                });
+
+            var cambios = await _costoPropagacion.PreviewPropagacionAsync(lineas);
+            return Ok(new
+            {
+                cambios = cambios.Select(c => new
+                {
+                    c.IdInsumo,
+                    c.IdProveedorLista,
+                    c.Nombre,
+                    c.PrecioActual,
+                    c.PrecioNuevo
+                })
+            });
+        }
+
+        /// <summary>
+        /// Precios de lista que volverían al valor anterior al eliminar la compra.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> ImpactoPreciosEliminar(int id)
+        {
+            var cambios = await _costoPropagacion.PreviewReversionAsync(id);
+            return Ok(new
+            {
+                cambios = cambios.Select(c => new
+                {
+                    c.IdInsumo,
+                    c.IdProveedorLista,
+                    c.Nombre,
+                    c.PrecioActual,
+                    c.PrecioNuevo
+                })
+            });
         }
 
         [AllowAnonymous]

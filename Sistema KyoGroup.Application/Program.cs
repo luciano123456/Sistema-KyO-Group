@@ -1,28 +1,53 @@
+using System.IO.Compression;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using SistemaKyoGroup.Application.Configuration;
 using SistemaKyoGroup.BLL.Service;
+using SistemaKyoGroup.DAL;
 using SistemaKyoGroup.DAL.DataContext;
 using SistemaKyoGroup.DAL.Repository;
 using SistemaKyoGroup.Models;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
+builder.Services.AddMemoryCache();
+// Solo Gzip: Brotli venÃ­a con Content-Encoding: br invÃ¡lido â†’ ERR_CONTENT_DECODING_FAILED en Chrome
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Clear();
+    options.Providers.Add<GzipCompressionProvider>();
+});
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Fastest;
+});
 
-builder.Services.AddDbContext<SistemaKyoGroupContext>(options =>
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(o =>
+    {
+        o.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        o.JsonSerializerOptions.PropertyNamingPolicy = null;
+    });
+
+builder.Services.AddDbContextPool<SistemaKyoGroupContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("SistemaDB")));
 
-
-// Agregar Razor Pages
-builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
+}
+else
+{
+    builder.Services.AddRazorPages();
+}
 
 // Registrar repositorios y servicios
 builder.Services.AddScoped<IUsuariosRepository<User>, UsuariosRepository>();
@@ -59,6 +84,9 @@ builder.Services.AddScoped<IProveedoresInsumoservice, ProveedoresInsumoservice>(
 builder.Services.AddScoped<IUnidadesMedidaRepository<UnidadesMedida>, UnidadesMedidaRepository>();
 builder.Services.AddScoped<IUnidadesMedidaService, UnidadesMedidaService>();
 
+builder.Services.AddScoped<IRubrosRepository<Rubro>, RubrosRepository>();
+builder.Services.AddScoped<IRubrosService, RubrosService>();
+
 builder.Services.AddScoped<ISubRecetasCategoriaRepository<SubRecetasCategoria>, SubRecetasCategoriaRepository>();
 builder.Services.AddScoped<ISubRecetasCategoriaService, SubRecetasCategoriaService>();
 
@@ -84,16 +112,30 @@ builder.Services.AddScoped<IOrdenesComprasInsumosEstadoservice, OrdenesComprasIn
 builder.Services.AddScoped<ICompraRepository<Compra>, CompraRepository>();
 builder.Services.AddScoped<ICompraService, CompraService>();
 
+builder.Services.AddScoped<IProveedoresCuentaCorrienteRepository, ProveedoresCuentaCorrienteRepository>();
+builder.Services.AddScoped<IProveedoresCuentaCorrienteService, ProveedoresCuentaCorrienteService>();
+builder.Services.AddScoped<SistemaKyoGroup.DAL.Contracts.IProveedoresCuentaCorrienteCompraSync>(sp =>
+    (SistemaKyoGroup.DAL.Contracts.IProveedoresCuentaCorrienteCompraSync)sp.GetRequiredService<IProveedoresCuentaCorrienteService>());
 
+builder.Services.AddScoped<SistemaKyoGroup.DAL.Contracts.ICostoPropagacionService, CostoPropagacionService>();
+builder.Services.AddScoped<ICostoPropagacionService, CostoPropagacionService>();
+builder.Services.AddScoped<IAnalisisDatosRepository, AnalisisDatosRepository>();
+builder.Services.AddScoped<IAnalisisDatosService, AnalisisDatosService>();
+builder.Services.AddScoped<IVentasRepository, VentasRepository>();
+builder.Services.AddScoped<IVentasService, VentasService>();
+builder.Services.AddScoped<ICuentasRepository, CuentasRepository>();
+builder.Services.AddScoped<ICuentasService, CuentasService>();
+builder.Services.AddScoped<IUsuariosConexionesRepository, UsuariosConexionesRepository>();
+builder.Services.AddScoped<IUsuariosConexionesService, UsuariosConexionesService>();
 
-builder.Services.AddControllersWithViews()
-    .AddJsonOptions(o =>
-    {
-        o.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-        o.JsonSerializerOptions.PropertyNamingPolicy = null;
-    });
-
-
+var sessionSettings = new SessionSettings();
+builder.Configuration.GetSection("SessionSettings").Bind(sessionSettings);
+if (sessionSettings.GetDuration() <= TimeSpan.Zero)
+{
+    throw new InvalidOperationException(
+        "Configure SessionSettings:DurationHours y/o SessionSettings:DurationMinutes en appsettings.json");
+}
+builder.Services.AddSingleton(sessionSettings);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -110,7 +152,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Definir el esquema de autenticación predeterminado
 builder.Services.AddAuthorization(options =>
 {
     options.DefaultPolicy = new AuthorizationPolicyBuilder()
@@ -119,34 +160,92 @@ builder.Services.AddAuthorization(options =>
         .Build();
 });
 
-
-
 var app = builder.Build();
 
-// Configurar el pipeline de middleware
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        var ct = context.Response.ContentType;
+        if (string.IsNullOrEmpty(ct))
+        {
+            context.Response.ContentType = "text/html; charset=utf-8";
+            return Task.CompletedTask;
+        }
+
+        if (!ct.Contains("charset", StringComparison.OrdinalIgnoreCase)
+            && (ct.StartsWith("text/html", StringComparison.OrdinalIgnoreCase)
+                || ct.StartsWith("text/css", StringComparison.OrdinalIgnoreCase)
+                || ct.StartsWith("text/javascript", StringComparison.OrdinalIgnoreCase)
+                || ct.StartsWith("application/javascript", StringComparison.OrdinalIgnoreCase)
+                || ct.StartsWith("application/json", StringComparison.OrdinalIgnoreCase)))
+        {
+            context.Response.ContentType = ct + "; charset=utf-8";
+        }
+
+        return Task.CompletedTask;
+    });
+
+    await next();
+});
+
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Clientes/Error");
+    app.UseExceptionHandler("/Login/Error");
     app.UseHsts();
 }
 
+app.UseResponseCompression();
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        if (ctx.File.Name.EndsWith(".js") || ctx.File.Name.EndsWith(".css"))
+        {
+            ctx.Context.Response.Headers.CacheControl = "public,max-age=604800";
+        }
+    }
+});
 
 app.UseRouting();
 
 app.UseAuthentication();
+app.Use(async (ctx, next) =>
+{
+    var claim = ctx.User?.FindFirst("Id")?.Value;
+    if (int.TryParse(claim, out var uid) && uid > 0)
+        EntidadHistorialHelper.SetCurrentUserId(uid);
+    await next();
+});
 app.UseAuthorization();
 
+// Asegura tablas de historial y columnas de Ventas (cada bloque aislado)
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<SistemaKyoGroupContext>();
+    try { await RecetaHistorialHelper.EnsureTableAsync(db); }
+    catch (Exception ex) { Console.WriteLine("RecetaHistorialHelper: " + ex.Message); }
+    try { await ProveedoresInsumosHistorialHelper.EnsureTableAsync(db); }
+    catch (Exception ex) { Console.WriteLine("ProveedoresInsumosHistorialHelper: " + ex.Message); }
+    try { await EntidadHistorialHelper.EnsureAllTablesAsync(db); }
+    catch (Exception ex) { Console.WriteLine("EntidadHistorialHelper: " + ex.Message); }
+    try { await VentasSchemaHelper.EnsureSchemaAsync(db); }
+    catch (Exception ex) { Console.WriteLine("VentasSchemaHelper: " + ex.Message); }
+    try { await UsuariosPresenciaSchemaHelper.EnsureSchemaAsync(db); }
+    catch (Exception ex) { Console.WriteLine("UsuariosPresenciaSchemaHelper: " + ex.Message); }
+}
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Login}/{action=Index}/{id?}");
 
-// Asegúrate de que las rutas de login estén excluidas del middleware de autenticación
 app.MapControllerRoute(
     name: "login",
     pattern: "Login/{action=Index}",
     defaults: new { controller = "Login", action = "Index" });
+
+app.MapGet("/Dashboard", () => Results.Redirect("/Proveedores"));
+app.MapGet("/Dashboard/Index", () => Results.Redirect("/Proveedores"));
+
 app.Run();
-    

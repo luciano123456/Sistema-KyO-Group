@@ -1,4 +1,4 @@
-﻿/********************  OrdenesCompras.js (INDEX — patrón SubRecetas)  ********************/
+/********************  OrdenesCompras.js (INDEX → patrón SubRecetas)  ********************/
 let gridOrdenes;
 let isEditing = false;
 
@@ -19,23 +19,22 @@ async function fetchJson(url, options = {}) {
 }
 
 /* ================== CONFIG DE FILTROS POR COLUMNA ================== */
-/* 0 Acciones | 1 Nº | 2 F.Emisión | 3 UN | 4 Local | 5 Proveedor | 6 F.Entrega | 7 Estado | 8 Total | 9 Nota */
+/* 0 Acciones | 1 Id | 2 N° | 3 F.Emisión | 4 UN | 5 Local | 6 Proveedor | 7 F.Entrega | 8 Estado | 9 Compra | 10 Total | 11 Nota */
 const columnConfig = [
-    { index: 1, filterType: 'text' },                                          // Nº
-    { index: 2, filterType: 'text' },                                          // Fecha Emisión
-    { index: 3, filterType: 'select', fetchDataFunc: listaUnidadesNegocioFilter }, // UN
+    { index: 2, filterType: 'text' },                                          // N°
+    { index: 3, filterType: 'text' },                                          // Fecha Emisión
+    { index: 4, filterType: 'select', fetchDataFunc: listaUnidadesNegocioFilter }, // UN
     {
-        index: 4,
+        index: 5,
         filterType: 'select',
-        // Local por columna: usa UN del filtro superior, si no hay → todos
-        fetchDataFunc: () => listaLocalesFilter(Number(document.getElementById('UnidadNegocioFiltro')?.value ?? -1))
+        dependsOnIndex: 4, // Local según Unidad de negocio del filtro de columna
+        fetchDataFunc: (idUN) => listaLocalesFilter(Number(idUN || document.getElementById('UnidadNegocioFiltro')?.value || -1))
     },
-    { index: 5, filterType: 'select', fetchDataFunc: listaProveedoresFilter },     // Proveedor
-    { index: 6, filterType: 'text' },                                          // Fecha Entrega
-    { index: 7, filterType: 'select', fetchDataFunc: listaOrdenesComprasEstadoFilter }, // Estado
-    { index: 8, filterType: 'text' },                                          // Costo Total
-    { index: 9, filterType: 'text' },                                          // Nota
-    { index: 10, filterType: 'text' },                                          // Nota
+    { index: 6, filterType: 'select', fetchDataFunc: listaProveedoresFilter },     // Proveedor
+    { index: 7, filterType: 'text' },                                          // Fecha Entrega
+    { index: 8, filterType: 'select', fetchDataFunc: listaOrdenesComprasEstadoFilter }, // Estado
+    { index: 10, filterType: 'text' },                                          // Costo Total
+    { index: 11, filterType: 'text' },                                          // Nota
 ];
 
 /* ================== FORMATOS / KPIs ================== */
@@ -121,8 +120,8 @@ $(document).ready(async () => {
     prepararLocalTopInicial();
 
     // Cuando cambia UN → recargar locales top dependientes
-    document.getElementById('UnidadNegocioFiltro')?.addEventListener('change', async (e) => {
-        const idUN = Number(e.target.value ?? -1);
+    $('#UnidadNegocioFiltro').on('change', async function () {
+        const idUN = Number($(this).val() ?? -1);
         await poblarLocalesTop(idUN);
     });
 
@@ -141,26 +140,21 @@ function nuevoOrdenCompra() {
 function editarOrdenCompra(id) {
     window.location.href = '/OrdenesCompras/NuevoModif/' + id;
 }
+function duplicarOrdenCompra(id) {
+    window.location.href = '/OrdenesCompras/NuevoModif?duplicar=' + id;
+}
 
 async function eliminarOrdenCompra(id) {
-    const ok = window.confirm("¿Desea eliminar la Orden de Compra?");
-    if (!ok) return;
-    try {
-        const r = await fetch("/OrdenesCompras/Eliminar?id=" + id, {
-            method: "DELETE",
-            headers: authHeaders()
-        });
-        if (!r.ok) throw new Error("Error al eliminar la orden de compra.");
-        const j = await r.json();
-        if (j.valor) {
+    return eliminarConCascada({
+        url: '/OrdenesCompras/Eliminar',
+        id,
+        confirmMsg: '¿Desea eliminar la Orden de Compra?',
+        headers: () => authHeaders(),
+        onSuccess: async (j) => {
             await aplicarFiltrosOC();
-            exitoModal(j.mensaje || "Orden eliminada correctamente");
-        } else {
-            advertenciaModal(j.mensaje || "No se pudo eliminar");
+            exitoModal(j.mensaje || 'Orden eliminada correctamente');
         }
-    } catch (e) {
-        console.error(e);
-    }
+    });
 }
 
 /* ================== FILTRO SUPERIOR ================== */
@@ -239,6 +233,7 @@ async function listaOrdenesCompras(f) {
 }
 
 async function configurarDataTableOC(data) {
+    if (window.ensureKyoExportLibs) await window.ensureKyoExportLibs();
     if (!gridOrdenes) {
         // Clonar fila del thead para filtros por columna (igual que SubRecetas)
         $('#grd_OrdenesCompra thead tr').clone(true).addClass('filters').appendTo('#grd_OrdenesCompra thead');
@@ -247,37 +242,16 @@ async function configurarDataTableOC(data) {
             data: data,
             language: {
                 sLengthMenu: "Mostrar MENU registros",
-                lengthMenu: "Anzeigen von _MENU_ Einträgen",
+                lengthMenu: "Anzeigen von _MENU_ Einträge",
                 url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
             },
-            scrollX: "100px",
+            scrollX: false,
             scrollCollapse: true,
             columns: [
-                {
-                    data: "Id",
-                    title: '',
-                    width: "1%",
-                    render: function (data) {
-                        return `
-                <div class="acciones-menu" data-id="${data}">
-                    <button class='btn btn-sm btnacciones' type='button'>
-                        <i class='fa fa-ellipsis-v fa-lg text-white'></i>
-                    </button>
-                    <div class="acciones-dropdown" style="display:none">
-                        <button class='btn btn-sm btneditar' type='button' onclick='editarOrdenCompra(${data})'>
-                            <i class='fa fa-pencil-square-o text-success'></i> Editar
-                        </button>
-                        <button class='btn btn-sm btneliminar' type='button' onclick='eliminarOrdenCompra(${data})'>
-                            <i class='fa fa-trash-o text-danger'></i> Eliminar
-                        </button>
-                    </div>
-                </div>`;
-                    },
-                    orderable: false,
-                    searchable: false,
-                },
+                columnaGridAcciones({ editar: 'editarOrdenCompra', duplicar: 'duplicarOrdenCompra', historial: 'verHistorialOrdenCompra', eliminar: 'eliminarOrdenCompra' }),
+                columnaGridId(),
 
-                // Nº OC con “pill”
+                // N° OC con «pill»
                 {
                     data: null,
                     title: 'N°',
@@ -312,29 +286,33 @@ async function configurarDataTableOC(data) {
                     render: r => r.Proveedor || r.ProveedorNombre
                 },
 
-                // Fecha Entrega con color según estado (vencida / hoy / futura)
+                // Fecha Entrega con color según vencimiento
                 {
                     data: null,
                     title: 'F. Entrega',
                     render: function (r) {
                         const txt = fmtDate(r.FechaEntrega);
-                        if (!txt) return '';
+                        if (!txt) return '—';
 
                         let cls = 'oc-fecha-entrega';
                         try {
                             const f = new Date(r.FechaEntrega);
-                            const hoy = new Date();
-                            hoy.setHours(0, 0, 0, 0);
-                            const fd = new Date(f.getFullYear(), f.getMonth(), f.getDate());
-
-                            cls += ' oc-fecha-futura';
-                        } catch { }
+                            if (!Number.isNaN(f.getTime())) {
+                                const hoy = new Date();
+                                hoy.setHours(0, 0, 0, 0);
+                                const fd = new Date(f.getFullYear(), f.getMonth(), f.getDate());
+                                const diff = (fd - hoy) / 86400000;
+                                if (diff < 0) cls += ' oc-fecha-atrasada';
+                                else if (diff === 0) cls += ' oc-fecha-hoy';
+                                else cls += ' oc-fecha-futura';
+                            }
+                        } catch { /* ignore */ }
 
                         return `<span class="${cls}">${txt}</span>`;
                     }
                 },
 
-                // Estado con badge tipo “pill”
+                // Estado con badge tipo «pill»
                 {
                     data: null,
                     title: 'Estado',
@@ -421,85 +399,27 @@ async function configurarDataTableOC(data) {
                 'pageLength'
             ],
             orderCellsTop: true,
-            fixedHeader: true,
+            fixedHeader: false,
 
             initComplete: async function () {
                 const api = this.api();
 
-                // Filtros por columna (igual que SubRecetas, usando columnConfig)
-                columnConfig.forEach(async (config) => {
-                    const cell = $('.filters th').eq(config.index);
-
-                    if (config.filterType === 'select') {
-                        const select = $('<select id="filter' + config.index + '"><option value="">Seleccionar</option></select>')
-                            .appendTo(cell.empty())
-                            .on('change', async function () {
-                                const selectedText = $(this).find('option:selected').text();
-                                await api.column(config.index)
-                                    .search(this.value ? '^' + selectedText + '$' : '', true, false)
-                                    .draw();
-                            });
-
-                        const lst = await config.fetchDataFunc();
-                        lst.forEach(function (item) {
-                            select.append(
-                                '<option value="' + (item.Id ?? item.id) + '">'
-                                + (item.Nombre ?? item.nombre ?? item.text) +
-                                '</option>'
-                            );
-                        });
-
-                    } else if (config.filterType === 'text') {
-                        const input = $('<input type="text" placeholder="Buscar..." />')
-                            .appendTo(cell.empty())
-                            .off('keyup change')
-                            .on('keyup change', function (e) {
-                                e.stopPropagation();
-                                const regexr = '({search})';
-                                const cursorPosition = this.selectionStart;
-                                api.column(config.index)
-                                    .search(
-                                        this.value !== ''
-                                            ? regexr.replace('{search}', '(((' + this.value + ')))')
-                                            : '',
-                                        this.value !== '',
-                                        this.value === ''
-                                    )
-                                    .draw();
-                                $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
-                            });
-                    }
+                await kyoBindColumnFilters(api, {
+                    columns: columnConfig,
+                    skipIndexes: [0]
                 });
-
-                // sin filtro en columna de acciones
-                $('.filters th').eq(0).html('');
 
                 configurarOpcionesColumnasOC();
 
                 setTimeout(() => gridOrdenes.columns.adjust(), 10);
 
-                // UX (hover + doble click + selección)
-                $('#grd_OrdenesCompra tbody').on('mouseenter', 'tr', function () {
-                    $(this).css('cursor', 'pointer');
-                });
                 $('#grd_OrdenesCompra tbody').on('dblclick', 'tr', function () {
                     const id = gridOrdenes.row(this).data()?.Id;
                     if (id) editarOrdenCompra(id);
                 });
 
-                let filaSeleccionada = null;
-                $('#grd_OrdenesCompra tbody').on('click', 'tr', function () {
-                    if (filaSeleccionada) {
-                        $(filaSeleccionada).removeClass('seleccionada');
-                        $('td', filaSeleccionada).removeClass('seleccionada');
-                    }
-                    filaSeleccionada = $(this);
-                    $(filaSeleccionada).addClass('seleccionada');
-                    $('td', filaSeleccionada).addClass('seleccionada');
-                });
-
                 // Reaplicar toggle ahora que existe thead.filters
-                const visible = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '0') === '1';
+                const visible = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '1') === '1';
                 setFiltrosState(visible);
             },
         });
@@ -507,61 +427,20 @@ async function configurarDataTableOC(data) {
     } else {
         gridOrdenes.clear().rows.add(data).draw();
         renderKpis(data || []);
-        const visible = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '0') === '1';
+        const visible = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '1') === '1';
         setFiltrosState(visible);
     }
 }
 
 /* ================== CONFIGURAR OPCIONES COLUMNAS ================== */
 function configurarOpcionesColumnasOC() {
-    const grid = $('#grd_OrdenesCompra').DataTable();
-    const columnas = grid.settings().init().columns;
-    const container = $('#configColumnasMenuOC');
-
-    const storageKey = `OrdenesCompras_Columnas`;
-    const savedConfig = JSON.parse(localStorage.getItem(storageKey)) || {};
-
-    container.empty();
-
-    columnas.forEach((col, index) => {
-        // Ocultamos la primera (acciones) del menú, igual que hacés en SubRecetas
-        if (index > 0) {
-            const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined
-                ? savedConfig[`col_${index}`]
-                : true;
-            grid.column(index).visible(isChecked);
-
-            const columnName = col.title || col.data || `Col ${index}`;
-            container.append(`
-                <li>
-                    <label class="dropdown-item">
-                        <input type="checkbox" class="toggle-column" data-column="${index}" ${isChecked ? 'checked' : ''}>
-                        ${columnName}
-                    </label>
-                </li>
-            `);
-        }
-    });
-
-    $('.toggle-column').on('change', function () {
-        const columnIdx = parseInt($(this).data('column'), 10);
-        const isChecked = $(this).is(':checked');
-        savedConfig[`col_${columnIdx}`] = isChecked;
-        localStorage.setItem(storageKey, JSON.stringify(savedConfig));
-        grid.column(columnIdx).visible(isChecked);
-        setTimeout(() => grid.columns.adjust(), 40);
+    initGridColumnConfig({
+        gridSelector: '#grd_OrdenesCompra',
+        menuSelector: '#configColumnasMenuOC',
+        storageKey: 'OrdenesCompras_Columnas',
+        skipColumn: (_col, index) => index === 0,
     });
 }
-
-/* ================== DROPDOWN ACCIONES ================== */
-function toggleAcciones(id) {
-    const $menu = $(`.acciones-menu[data-id="${id}"] .acciones-dropdown`);
-    $('.acciones-dropdown').not($menu).hide();
-    $menu.toggle();
-}
-$(document).on('click', function (e) {
-    if (!$(e.target).closest('.acciones-menu').length) $('.acciones-dropdown').hide();
-});
 
 /* ================== LISTAS PARA COMBOS (selects de filtros y modal) ================== */
 async function listaUnidadesNegocioFilter() {
@@ -569,13 +448,25 @@ async function listaUnidadesNegocioFilter() {
     return data.map(x => ({ Id: x.Id, Nombre: x.Nombre }));
 }
 async function listaLocalesFilter(idUnidadNegocio = -1) {
+    const mapLocal = (x) => ({
+        Id: x.Id,
+        Nombre: x.Nombre,
+        IdUnidadNegocio: x.IdUnidadNegocio ?? x.IdCombo
+    });
+
+    // Sin UN: todos los locales. Con UN: solo los de esa unidad.
+    if (!(Number(idUnidadNegocio) > 0)) {
+        const data = await fetchJson(`/Locales/Lista`, { headers: authHeaders() });
+        return (data || []).map(mapLocal);
+    }
+
     try {
         const data = await fetchJson(`/Locales/ListaPorUnidad?IdUnidadNegocio=${idUnidadNegocio}`, { headers: authHeaders() });
-        return data.map(x => ({ Id: x.Id, Nombre: x.Nombre, IdUnidadNegocio: x.IdUnidadNegocio }));
+        return (data || []).map(mapLocal);
     } catch {
         const data = await fetchJson(`/Locales/Lista`, { headers: authHeaders() });
-        const arr = data.map(x => ({ Id: x.Id, Nombre: x.Nombre, IdUnidadNegocio: x.IdUnidadNegocio }));
-        return idUnidadNegocio > 0 ? arr.filter(x => (x.IdUnidadNegocio ?? -999) === idUnidadNegocio) : arr;
+        const arr = (data || []).map(mapLocal);
+        return arr.filter(x => Number(x.IdUnidadNegocio ?? -999) === Number(idUnidadNegocio));
     }
 }
 async function listaProveedoresFilter() {
@@ -669,7 +560,7 @@ async function listaProveedoresFiltro() {
     });
 }
 
-/* ===== Local (top) — VACÍO y DESHABILITADO hasta elegir UN ===== */
+/* ===== Local (top) → VACÍO y DESHABILITADO hasta elegir UN ===== */
 function prepararLocalTopInicial() {
     const select = document.getElementById("LocalFiltro");
     if (!select) return;
@@ -708,11 +599,9 @@ async function poblarLocalesTop(idUnidadNegocio = -1) {
 
 /* ===== Stub para el botón Guardar del modal rápido (para que no rompa) ===== */
 function guardarCambiosOC() {
-    if (typeof advertenciaModal === 'function') {
+    return withBusy("#btnGuardarOC", () => {
         advertenciaModal('La edición rápida por este modal aún no está implementada. Usá el botón "Editar" en la grilla.');
-    } else {
-        alert('La edición rápida aún no está implementada.');
-    }
+    });
 }
 /********************  FIN OrdenesCompras.js  ********************/
 
