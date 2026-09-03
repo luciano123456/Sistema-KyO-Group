@@ -1,13 +1,19 @@
 ﻿using KyoGroup.Application.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SistemaKyoGroup.Application.Extensions;
+using SistemaKyoGroup.Application.Helpers;
 using SistemaKyoGroup.Application.Models;
 using SistemaKyoGroup.Application.Models.ViewModels;
+using SistemaKyoGroup.BLL.Common;
 using SistemaKyoGroup.BLL.Service;
+using SistemaKyoGroup.DAL;
+using SistemaKyoGroup.DAL.DataContext;
 using SistemaKyoGroup.Models;
 
 using System.Diagnostics;
+using System.Linq;
 using System.Globalization;
 using System.Text;
 
@@ -17,10 +23,14 @@ namespace SistemaKyoGroup.Application.Controllers
     public class ProveedoresInsumosController : Controller
     {
         private readonly IProveedoresInsumoservice _ProveedoresInsumosService;
+        private readonly SistemaKyoGroupContext _db;
 
-        public ProveedoresInsumosController(IProveedoresInsumoservice ProveedoresInsumosService)
+        public ProveedoresInsumosController(
+            IProveedoresInsumoservice ProveedoresInsumosService,
+            SistemaKyoGroupContext db)
         {
             _ProveedoresInsumosService = ProveedoresInsumosService;
+            _db = db;
         }
 
         [AllowAnonymous]
@@ -49,10 +59,11 @@ namespace SistemaKyoGroup.Application.Controllers
 
             try
             {
-                var ProveedoresInsumos = await _ProveedoresInsumosService.ObtenerTodos();
+                var proveedoresInsumos = IdProveedor > 0
+                    ? await _ProveedoresInsumosService.ObtenerPorProveedor(IdProveedor)
+                    : await _ProveedoresInsumosService.ObtenerTodos();
 
-                var lista = ProveedoresInsumos
-                    .Where(c => IdProveedor == -1 || c.IdProveedor == IdProveedor)
+                var lista = proveedoresInsumos
                     .Select(c => new VMProveedoresInsumos
                     {
                         Id = c.Id,
@@ -92,6 +103,160 @@ namespace SistemaKyoGroup.Application.Controllers
                     title: "Error interno del servidor",
                     statusCode: StatusCodes.Status500InternalServerError
                 );
+            }
+        }
+
+        /// <summary>
+        /// Lista de precios del proveedor lista para OC: todos los ítems (con o sin precio),
+        /// resolviendo el Id de insumo de catálogo por vínculo o por descripción/SKU.
+        /// No filtra por unidad de negocio (la UN de la OC no limita qué vende el proveedor).
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> ListaParaOrdenCompra([FromQuery] int IdProveedor, [FromQuery] int IdUnidadNegocio = 0)
+        {
+            if (IdProveedor <= 0)
+                return BadRequest(new { valor = false, mensaje = "IdProveedor inválido." });
+
+            try
+            {
+                var listas = await _db.ProveedoresInsumosListas
+                    .AsNoTracking()
+                    .Where(l => l.IdProveedor == IdProveedor)
+                    .Include(l => l.InsumosProveedores)
+                        .ThenInclude(ip => ip.IdInsumoNavigation)
+                            .ThenInclude(i => i.InsumosUnidadesNegocios)
+                    .OrderBy(l => l.Descripcion)
+                    .ToListAsync();
+
+                // Catálogo para match por descripción / SKU (preferir UN si viene)
+                var insumosQuery = _db.Insumos
+                    .AsNoTracking()
+                    .Include(i => i.InsumosUnidadesNegocios)
+                    .AsQueryable();
+
+                var insumos = await insumosQuery.ToListAsync();
+
+                var porDesc = insumos
+                    .GroupBy(i => Normalizar(i.Descripcion))
+                    .Where(g => !string.IsNullOrEmpty(g.Key))
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                var porSku = insumos
+                    .Where(i => !string.IsNullOrWhiteSpace(i.Sku))
+                    .GroupBy(i => Normalizar(i.Sku!))
+                    .Where(g => !string.IsNullOrEmpty(g.Key))
+                    .ToDictionary(g => g.Key, g => g.First());
+
+                Insumo? ElegirInsumo(IEnumerable<Insumo> candidates)
+                {
+                    var list = candidates?.Where(c => c != null).ToList() ?? new List<Insumo>();
+                    if (list.Count == 0) return null;
+                    if (IdUnidadNegocio > 0)
+                    {
+                        var enUn = list.FirstOrDefault(i =>
+                            i.InsumosUnidadesNegocios != null &&
+                            i.InsumosUnidadesNegocios.Any(u => u.IdUnidadNegocio == IdUnidadNegocio));
+                        if (enUn != null) return enUn;
+                    }
+                    return list[0];
+                }
+
+                var resultado = new List<VMInsumo>();
+                var idsInsumoUsados = new HashSet<int>();
+
+                foreach (var lista in listas)
+                {
+                    Insumo? insumo = null;
+
+                    // 1) Vínculo explícito Insumos_Proveedores
+                    var vinculados = (lista.InsumosProveedores ?? Enumerable.Empty<InsumosProveedor>())
+                        .Where(p => p.IdInsumoNavigation != null)
+                        .Select(p => p.IdInsumoNavigation!)
+                        .ToList();
+                    insumo = ElegirInsumo(vinculados);
+
+                    // 2) Match por código ↔ SKU
+                    if (insumo == null && !string.IsNullOrWhiteSpace(lista.Codigo))
+                    {
+                        var key = Normalizar(lista.Codigo);
+                        if (porSku.TryGetValue(key, out var bySku))
+                            insumo = bySku;
+                    }
+
+                    // 3) Match por descripción
+                    if (insumo == null)
+                    {
+                        var key = Normalizar(lista.Descripcion);
+                        if (!string.IsNullOrEmpty(key) && porDesc.TryGetValue(key, out var byDesc))
+                            insumo = ElegirInsumo(byDesc);
+                    }
+
+                    // Si ya devolvimos ese insumo de catálogo, no duplicar (salvo sin catálogo)
+                    if (insumo != null && insumo.Id > 0 && !idsInsumoUsados.Add(insumo.Id))
+                        continue;
+
+                    resultado.Add(new VMInsumo
+                    {
+                        // Id = insumo de catálogo (0 si aún no está vinculado; el front lo maneja)
+                        Id = insumo?.Id ?? 0,
+                        Descripcion = string.IsNullOrWhiteSpace(lista.Descripcion)
+                            ? (insumo?.Descripcion ?? $"Ítem #{lista.Id}")
+                            : lista.Descripcion,
+                        Sku = lista.Codigo ?? insumo?.Sku,
+                        CostoUnitario = lista.CostoUnitario,
+                        PrecioLista = lista.CostoUnitario,
+                        IdProveedorLista = lista.Id,
+                        CantidadProveedores = insumo != null ? 1 : 0
+                    });
+                }
+
+                return Ok(resultado.OrderBy(x => x.Descripcion).ToList());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { valor = false, mensaje = ex.InnerException?.Message ?? ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ListaPaginada([FromQuery] int IdProveedor = -1)
+        {
+            try
+            {
+                var draw = DataTablesRequestHelper.GetDraw(Request);
+                var grid = DataTablesRequestHelper.Parse(Request);
+                var result = await _ProveedoresInsumosService.ListarPaginado(IdProveedor, grid);
+                var data = result.Items.Select(c => new VMProveedoresInsumos
+                {
+                    Id = c.Id,
+                    Descripcion = c.Descripcion,
+                    CostoUnitario = c.CostoUnitario,
+                    Codigo = c.Codigo,
+                    FechaActualizacion = c.FechaActualizacion,
+                    IdProveedor = c.IdProveedor,
+                    Proveedor = c.IdProveedorNavigation != null ? c.IdProveedorNavigation.Nombre : "",
+                    IdUsuarioRegistra = (int)c.IdUsuarioRegistra,
+                    FechaRegistra = (DateTime)c.FechaRegistra,
+                    IdUsuarioModifica = c.IdUsuarioModifica,
+                    FechaModifica = c.FechaModifica,
+                    UsuarioRegistra = c.IdUsuarioRegistraNavigation != null ? c.IdUsuarioRegistraNavigation.Usuario : null,
+                    UsuarioModifica = c.IdUsuarioModificaNavigation != null ? c.IdUsuarioModificaNavigation.Usuario : null,
+                    Cantidad = c.Cantidad ?? 1,
+                    Costo = c.Costo ?? 1,
+                    PorcDesc = c.PorcDesc ?? 0
+                }).ToList();
+
+                return Ok(new
+                {
+                    draw,
+                    recordsTotal = result.Total,
+                    recordsFiltered = result.Filtered,
+                    data
+                });
+            }
+            catch
+            {
+                return Ok(new { draw = 0, recordsTotal = 0, recordsFiltered = 0, data = Array.Empty<VMProveedoresInsumos>() });
             }
         }
 
@@ -229,14 +394,128 @@ namespace SistemaKyoGroup.Application.Controllers
             return Ok(new { valor = resultado });
         }
 
+        /// <summary>
+        /// Asegura un insumo de catálogo para un ítem de lista de precios (match o alta mínima + vínculo).
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> AsegurarInsumoCatalogo([FromBody] VMAsegurarInsumoCatalogo model)
+        {
+            if (model == null || model.IdListaProveedor <= 0)
+                return BadRequest(new { valor = false, mensaje = "IdListaProveedor inválido." });
 
+            try
+            {
+                var lista = await _db.ProveedoresInsumosListas
+                    .Include(l => l.InsumosProveedores)
+                    .FirstOrDefaultAsync(l => l.Id == model.IdListaProveedor);
+
+                if (lista == null)
+                    return NotFound(new { valor = false, mensaje = "Ítem de lista no encontrado." });
+
+                // Ya vinculado
+                var existenteLink = lista.InsumosProveedores?.FirstOrDefault();
+                if (existenteLink != null && existenteLink.IdInsumo > 0)
+                {
+                    if (model.IdUnidadNegocio > 0)
+                        await AsegurarUnidadNegocioInsumo(existenteLink.IdInsumo, model.IdUnidadNegocio);
+                    return Ok(new { valor = true, idInsumo = existenteLink.IdInsumo, idProveedorLista = lista.Id });
+                }
+
+                var userId = User.GetUserId() ?? 1;
+                var normDesc = Normalizar(lista.Descripcion);
+                var normCodigo = Normalizar(lista.Codigo ?? "");
+
+                // Match por SKU / descripción
+                Insumo? insumo = null;
+                if (!string.IsNullOrEmpty(normCodigo))
+                {
+                    insumo = await _db.Insumos.AsNoTracking()
+                        .FirstOrDefaultAsync(i => i.Sku != null && i.Sku.ToUpper() == lista.Codigo!.Trim().ToUpper());
+                }
+                if (insumo == null && !string.IsNullOrEmpty(normDesc))
+                {
+                    var candidatos = await _db.Insumos.AsNoTracking().ToListAsync();
+                    insumo = candidatos.FirstOrDefault(i => Normalizar(i.Descripcion) == normDesc);
+                }
+
+                if (insumo == null)
+                {
+                    var idCat = await _db.InsumosCategorias.AsNoTracking().Select(c => c.Id).FirstOrDefaultAsync();
+                    var idUm = await _db.UnidadesMedida.AsNoTracking().Select(u => u.Id).FirstOrDefaultAsync();
+                    if (idCat <= 0 || idUm <= 0)
+                        return BadRequest(new { valor = false, mensaje = "No hay categoría o unidad de medida para crear el insumo." });
+
+                    var sku = !string.IsNullOrWhiteSpace(lista.Codigo)
+                        ? lista.Codigo.Trim()
+                        : $"PL-{lista.Id}";
+
+                    // Evitar SKU duplicado
+                    var skuBase = sku;
+                    var n = 1;
+                    while (await _db.Insumos.AnyAsync(i => i.Sku == sku))
+                        sku = $"{skuBase}-{n++}";
+
+                    insumo = new Insumo
+                    {
+                        Sku = sku,
+                        Descripcion = string.IsNullOrWhiteSpace(lista.Descripcion) ? sku : lista.Descripcion.Trim(),
+                        IdCategoria = idCat,
+                        IdUnidadMedida = idUm,
+                        FechaActualizacion = DateTime.Now,
+                        IdUsuarioRegistra = userId,
+                        FechaRegistra = DateTime.Now
+                    };
+                    _db.Insumos.Add(insumo);
+                    await _db.SaveChangesAsync();
+                }
+
+                // Vínculo lista ↔ insumo
+                if (!await _db.InsumosProveedores.AnyAsync(p =>
+                        p.IdInsumo == insumo.Id && p.IdListaProveedor == lista.Id))
+                {
+                    _db.InsumosProveedores.Add(new InsumosProveedor
+                    {
+                        IdInsumo = insumo.Id,
+                        IdProveedor = lista.IdProveedor,
+                        IdListaProveedor = lista.Id
+                    });
+                    await _db.SaveChangesAsync();
+                }
+
+                if (model.IdUnidadNegocio > 0)
+                    await AsegurarUnidadNegocioInsumo(insumo.Id, model.IdUnidadNegocio);
+
+                return Ok(new { valor = true, idInsumo = insumo.Id, idProveedorLista = lista.Id });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { valor = false, mensaje = ex.InnerException?.Message ?? ex.Message });
+            }
+        }
+
+        async Task AsegurarUnidadNegocioInsumo(int idInsumo, int idUnidadNegocio)
+        {
+            if (idInsumo <= 0 || idUnidadNegocio <= 0) return;
+            var existe = await _db.InsumosUnidadesNegocios
+                .AnyAsync(x => x.IdInsumo == idInsumo && x.IdUnidadNegocio == idUnidadNegocio);
+            if (existe) return;
+            _db.InsumosUnidadesNegocios.Add(new InsumosUnidadesNegocio
+            {
+                IdInsumo = idInsumo,
+                IdUnidadNegocio = idUnidadNegocio
+            });
+            await _db.SaveChangesAsync();
+        }
 
         [HttpDelete]
-        public async Task<IActionResult> Eliminar(int id)
+        public async Task<IActionResult> Eliminar(int id, bool cascade = false)
         {
-            bool respuesta = await _ProveedoresInsumosService.Eliminar(id);
-
-            return StatusCode(StatusCodes.Status200OK, new { valor = respuesta });
+            var sr = await DeleteOperationHelper.ExecuteDeleteAsync(
+                c => _ProveedoresInsumosService.Eliminar(id, c),
+                "el ítem de lista",
+                cascade,
+                id);
+            return Ok(sr.ToEliminarJson());
         }
 
         [HttpGet]
@@ -265,6 +544,63 @@ namespace SistemaKyoGroup.Application.Controllers
             };
 
             return Ok(vm);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Historial(int id)
+        {
+            if (id <= 0)
+                return Ok(Array.Empty<object>());
+
+            var items = await ProveedoresInsumosHistorialHelper.ListarPorListaAsync(_db, id);
+            return Ok(MapHistorial(items));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> HistorialProveedor(int idProveedor)
+        {
+            if (idProveedor <= 0)
+                return Ok(Array.Empty<object>());
+
+            var items = await ProveedoresInsumosHistorialHelper.ListarPorProveedorAsync(_db, idProveedor, 150);
+            return Ok(MapHistorial(items));
+        }
+
+        private static IEnumerable<object> MapHistorial(IEnumerable<ProveedoresInsumosListaHistorial> items)
+        {
+            return items.Select(h =>
+            {
+                decimal? VarPct(decimal? a, decimal? n)
+                {
+                    if (a is null || n is null) return null;
+                    if (Math.Abs(a.Value) < 0.0000001m) return n.Value == 0 ? 0 : 100m;
+                    return Math.Round(((n.Value - a.Value) / a.Value) * 100m, 2);
+                }
+
+                return new
+                {
+                    h.Id,
+                    h.IdLista,
+                    h.IdProveedor,
+                    h.Accion,
+                    h.Origen,
+                    h.Resumen,
+                    h.Detalle,
+                    h.CostoAnterior,
+                    h.CostoNuevo,
+                    h.CostoUnitarioAnterior,
+                    h.CostoUnitarioNuevo,
+                    h.CantidadAnterior,
+                    h.CantidadNueva,
+                    h.PorcDescAnterior,
+                    h.PorcDescNuevo,
+                    VariacionCostoPct = VarPct(h.CostoAnterior, h.CostoNuevo),
+                    VariacionUnitarioPct = VarPct(h.CostoUnitarioAnterior, h.CostoUnitarioNuevo),
+                    h.IdUsuario,
+                    h.UsuarioNombre,
+                    h.Fecha
+                };
+            });
         }
 
         [HttpPost]

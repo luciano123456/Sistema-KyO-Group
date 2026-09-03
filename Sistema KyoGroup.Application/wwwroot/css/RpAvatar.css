@@ -1,0 +1,53 @@
+/* Avatar circular compartido (navbar + configuración) */
+
+.rp-avatar-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    overflow: hidden;
+    color: #fff;
+    flex-shrink: 0;
+    background: #e8879f;
+    border: 2px solid rgba(255, 255, 255, 0.22);
+    box-shadow: 0 4px 12px rgba(232, 135, 159, 0.25);
+    line-height: 1;
+}
+
+.rp-avatar-circle i {
+    line-height: 1;
+}
+
+.rp-avatar-circle--sm {
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
+}
+
+.rp-avatar-circle--md {
+    width: 72px;
+    height: 72px;
+    font-size: 1.55rem;
+}
+
+.rp-avatar-circle--lg {
+    width: 96px;
+    height: 96px;
+    font-size: 2rem;
+}
+
+.rp-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    border-radius: 50%;
+}
+
+.rp-user-avatar.rp-avatar-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    font-size: 15px;
+}

@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using SistemaKyoGroup.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using SistemaKyoGroup.DAL;
 using SistemaKyoGroup.DAL.DataContext;
+using SistemaKyoGroup.Models;
+using SistemaKyoGroup.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace SistemaKyoGroup.DAL.Repository
@@ -13,72 +13,110 @@ namespace SistemaKyoGroup.DAL.Repository
     public class RecetaRepository : IRecetaRepository<Receta>
     {
         private readonly SistemaKyoGroupContext _dbcontext;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        // IHttpContextAccessor opcional (si no está registrado, -1 devolverá vacío)
-        public RecetaRepository(
-            SistemaKyoGroupContext context,
-            IHttpContextAccessor httpContextAccessor = null)
+        public RecetaRepository(SistemaKyoGroupContext context)
         {
             _dbcontext = context;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         /* ============================================================
          * INSERTAR
+         *  - Detach hijos ANTES del Add para evitar doble insert por cascade
          * ============================================================ */
-        public async Task<bool> Insertar(Receta model)
+        public async Task<(bool ok, string mensaje)> Insertar(Receta model)
         {
             await using var tx = await _dbcontext.Database.BeginTransactionAsync();
             try
             {
-                model.RecetasInsumos ??= new List<RecetasInsumo>();
-                model.RecetasSubReceta ??= new List<RecetasSubReceta>();
+                if (model.IdUsuarioRegistra <= 0)
+                    return (false, "Usuario no autenticado. Volvé a iniciar sesión.");
 
-                foreach (var i in model.RecetasInsumos) i.Id = 0;
-                foreach (var s in model.RecetasSubReceta) s.Id = 0;
+                if (model.IdUnidadNegocio <= 0 || model.IdCategoria <= 0 || model.IdUnidadMedida <= 0)
+                    return (false, "Completá unidad de negocio, categoría y unidad de medida.");
 
-                var subRecetas = model.RecetasSubReceta.ToList();
-                model.RecetasSubReceta = null;
+                if (string.IsNullOrWhiteSpace(model.Descripcion))
+                    return (false, "La descripción es obligatoria.");
+
+                var insumos = (model.RecetasInsumos ?? new List<RecetasInsumo>()).ToList();
+                var subRecetas = (model.RecetasSubReceta ?? new List<RecetasSubReceta>()).ToList();
+
+                foreach (var i in insumos) i.Id = 0;
+                foreach (var s in subRecetas) s.Id = 0;
+
+                // Evitar doble insert por cascade: limpiar navegaciones antes del Add
+                model.RecetasInsumos = new List<RecetasInsumo>();
+                model.RecetasSubReceta = new List<RecetasSubReceta>();
+                model.RecetasUnidadesNegocios = new List<RecetasUnidadesNegocio>();
+                model.IdUsuarioRegistraNavigation = null!;
+                model.IdUsuarioModificaNavigation = null;
+                model.IdCategoriaNavigation = null!;
+                model.IdUnidadMedidaNavigation = null!;
+                model.IdUnidadNegocioNavigation = null!;
 
                 _dbcontext.Recetas.Add(model);
-                await _dbcontext.SaveChangesAsync(); // model.Id
+                await _dbcontext.SaveChangesAsync();
 
                 if (subRecetas.Count > 0)
                 {
-                    foreach (var sub in subRecetas)
+                    foreach (var s in subRecetas)
                     {
-                        sub.Id = 0;
-                        sub.IdReceta = model.Id;
+                        s.IdReceta = model.Id;
+                        s.IdUsuarioRegistra = model.IdUsuarioRegistra;
+                        s.FechaRegistra = DateTime.Now;
+                        s.IdRecetaNavigation = null!;
+                        s.IdSubRecetaNavigation = null!;
+                        s.IdUsuarioRegistraNavigation = null!;
+                        s.IdUsuarioModificaNavigation = null;
                     }
-                    await _dbcontext.RecetasSubRecetas.AddRangeAsync(subRecetas);
+                    _dbcontext.RecetasSubRecetas.AddRange(subRecetas);
                 }
 
-                if (model.RecetasInsumos.Count > 0)
+                if (insumos.Count > 0)
                 {
-                    foreach (var i in model.RecetasInsumos)
+                    foreach (var i in insumos)
                     {
-                        i.Id = 0;
                         i.IdReceta = model.Id;
+                        i.IdUsuarioRegistra = model.IdUsuarioRegistra > 0 ? model.IdUsuarioRegistra : i.IdUsuarioRegistra;
+                        if (i.FechaRegistra == default) i.FechaRegistra = DateTime.Now;
+                        i.IdInsumoNavigation = null!;
+                        i.IdRecetaNavigation = null!;
+                        i.IdUsuarioRegistraNavigation = null!;
+                        i.IdUsuarioModificaNavigation = null;
                     }
-                    await _dbcontext.RecetasInsumos.AddRangeAsync(model.RecetasInsumos);
+                    _dbcontext.RecetasInsumos.AddRange(insumos);
                 }
+
+                var usuarioNombre = await _dbcontext.Usuarios.AsNoTracking()
+                    .Where(u => u.Id == model.IdUsuarioRegistra)
+                    .Select(u => u.Usuario)
+                    .FirstOrDefaultAsync();
+
+                RecetaHistorialHelper.Agregar(
+                    _dbcontext,
+                    RecetaHistorialHelper.TipoReceta,
+                    model.Id,
+                    "Creacion",
+                    $"Alta de receta \"{model.Descripcion}\" (SKU {model.Sku})",
+                    $"Insumos: {insumos.Count}. Subrecetas: {subRecetas.Count}. Costo unitario: {model.CostoUnitario:0.##}. Rendimiento: {model.Rendimiento:0.##}.",
+                    model.IdUsuarioRegistra,
+                    usuarioNombre);
 
                 await _dbcontext.SaveChangesAsync();
                 await tx.CommitAsync();
-                return true;
+                return (true, "Receta creada correctamente.");
             }
-            catch
+            catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return false;
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                return (false, "No se pudo crear la Receta: " + msg);
             }
         }
 
         /* ============================================================
-         * ACTUALIZAR (con DIFF/UPSERT en hijos)
+         * ACTUALIZAR (con DIFF/UPSERT en hijos + historial)
          * ============================================================ */
-        public async Task<bool> Actualizar(Receta model)
+        public async Task<(bool ok, string mensaje)> Actualizar(Receta model)
         {
             await using var tx = await _dbcontext.Database.BeginTransactionAsync();
             try
@@ -88,7 +126,30 @@ namespace SistemaKyoGroup.DAL.Repository
                     .Include(x => x.RecetasSubReceta)
                     .FirstOrDefaultAsync(x => x.Id == model.Id);
 
-                if (existente == null) return false;
+                if (existente == null)
+                    return (false, "Receta no encontrada.");
+
+                var cambios = new List<string>();
+                void Diff(string campo, object? antes, object? despues)
+                {
+                    if (RecetaHistorialHelper.ValoresIguales(antes, despues)) return;
+                    cambios.Add($"{campo}: {RecetaHistorialHelper.FormatearValor(antes)} → {RecetaHistorialHelper.FormatearValor(despues)}");
+                }
+
+                Diff("Descripción", existente.Descripcion, model.Descripcion);
+                Diff("SKU", existente.Sku, model.Sku);
+                Diff("Categoría",
+                    await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "CategoriaReceta", existente.IdCategoria),
+                    await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "CategoriaReceta", model.IdCategoria));
+                Diff("Unidad medida",
+                    await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "UnidadMedida", existente.IdUnidadMedida),
+                    await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "UnidadMedida", model.IdUnidadMedida));
+                Diff("UN",
+                    await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "UnidadNegocio", existente.IdUnidadNegocio),
+                    await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "UnidadNegocio", model.IdUnidadNegocio));
+                Diff("Rendimiento", existente.Rendimiento, model.Rendimiento);
+                Diff("Costo unitario", existente.CostoUnitario, model.CostoUnitario);
+                Diff("Costo porción", existente.CostoPorcion, model.CostoPorcion);
 
                 bool hayCambios = false;
 
@@ -115,7 +176,7 @@ namespace SistemaKyoGroup.DAL.Repository
                         {
                             IdSubReceta = g.Key,
                             Cantidad = g.Sum(z => z.Cantidad),
-                            SubTotal = g.Sum(z => z.SubTotal),
+                            SubTotal = g.Sum(z => z.SubTotal ?? 0),
                             CostoUnitario = last.CostoUnitario
                         };
                     }).ToList();
@@ -123,10 +184,8 @@ namespace SistemaKyoGroup.DAL.Repository
                 var entry = _dbcontext.Entry(existente);
                 entry.CurrentValues.SetValues(model);
 
-                if (entry.Properties.Any(p => p.Metadata.Name == nameof(Receta.IdUsuarioRegistra)))
-                    entry.Property(nameof(Receta.IdUsuarioRegistra)).IsModified = false;
-                if (entry.Properties.Any(p => p.Metadata.Name == nameof(Receta.FechaRegistra)))
-                    entry.Property(nameof(Receta.FechaRegistra)).IsModified = false;
+                entry.Property(nameof(Receta.IdUsuarioRegistra)).IsModified = false;
+                entry.Property(nameof(Receta.FechaRegistra)).IsModified = false;
 
                 bool cambiosSimples = entry.Properties.Any(p =>
                     p.IsModified &&
@@ -143,6 +202,7 @@ namespace SistemaKyoGroup.DAL.Repository
                 {
                     _dbcontext.RecetasInsumos.RemoveRange(duplicadosInsumo);
                     hayCambios = true;
+                    cambios.Add($"Duplicados de insumos eliminados ({duplicadosInsumo.Count})");
                 }
                 var actualesInsumos = existente.RecetasInsumos
                     .GroupBy(x => x.IdInsumo)
@@ -156,6 +216,7 @@ namespace SistemaKyoGroup.DAL.Repository
                 {
                     _dbcontext.RecetasSubRecetas.RemoveRange(duplicadosSub);
                     hayCambios = true;
+                    cambios.Add($"Duplicados de subrecetas eliminados ({duplicadosSub.Count})");
                 }
                 var actualesSub = existente.RecetasSubReceta
                     .GroupBy(x => x.IdSubReceta)
@@ -165,31 +226,17 @@ namespace SistemaKyoGroup.DAL.Repository
                 {
                     if (actualesInsumos.TryGetValue(inc.IdInsumo, out var cur))
                     {
-                        bool mod = cur.CostoUnitario != inc.CostoUnitario ||
-                                   cur.Cantidad != inc.Cantidad ||
-                                   cur.SubTotal != inc.SubTotal;
-
-                        if (mod)
+                        if (cur.CostoUnitario != inc.CostoUnitario ||
+                            cur.Cantidad != inc.Cantidad ||
+                            cur.SubTotal != inc.SubTotal)
                         {
                             cur.CostoUnitario = inc.CostoUnitario;
                             cur.Cantidad = inc.Cantidad;
                             cur.SubTotal = inc.SubTotal;
-
-                            var eCur = _dbcontext.Entry(cur);
-                            if (eCur.Properties.Any(p => p.Metadata.Name == nameof(RecetasInsumo.IdUsuarioRegistra)))
-                                eCur.Property(nameof(RecetasInsumo.IdUsuarioRegistra)).IsModified = false;
-                            if (eCur.Properties.Any(p => p.Metadata.Name == nameof(RecetasInsumo.FechaRegistra)))
-                                eCur.Property(nameof(RecetasInsumo.FechaRegistra)).IsModified = false;
-
-                            if ((model.IdUsuarioModifica ?? 0) > 0)
-                            {
-                                if (eCur.Properties.Any(p => p.Metadata.Name == nameof(RecetasInsumo.IdUsuarioModifica)))
-                                    cur.IdUsuarioModifica = model.IdUsuarioModifica;
-                                if (eCur.Properties.Any(p => p.Metadata.Name == nameof(RecetasInsumo.FechaModifica)))
-                                    cur.FechaModifica = DateTime.Now;
-                            }
-
+                            cur.IdUsuarioModifica = model.IdUsuarioModifica;
+                            cur.FechaModifica = DateTime.Now;
                             hayCambios = true;
+                            cambios.Add($"Insumo Id {inc.IdInsumo} actualizado (cant {inc.Cantidad}, costo {inc.CostoUnitario:0.##})");
                         }
                     }
                     else
@@ -201,12 +248,12 @@ namespace SistemaKyoGroup.DAL.Repository
                             CostoUnitario = inc.CostoUnitario,
                             Cantidad = inc.Cantidad,
                             SubTotal = inc.SubTotal,
+                            IdUsuarioRegistra = model.IdUsuarioModifica ?? existente.IdUsuarioRegistra,
+                            FechaRegistra = DateTime.Now
                         };
-                        nuevo.IdUsuarioRegistra = model.IdUsuarioModifica ?? existente.IdUsuarioRegistra;
-                        nuevo.FechaRegistra = DateTime.Now;
-
                         await _dbcontext.RecetasInsumos.AddAsync(nuevo);
                         hayCambios = true;
+                        cambios.Add($"Insumo Id {inc.IdInsumo} agregado");
                     }
                 }
 
@@ -214,6 +261,8 @@ namespace SistemaKyoGroup.DAL.Repository
                 var bajasInsumos = existente.RecetasInsumos.Where(x => !idsInsumoEntrantes.Contains(x.IdInsumo)).ToList();
                 if (bajasInsumos.Count > 0)
                 {
+                    foreach (var b in bajasInsumos)
+                        cambios.Add($"Insumo quitado (Id {b.IdInsumo})");
                     _dbcontext.RecetasInsumos.RemoveRange(bajasInsumos);
                     hayCambios = true;
                 }
@@ -222,31 +271,17 @@ namespace SistemaKyoGroup.DAL.Repository
                 {
                     if (actualesSub.TryGetValue(inc.IdSubReceta, out var cur))
                     {
-                        bool mod = cur.CostoUnitario != inc.CostoUnitario ||
-                                   cur.Cantidad != inc.Cantidad ||
-                                   cur.SubTotal != inc.SubTotal;
-
-                        if (mod)
+                        if (cur.CostoUnitario != inc.CostoUnitario ||
+                            cur.Cantidad != inc.Cantidad ||
+                            cur.SubTotal != inc.SubTotal)
                         {
                             cur.CostoUnitario = inc.CostoUnitario;
                             cur.Cantidad = inc.Cantidad;
                             cur.SubTotal = inc.SubTotal;
-
-                            var eCur = _dbcontext.Entry(cur);
-                            if (eCur.Properties.Any(p => p.Metadata.Name == nameof(RecetasSubReceta.IdUsuarioRegistra)))
-                                eCur.Property(nameof(RecetasSubReceta.IdUsuarioRegistra)).IsModified = false;
-                            if (eCur.Properties.Any(p => p.Metadata.Name == nameof(RecetasSubReceta.FechaRegistra)))
-                                eCur.Property(nameof(RecetasSubReceta.FechaRegistra)).IsModified = false;
-
-                            if ((model.IdUsuarioModifica ?? 0) > 0)
-                            {
-                                if (eCur.Properties.Any(p => p.Metadata.Name == nameof(RecetasSubReceta.IdUsuarioModifica)))
-                                    cur.IdUsuarioModifica = model.IdUsuarioModifica;
-                                if (eCur.Properties.Any(p => p.Metadata.Name == nameof(RecetasSubReceta.FechaModifica)))
-                                    cur.FechaModifica = DateTime.Now;
-                            }
-
+                            cur.IdUsuarioModifica = model.IdUsuarioModifica;
+                            cur.FechaModifica = DateTime.Now;
                             hayCambios = true;
+                            cambios.Add($"Subreceta Id {inc.IdSubReceta} actualizada");
                         }
                     }
                     else
@@ -258,12 +293,12 @@ namespace SistemaKyoGroup.DAL.Repository
                             CostoUnitario = inc.CostoUnitario,
                             Cantidad = inc.Cantidad,
                             SubTotal = inc.SubTotal,
+                            IdUsuarioRegistra = model.IdUsuarioModifica ?? existente.IdUsuarioRegistra,
+                            FechaRegistra = DateTime.Now
                         };
-                        nueva.IdUsuarioRegistra = model.IdUsuarioModifica ?? existente.IdUsuarioRegistra;
-                        nueva.FechaRegistra = DateTime.Now;
-
                         await _dbcontext.RecetasSubRecetas.AddAsync(nueva);
                         hayCambios = true;
+                        cambios.Add($"Subreceta Id {inc.IdSubReceta} agregada");
                     }
                 }
 
@@ -271,56 +306,131 @@ namespace SistemaKyoGroup.DAL.Repository
                 var bajasSub = existente.RecetasSubReceta.Where(x => !idsSubEntrantes.Contains(x.IdSubReceta)).ToList();
                 if (bajasSub.Count > 0)
                 {
+                    foreach (var b in bajasSub)
+                        cambios.Add($"Subreceta quitada (Id {b.IdSubReceta})");
                     _dbcontext.RecetasSubRecetas.RemoveRange(bajasSub);
                     hayCambios = true;
                 }
 
-                if (hayCambios && (model.IdUsuarioModifica ?? 0) > 0)
+                if (!hayCambios)
                 {
-                    if (entry.Properties.Any(p => p.Metadata.Name == nameof(Receta.IdUsuarioModifica)))
-                        existente.IdUsuarioModifica = model.IdUsuarioModifica;
-                    if (entry.Properties.Any(p => p.Metadata.Name == nameof(Receta.FechaModifica)))
-                        existente.FechaModifica = DateTime.Now;
+                    await tx.CommitAsync();
+                    return (true, "Sin cambios para guardar.");
                 }
+
+                existente.FechaActualizacion = DateTime.Now;
+                existente.IdUsuarioModifica = model.IdUsuarioModifica;
+                existente.FechaModifica = DateTime.Now;
+
+                var uid = model.IdUsuarioModifica ?? existente.IdUsuarioRegistra;
+                var usuarioNombre = await _dbcontext.Usuarios.AsNoTracking()
+                    .Where(u => u.Id == uid)
+                    .Select(u => u.Usuario)
+                    .FirstOrDefaultAsync();
+
+                RecetaHistorialHelper.Agregar(
+                    _dbcontext,
+                    RecetaHistorialHelper.TipoReceta,
+                    model.Id,
+                    "Modificacion",
+                    $"Modificación de receta \"{existente.Descripcion}\"",
+                    string.Join(" | ", cambios),
+                    uid,
+                    usuarioNombre);
 
                 await _dbcontext.SaveChangesAsync();
                 await tx.CommitAsync();
-                return true;
+                return (true, "Receta actualizada correctamente.");
             }
-            catch
+            catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return false;
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                return (false, "No se pudo actualizar la Receta: " + msg);
             }
         }
 
         /* ============================================================
          * ELIMINAR
          * ============================================================ */
-        public async Task<bool> Eliminar(int id)
+        public async Task<DeleteResult> Eliminar(int id, bool cascade = false)
         {
             await using var tx = await _dbcontext.Database.BeginTransactionAsync();
             try
             {
-                var subRecetas = await _dbcontext.RecetasSubRecetas.Where(s => s.IdReceta == id).ToListAsync();
-                if (subRecetas.Count > 0) _dbcontext.RecetasSubRecetas.RemoveRange(subRecetas);
+                var ventasRefs = await _dbcontext.ImportacionesRecetas
+                    .Where(x => x.IdReceta == id)
+                    .Select(x => x.Id)
+                    .ToListAsync();
 
+                if (!cascade && ventasRefs.Count > 0)
+                {
+                    return DeleteResult.Relacion(
+                        "No se puede eliminar la Receta porque está vinculada a importaciones de ventas.",
+                        new[]
+                        {
+                            new DeleteDependencia
+                            {
+                                Entidad = "Ventas (importaciones)",
+                                Cantidad = ventasRefs.Count,
+                                Detalle = "Se desvinculará de las líneas de importación",
+                                Cascadeable = true
+                            }
+                        },
+                        cascadeDisponible: true);
+                }
+
+                if (cascade && ventasRefs.Count > 0)
+                {
+                    var rows = await _dbcontext.ImportacionesRecetas
+                        .Where(x => x.IdReceta == id)
+                        .ToListAsync();
+                    foreach (var row in rows)
+                        row.IdReceta = null;
+                }
+
+                var subRecetas = await _dbcontext.RecetasSubRecetas.Where(s => s.IdReceta == id).ToListAsync();
                 var insumos = await _dbcontext.RecetasInsumos.Where(i => i.IdReceta == id).ToListAsync();
+                var uns = await _dbcontext.RecetasUnidadesNegocios.Where(u => u.IdReceta == id).ToListAsync();
+
+                if (subRecetas.Count > 0) _dbcontext.RecetasSubRecetas.RemoveRange(subRecetas);
                 if (insumos.Count > 0) _dbcontext.RecetasInsumos.RemoveRange(insumos);
+                if (uns.Count > 0) _dbcontext.RecetasUnidadesNegocios.RemoveRange(uns);
 
                 var cab = await _dbcontext.Recetas.FirstOrDefaultAsync(c => c.Id == id);
-                if (cab == null) { await tx.RollbackAsync(); return false; }
+                if (cab == null)
+                    return DeleteResult.NotFound("la Receta");
+
+                var desc = cab.Descripcion;
+                var uid = cab.IdUsuarioModifica ?? cab.IdUsuarioRegistra;
+                var usuarioNombre = await _dbcontext.Usuarios.AsNoTracking()
+                    .Where(u => u.Id == uid)
+                    .Select(u => u.Usuario)
+                    .FirstOrDefaultAsync();
+
+                RecetaHistorialHelper.Agregar(
+                    _dbcontext,
+                    RecetaHistorialHelper.TipoReceta,
+                    id,
+                    "Eliminacion",
+                    cascade
+                        ? $"Eliminación en cascada de receta \"{desc}\""
+                        : $"Eliminación de receta \"{desc}\"",
+                    $"Insumos eliminados: {insumos.Count}. Subrecetas eliminadas: {subRecetas.Count}.",
+                    uid > 0 ? uid : 1,
+                    usuarioNombre);
 
                 _dbcontext.Recetas.Remove(cab);
 
                 await _dbcontext.SaveChangesAsync();
                 await tx.CommitAsync();
-                return true;
+                return DeleteResult.Success("Receta eliminada correctamente.");
             }
-            catch
+            catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return false;
+                return DeleteResult.Error(
+                    "Error inesperado al eliminar la Receta: " + (ex.InnerException?.Message ?? ex.Message));
             }
         }
 
@@ -351,24 +461,22 @@ namespace SistemaKyoGroup.DAL.Repository
             return await Task.FromResult(_dbcontext.Recetas.AsNoTracking());
         }
 
-        /* ============================================================
-         * OBTENER TODOS POR UNIDAD (con -1 = solo las permitidas)
-         * ============================================================ */
         public async Task<IQueryable<Receta>> ObtenerTodosUnidadNegocio(int idUnidadNegocio, int userId)
         {
             try
             {
-                // Base: excluir Recetas sin unidad (null o 0)
                 var baseQuery = _dbcontext.Recetas
                     .AsNoTracking()
+                    .Include(r => r.IdCategoriaNavigation)
+                    .Include(r => r.IdUnidadMedidaNavigation)
+                    .Include(r => r.IdUnidadNegocioNavigation)
+                    .Include(r => r.IdUsuarioRegistraNavigation)
+                    .Include(r => r.IdUsuarioModificaNavigation)
                     .Where(r => r.IdUnidadNegocio > 0);
 
-                // Unidad puntual: mantener comportamiento original
                 if (idUnidadNegocio != -1)
                     return await Task.FromResult(baseQuery.Where(r => r.IdUnidadNegocio == idUnidadNegocio));
 
-
-                // Ids de unidades asignadas al usuario
                 var idsPermitidos = await _dbcontext.UsuariosUnidadesNegocios
                     .AsNoTracking()
                     .Where(x => x.IdUsuario == userId)
@@ -388,9 +496,12 @@ namespace SistemaKyoGroup.DAL.Repository
             }
         }
 
-        /* ============================================================
-         * INSUMOS
-         * ============================================================ */
+        public Task<bool> InsertarInsumos(List<RecetasInsumo> insumos)
+            => throw new NotImplementedException();
+
+        public Task<bool> ActualizarInsumos(List<RecetasInsumo> insumos)
+            => throw new NotImplementedException();
+
         public async Task<List<RecetasInsumo>> ObtenerInsumos(int idReceta)
         {
             try
@@ -405,35 +516,6 @@ namespace SistemaKyoGroup.DAL.Repository
             {
                 return null;
             }
-        }
-
-        public Task<bool> InsertarInsumos(List<RecetasInsumo> insumos)
-            => throw new NotImplementedException();
-
-        public Task<bool> ActualizarInsumos(List<RecetasInsumo> insumos)
-            => throw new NotImplementedException();
-
-        /* ============================================================
-         * Helpers
-         * ============================================================ */
-        private int? GetCurrentUserId()
-        {
-            try
-            {
-                var user = _httpContextAccessor?.HttpContext?.User;
-                if (user?.Identity?.IsAuthenticated != true) return null;
-
-                // Busca en varios claim types comunes
-                var idStr =
-                    user.FindFirst("Id")?.Value ??
-                    user.FindFirst("id")?.Value ??
-                    user.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-                    user.FindFirst("sub")?.Value;
-
-                if (int.TryParse(idStr, out var id)) return id;
-                return null;
-            }
-            catch { return null; }
         }
     }
 }

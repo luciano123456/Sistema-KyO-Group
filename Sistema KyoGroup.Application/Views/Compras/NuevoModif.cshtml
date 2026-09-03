@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewBag.Title = "Nueva / Editar Compra";
 }
 <title>@ViewBag.Title</title>
@@ -10,64 +10,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
 
-    <!-- SKIN general -->
-    <link href="~/css/disenopantallas.css?v=1.0" rel="stylesheet" />
-    <link href="~/css/OrdenesCompraNuevoModif.css" rel="stylesheet" />
-    <link href="~/css/ComprasNuevoModif.css" rel="stylesheet" />
-
-    <style>
-
-        /* ======= ACORDEON COMPARATIVO ======= */
-
-        .cmp-accordion {
-            border-radius: 12px;
-            overflow: hidden;
-            margin-top: 25px;
-            border: 1px solid var(--panel-border);
-            background: var(--panel);
-            transition: all .25s ease;
-        }
-
-        .cmp-accordion-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 18px;
-            cursor: pointer;
-            user-select: none;
-        }
-
-            .cmp-accordion-header.ok {
-                background: #1f7a35cc;
-                color: #fff;
-            }
-
-            .cmp-accordion-header.alerta {
-                background: #b73535e6;
-                color: #fff;
-            }
-
-            .cmp-accordion-header i {
-                transition: transform .25s ease;
-            }
-
-            .cmp-accordion-header.abierto i {
-                transform: rotate(180deg);
-            }
-
-        .cmp-accordion-body {
-            padding: 15px 20px;
-            display: none;
-            background: var(--panel-alt);
-            border-top: 1px solid var(--panel-border);
-        }
-
-            .cmp-accordion-body ul {
-                margin: 0;
-                padding-left: 20px;
-            }
-
-    </style>
+    <link href="~/css/OrdenesCompraNuevoModif.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/ComprasNuevoModif.css" rel="stylesheet" asp-append-version="true" />
 }
 
 <header class="cc-kpi cc-card cc-container-xxl">
@@ -98,11 +42,11 @@
 
             <div class="form-group">
                 <label class="form-label">Orden de Compra</label>
-                <select id="OrdenCompraSelect" class="form-select" data-required="true">
+                <select id="OrdenCompraSelect" class="form-select s2-custom" data-s2-skip data-required="true">
                     <option value="" disabled selected>Seleccionar una Orden Pendiente...</option>
                 </select>
                 <div class="invalid-feedback d-none">Campo requerido</div>
-                <small class="text-muted-cc">Solo órdenes en estado <strong>Pendiente</strong>.</small>
+                <small class="text-muted-cc">Solo Órdenes en estado <strong>Pendiente</strong>.</small>
             </div>
 
             <div class="form-group">
@@ -222,10 +166,7 @@
 </main>
 
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+    <partial name="~/Views/Shared/Partials/DataTablesCoreScripts.cshtml" />
     <script src="~/js/cc.validators.js?v=1.0"></script>
 
     <script>
@@ -233,6 +174,5 @@
         var IdOrdenCompraInicial = @Html.Raw(Json.Serialize(ViewBag.IdOrdenCompra ?? 0));
     </script>
 
-    <script src="~/js/ComprasNuevoModif.js?v=1.0"></script>
-    <script src="~/js/site.js"></script>
+    <script src="~/js/ComprasNuevoModif.js?v=1.1"></script>
 }

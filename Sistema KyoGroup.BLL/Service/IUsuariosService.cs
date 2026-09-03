@@ -1,10 +1,12 @@
-﻿using SistemaKyoGroup.Models;
+﻿using SistemaKyoGroup.DAL.Grid;
+using SistemaKyoGroup.Models;
+using SistemaKyoGroup.Models.Common;
 
 namespace SistemaKyoGroup.BLL.Service
 {
     public interface IUsuariosService
     {
-        Task<bool> Eliminar(int id);
+        Task<DeleteResult> Eliminar(int id, bool cascade = false);
         Task<bool> Actualizar(User model);
         Task<bool> Insertar(User model);
 
@@ -12,6 +14,7 @@ namespace SistemaKyoGroup.BLL.Service
         Task<User> ObtenerUsuario(string usuario);
 
         Task<IQueryable<User>> ObtenerTodos();
+        Task<GridResult<User>> ListarPaginado(GridQuery query);
 
         Task<IList<UsuariosUnidadesNegocio>> ObtenerUnidadesDeUsuario(int idUsuario);
         Task<IList<UsuariosLocal>> ObtenerLocalesDeUsuario(int idUsuario);

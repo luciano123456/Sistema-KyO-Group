@@ -1,0 +1,140 @@
+@{
+    Layout = "_LayoutModulo";
+    ViewData["Title"] = "Cuentas Corrientes - Proveedores";
+}
+
+@section Estilos {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="~/css/ProveedoresGestion.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/ProveedoresCuentaCorriente.css" asp-append-version="true" />
+}
+
+<div class="container-fluid page-99 pg-cc-page">
+    <!-- Header -->
+    <div class="cc-header shadow-lg rounded-4 p-4 mb-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="d-flex align-items-center gap-3">
+                <span class="cc-badge"><i class="fa fa-exchange"></i></span>
+                <div>
+                    <h2 class="m-0 fw-800">Cuentas Corrientes</h2>
+                    <small class="text-muted-cc">Saldos y movimientos por proveedor</small>
+                </div>
+            </div>
+            <div class="ms-auto d-flex gap-3 flex-wrap" id="pccKpiRow">
+                <div class="cc-stat">
+                    <div class="label">Proveedor</div>
+                    <div class="value pg-cc-kpi-name" id="pccKpiProveedor">—</div>
+                </div>
+                <div class="cc-stat">
+                    <div class="label">Saldo anterior</div>
+                    <div class="value" id="pccKpiSaldoAnterior">—</div>
+                </div>
+                <div class="cc-stat">
+                    <div class="label">Debe período</div>
+                    <div class="value" id="pccKpiDebe">—</div>
+                </div>
+                <div class="cc-stat">
+                    <div class="label">Haber período</div>
+                    <div class="value" id="pccKpiHaber">—</div>
+                </div>
+                <div class="cc-stat">
+                    <div class="label">Saldo actual</div>
+                    <div class="value" id="pccKpiSaldoActual">—</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Master-detail -->
+    <div class="row g-3 pg-cc-layout">
+        <!-- Master: lista proveedores -->
+        <div class="col-lg-4 col-xl-3">
+            <div class="card-glass pg-cc-master">
+                <div class="pg-cc-master-head">
+                    <h6 class="m-0 fw-bold"><i class="fa fa-truck me-2"></i>Proveedores</h6>
+                </div>
+                <div class="p-3 border-bottom pg-cc-master-filters">
+                    <label class="pg-cc-field-label" for="pccBuscar">Buscar</label>
+                    <div class="pg-cc-search-wrap">
+                        <i class="fa fa-search" aria-hidden="true"></i>
+                        <input type="text" id="pccBuscar" class="form-control form-control-sm" placeholder="Nombre o CUIT..." autocomplete="off" />
+                    </div>
+                    <div class="form-check pg-cc-check">
+                        <input class="form-check-input" type="checkbox" id="pccSoloConSaldo" />
+                        <label class="form-check-label" for="pccSoloConSaldo">Solo con saldo</label>
+                    </div>
+                </div>
+                <div class="pg-cc-proveedor-list" id="pccListaProveedores">
+                    <div class="pg-cc-empty text-muted-cc p-3 text-center">Cargando...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail: movimientos -->
+        <div class="col-lg-8 col-xl-9">
+            <div class="card-glass pg-cc-detail">
+                <div class="pg-cc-detail-head">
+                    <div class="pg-cc-detail-title-row">
+                        <div class="pg-cc-detail-title-icon" aria-hidden="true">
+                            <i class="fa fa-list-alt"></i>
+                        </div>
+                        <div>
+                            <h6 class="m-0 fw-bold" id="pccDetalleTitulo">Seleccione un proveedor</h6>
+                            <small class="pg-cc-detail-sub">Movimientos de la cuenta corriente</small>
+                        </div>
+                    </div>
+
+                    <div class="pg-cc-filters" role="search">
+                        <div class="pg-cc-filter-field">
+                            <label class="pg-cc-field-label" for="pccFechaDesde">Desde</label>
+                            <input type="date" id="pccFechaDesde" class="form-control form-control-sm" />
+                        </div>
+                        <div class="pg-cc-filter-field">
+                            <label class="pg-cc-field-label" for="pccFechaHasta">Hasta</label>
+                            <input type="date" id="pccFechaHasta" class="form-control form-control-sm" />
+                        </div>
+                        <div class="pg-cc-filter-field pg-cc-filter-field--tipo">
+                            <label class="pg-cc-field-label" for="pccTipoMov">Tipo</label>
+                            <select id="pccTipoMov" class="form-select form-select-sm">
+                                <option value="">Todos</option>
+                                <option value="COMPRA">Compra</option>
+                                <option value="PAGO">Pago</option>
+                            </select>
+                        </div>
+                        <div class="pg-cc-filter-actions">
+                            <button type="button" class="btn btn-primary pg-cc-btn-buscar" onclick="pccCargarMovimientos()">
+                                <i class="fa fa-search"></i>
+                                <span>Buscar</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-3">
+                    <div class="dt-dark-wrap">
+                        <table class="dt-dark display nowrap compact" id="grd_PccMovimientos" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Concepto</th>
+                                    <th>Debe</th>
+                                    <th>Haber</th>
+                                    <th>Saldo</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="~/Views/Utils/Modals.cshtml" />
+
+@section Scripts {
+    <partial name="~/Views/Shared/Partials/DataTablesCoreScripts.cshtml" />
+    <script src="~/js/ProveedoresCuentaCorriente.js" asp-append-version="true"></script>
+}

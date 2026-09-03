@@ -1,4 +1,5 @@
 ﻿using SistemaKyoGroup.Models;
+using SistemaKyoGroup.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace SistemaKyoGroup.BLL.Service
     {
         Task<bool> Insertar(OrdenesCompra model);
         Task<bool> Actualizar(OrdenesCompra model);
-        Task<(bool eliminado, string mensaje)> Eliminar(int id);
+        Task<DeleteResult> Eliminar(int id, bool cascade = false);
         Task<OrdenesCompra> Obtener(int id);
         Task<IQueryable<OrdenesCompra>> ObtenerTodos();
         Task<IQueryable<OrdenesCompra>> ObtenerPendientes();
@@ -24,10 +25,6 @@ namespace SistemaKyoGroup.BLL.Service
             int? idUsuario = null
         );
 
-        /// <summary>
-        /// Actualiza el IdEstado de las líneas de detalle de una OC,
-        /// usando un diccionario IdDetalleOC -> IdEstado.
-        /// </summary>
         Task ActualizarEstadosDetalle(int idOrdenCompra, IDictionary<int, int> estadosPorDetalle);
     }
 }

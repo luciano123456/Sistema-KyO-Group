@@ -1,0 +1,89 @@
+/* Widget de presencia: quién está en el mismo módulo */
+
+.rp-presence-dock {
+    position: fixed;
+    right: 1.15rem;
+    bottom: 5.5rem;
+    z-index: 10000120;
+    display: none;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.65rem 0.45rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(90, 70, 90, 0.14);
+    box-shadow: 0 10px 28px rgba(90, 70, 90, 0.18);
+    backdrop-filter: blur(8px);
+    max-width: min(22rem, calc(100vw - 2rem));
+    pointer-events: auto;
+}
+
+.rp-presence-dock.is-visible {
+    display: inline-flex;
+}
+
+.rp-presence-avatars {
+    display: flex;
+    align-items: center;
+    flex-direction: row-reverse;
+    padding-left: 0.35rem;
+}
+
+.rp-presence-avatars .rp-avatar-circle {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+    margin-left: -0.45rem;
+    border: 2px solid #fff;
+    box-shadow: none;
+}
+
+.rp-presence-more {
+    width: 30px;
+    height: 30px;
+    margin-left: -0.45rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #fff;
+    background: #b9a7c4;
+    border: 2px solid #fff;
+}
+
+.rp-presence-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.15;
+}
+
+.rp-presence-meta strong {
+    font-size: 0.78rem;
+    color: var(--kyo-text, #3d3548);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.rp-presence-meta span {
+    font-size: 0.68rem;
+    color: var(--kyo-text-muted, #7a7088);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 9.5rem;
+}
+
+@media (max-width: 575.98px) {
+    .rp-presence-dock {
+        right: 0.65rem;
+        bottom: 4.75rem;
+        padding: 0.4rem 0.55rem;
+    }
+
+    .rp-presence-meta span {
+        max-width: 7rem;
+    }
+}

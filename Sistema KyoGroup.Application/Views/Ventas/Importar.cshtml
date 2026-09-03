@@ -1,0 +1,130 @@
+@{
+    Layout = "_LayoutModulo";
+    ViewData["Title"] = "Importar ventas";
+}
+
+@section Estilos {
+    <link rel="stylesheet" href="~/css/Ventas.css" asp-append-version="true" />
+}
+
+<div class="container page-99 vt-page vt-import">
+    <header class="vt-hero">
+        <div class="vt-hero-glow vt-hero-glow--rose"></div>
+        <div class="vt-hero-glow vt-hero-glow--sage"></div>
+        <div class="vt-hero-inner">
+            <div class="vt-hero-left">
+                <a href="@Url.Action("Index", "Ventas")" class="btn btn-sm btn-outline-secondary vt-back-btn" title="Volver">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+                <span class="vt-hero-icon"><i class="fa fa-upload"></i></span>
+                <div>
+                    <h1 class="vt-hero-title">Importar ventas</h1>
+                    <p class="vt-hero-sub">Maxi Rest RankingVentas — subí, revisá y confirmá antes de guardar</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="vt-steps" id="vtSteps">
+        <div class="vt-step is-active" data-step="1"><span class="vt-step-num">1</span> Subí el Excel</div>
+        <div class="vt-step" data-step="2"><span class="vt-step-num">2</span> Revisá local, fecha y líneas</div>
+        <div class="vt-step" data-step="3"><span class="vt-step-num">3</span> Confirmá la importación</div>
+    </div>
+
+    <div class="card-glass vt-drop-zone" id="vtDropZone">
+        <div class="vt-drop-inner">
+            <div class="vt-drop-icon"><i class="fa fa-file-excel-o"></i></div>
+            <p class="vt-drop-title">Arrastrá uno o varios Excel (.xlsx / .xlsm)</p>
+            <p class="vt-drop-hint">Se leen empresa, informe y fecha del archivo. El local se sugiere por el nombre. Vos figurás como usuario de la importación.</p>
+            <input type="file" id="vtFiles" accept=".xlsx,.xlsm" multiple hidden />
+            <button type="button" class="btn btn-new" id="btnElegirArchivos">
+                <i class="fa fa-folder-open me-1"></i> Elegir archivos
+            </button>
+        </div>
+    </div>
+
+    <div id="vtPreviewHost" class="d-none"></div>
+
+    <div class="vt-confirm-bar d-none" id="vtConfirmBar">
+        <div class="vt-confirm-shell">
+            <div class="vt-confirm-replace d-none" id="vtReplacePanel" aria-hidden="true">
+                <div class="vt-confirm-replace-icon"><i class="fa fa-exclamation-triangle"></i></div>
+                <div class="vt-confirm-replace-body">
+                    <strong>Ya hay ventas para ese local y fecha</strong>
+                    <p>Si confirmás, se actualiza la importación anterior con estos datos.</p>
+                    <label class="vt-replace-toggle" for="chkReemplazar">
+                        <input type="checkbox" id="chkReemplazar" checked disabled />
+                        <span>Se actualiza automáticamente si ya existe</span>
+                    </label>
+                </div>
+            </div>
+            <div class="vt-confirm-inner">
+                <div class="vt-confirm-summary" id="vtConfirmSummary">
+                    <div class="vt-confirm-chip"><span class="lbl">Archivos</span><span class="num" id="sumArchivos">0</span></div>
+                    <div class="vt-confirm-chip"><span class="lbl">Líneas</span><span class="num" id="sumLineas">0</span></div>
+                    <div class="vt-confirm-chip"><span class="lbl">Con receta</span><span class="num" id="sumVinculadas">0</span></div>
+                    <div class="vt-confirm-chip vt-confirm-chip--money"><span class="lbl">Total venta</span><span class="num" id="sumVenta">$0</span></div>
+                </div>
+                <button type="button" class="btn btn-new vt-confirm-cta" id="btnConfirmarImport">
+                    <i class="fa fa-check me-1"></i> Confirmar importación
+                </button>
+            </div>
+            <div class="vt-confirm-result" id="vtConfirmResult"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal rubros faltantes -->
+<div class="modal fade kyo-modal-system kyo-modal-system--confirm" id="modalRubrosFaltantes" tabindex="-1" aria-labelledby="modalRubrosFaltantesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-edicion">
+        <div class="modal-content cc-modal">
+            <div class="modal-header cc-modal-header">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="vt-modal-icon"><i class="fa fa-tags"></i></span>
+                    <div>
+                        <h5 class="modal-title mb-0" id="modalRubrosFaltantesLabel">Rubros sin alta</h5>
+                        <small class="text-muted" id="modalRubrosFaltantesSub">Hay rubros del Excel que no existen en el sistema</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="kyo-modal-msg mb-3" id="modalRubrosFaltantesMsg">
+                    Estos rubros no están cargados. Si continuás, se crean en Configuraciones y después se importan las ventas.
+                </p>
+                <div class="vt-rubros-faltantes-list" id="modalRubrosFaltantesList"></div>
+            </div>
+            <div class="modal-footer cc-modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" id="btnRubrosCancelar">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-new" id="btnRubrosCrearImportar">
+                    <i class="fa fa-plus-circle me-1"></i> Crear rubros e importar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal aviso genérico importación -->
+<div class="modal fade kyo-modal-system kyo-modal-system--warn" id="modalVtAviso" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content cc-modal">
+            <div class="modal-header cc-modal-header">
+                <h5 class="modal-title" id="modalVtAvisoTitle">Atención</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="kyo-modal-msg mb-0" id="modalVtAvisoMsg"></p>
+            </div>
+            <div class="modal-footer cc-modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" id="btnVtAvisoNo">Cancelar</button>
+                <button type="button" class="btn btn-new" id="btnVtAvisoSi">Continuar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/VentasImportar.js" asp-append-version="true"></script>
+}

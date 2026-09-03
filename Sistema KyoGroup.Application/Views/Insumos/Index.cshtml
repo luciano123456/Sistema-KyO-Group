@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Home Page";
 }
 
@@ -7,8 +7,7 @@
     <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" />
     <link href="https://cdn.datatables.net/fixedheader/3.2.2/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link href="~/css/insumos.css?v=1.0" rel="stylesheet" />
-    <link href="~/css/disenopantallas.css?v=1.0" rel="stylesheet" />
+    <link href="~/css/Insumos.css" asp-append-version="true" rel="stylesheet" />
 }
 
 <div class="container page-99">
@@ -37,7 +36,7 @@
             <div class="card-glass p-3">
                 <div class="tabla-wrap position-relative">
 
-                    <!-- ContRoles top (botón Nuevo, toggle filtros, config columnas) -->
+                    <!-- Controles top (botón Nuevo, toggle filtros, config columnas) -->
                     <div class="tabla-contRoles-top d-flex gap-2 flex-wrap align-items-center">
                         <button class="btn btn-new d-flex align-items-center px-3 py-2" onclick="nuevoInsumo()">
                             <i class="fa fa-plus-square me-2"></i> Nuevo
@@ -48,13 +47,7 @@
                             <i class="fa fa-arrow-down me-2" id="iconFiltrosI"></i> Filtros
                         </button>
 
-                        <div class="dropdown">
-                            <button class="btn btn-secondary dropdown-toggle d-flex align-items-center" type="button" id="dropdownColumnas"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fa fa-cog me-2"></i> Config. Columnas
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="dropdownColumnas" id="configColumnasMenu"></ul>
-                        </div>
+                        <partial name="~/Views/Shared/Partials/GridColumnConfigDropdown.cshtml" />
                     </div>
 
                     <!-- Panel de filtros -->
@@ -82,10 +75,11 @@
 
                     <!-- DataTable -->
                     <div class="dt-dark-wrap">
-                        <table class="dt-dark display nowrap compact" id="grd_Insumos" style="width:100%">
+                        <table class="dt-dark display nowrap compact" id="grd_Insumos" data-dt-row-select="multi" style="width:100%">
                             <thead>
                                 <tr>
                                     <th></th>
+                                    <th>Id</th>
                                     <th>Descripcion</th>
                                     <th>Fecha Actualizacion</th>
                                     <th>Sku</th>
@@ -110,53 +104,82 @@
 
 <!-- Modal Proveedores Asignados -->
 <div class="modal fade" id="modalProveedoresAsignados" tabindex="-1" aria-labelledby="modalProveedoresAsignadosLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header colorEncabezado">
-                <h5 class="modal-title text-white" id="modalProveedoresAsignadosLabel">Proveedores Asignados</h5>
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content pa-modal">
+            <div class="modal-header pa-modal__header">
+                <div class="pa-modal__title-wrap">
+                    <span class="pa-modal__icon"><i class="fa fa-link"></i></span>
+                    <div>
+                        <h5 class="modal-title mb-0" id="modalProveedoresAsignadosLabel">Proveedores asignados</h5>
+                        <small class="pa-modal__subtitle">Elegí ítems de lista para vincular a este insumo</small>
+                    </div>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <div class="modal-body">
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label text-white">Filtro de descripción</label>
-                        <input type="text" class="form-control" id="filtroDescripcionProveedor" onkeyup="filtrarTablaProveedor()">
+            <div class="modal-body pa-modal__body">
+                <div class="pa-toolbar">
+                    <div class="pa-search">
+                        <i class="fa fa-search"></i>
+                        <input type="text" id="filtroDescripcionProveedor" placeholder="Buscar descripción…" oninput="filtrarTablaProveedor()">
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label text-white">Filtro de código</label>
-                        <input type="text" class="form-control" id="filtroCodigoProveedor" onkeyup="filtrarTablaProveedor()">
+                    <div class="pa-search">
+                        <i class="fa fa-barcode"></i>
+                        <input type="text" id="filtroCodigoProveedor" placeholder="Código…" oninput="filtrarTablaProveedor()">
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label text-white">Filtro de proveedor</label>
-                        <input type="text" class="form-control" id="filtroProveedor" onkeyup="filtrarTablaProveedor()">
+                    <div class="pa-search">
+                        <i class="fa fa-truck"></i>
+                        <input type="text" id="filtroProveedor" placeholder="Proveedor…" oninput="filtrarTablaProveedor()">
+                    </div>
+                    <div class="pa-stats">
+                        <span class="pa-stat" title="Visibles">
+                            <i class="fa fa-eye"></i> <strong id="paVisibleCount">0</strong>
+                        </span>
+                        <span class="pa-stat pa-stat--ok" title="Seleccionados">
+                            <i class="fa fa-check-square-o"></i> <strong id="paSelectedCount">0</strong>
+                        </span>
                     </div>
                 </div>
 
-                <table class="table table-bordered table-striped" id="tablaProveedoresAsignados">
-                    <thead>
-                        <tr>
-                            <th>Proveedor</th>
-                            <th>Descripcion</th>
-                            <th>Código</th>
-                            <th>Asignado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- contenido dinámico -->
-                    </tbody>
-                </table>
+                <div class="pa-table-wrap">
+                    <table class="table pa-table" id="tablaProveedoresAsignados">
+                        <thead>
+                            <tr>
+                                <th style="width:22%">Proveedor</th>
+                                <th>Descripción</th>
+                                <th style="width:14%">Código</th>
+                                <th style="width:12%" class="text-center">
+                                    <label class="pa-check-all mb-0" title="Marcar / desmarcar visibles">
+                                        <input type="checkbox" id="paCheckAllVisible" onchange="toggleAsignacionesVisibles(this.checked)">
+                                        <span>Asignar</span>
+                                    </label>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- contenido dinámico -->
+                        </tbody>
+                    </table>
+                    <div id="paEmptyState" class="pa-empty d-none">
+                        <i class="fa fa-search"></i>
+                        <p>No hay resultados con esos filtros.</p>
+                    </div>
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" onclick="guardarAsignacionesProveedores()">Guardar</button>
+            <div class="modal-footer pa-modal__footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fa fa-times"></i> Cerrar
+                </button>
+                <button type="button" class="btn btn-primary" id="btnGuardarAsignaciones" onclick="guardarAsignacionesProveedores()">
+                    <i class="fa fa-check"></i> Aplicar selección
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Modal Edición Insumo -->
-<div class="modal fade" id="modalEdicion" tabindex="-1" Rol="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-edicion" Rol="document">
+<div class="modal fade" id="modalEdicion" tabindex="-1" role="dialog" aria-labelledby="modalEdicionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-edicion" role="document">
         <div class="modal-content">
 
             <div class="modal-header colorEncabezado">
@@ -190,10 +213,14 @@
                         <label for="UnidadesMedida" class="form-label lblDescripcion">Unidad de Medida</label>
 
                         <div class="input-group input-plus">
-                            <select id="UnidadesMedida" class="form-select">
+                            <select id="UnidadesMedida" class="form-select"
+                                    data-s2-config-nombre="Unidades de Medida"
+                                    data-s2-config-controller="UnidadesMedida"
+                                    data-s2-config-reload="/UnidadesMedida/Lista"
+                                    data-s2-config-title="Nueva unidad de medida">
                                 <option value="-1" selected disabled>Seleccionar</option>
                             </select>
-                            <button type="button" id="btnAddUM" class="btn btn-plus" title="Nueva unidad">
+                            <button type="button" class="btn btn-plus" title="Nueva unidad">
                                 <i class="fa fa-plus"></i>
                             </button>
                         </div>
@@ -222,11 +249,15 @@
                         <label for="Categorias" class="form-label lblDescripcion">Categoria</label>
 
                         <div class="input-group input-plus">
-                            <select id="Categorias" class="form-select">
+                            <select id="Categorias" class="form-select"
+                                    data-s2-config-nombre="Insumos Categorias"
+                                    data-s2-config-controller="InsumosCategoria"
+                                    data-s2-config-reload="/InsumosCategoria/Lista"
+                                    data-s2-config-title="Nueva categoria">
                                 <option value="-1" selected disabled>Seleccionar</option>
                             </select>
 
-                            <button type="button" id="btnAddCategoria" class="btn btn-plus" title="Nueva categoría">
+                            <button type="button" class="btn btn-plus" title="Nueva categoria">
                                 <i class="fa fa-plus"></i>
                             </button>
                         </div>
@@ -249,6 +280,7 @@
                 </button>
                 <button type="button" class="btn btn-outline-primary" onclick="abrirModalProveedoresAsignados()">
                     <i class="fa fa-link"></i> Vincular
+                    <span id="badgeProveedoresAsignados" class="badge rounded-pill ms-1 d-none">0</span>
                 </button>
                 <button type="button" id="btnGuardar" class="btn btn-primary" onclick="guardarCambios()">
                     <i class="fa fa-check"></i> Registrar
@@ -262,36 +294,8 @@
 <partial name="~/Views/Utils/Modals.cshtml" />
 
 @section Scripts {
-
-    <!-- CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-
-@*SCRIPTS DE BOTONES*@
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js">
-
-    </script><script src="~/js/site.js"></script>
-
-@*excel*@
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-
-@*pdf*@
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-
-@*imprimir*@
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
-
-@*filter columns*@
-    <script src="https://cdn.datatables.net/fixedheader/3.2.2/js/dataTables.fixedHeader.min.js"></script>
-
+    <partial name="~/Views/Shared/Partials/DataTablesCoreScripts.cshtml" />
+    <script src="~/js/Insumos.js" asp-append-version="true"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/locale/es.js"></script>
-
-    <script src="~/js/Insumos.js?v=1.3"></script>
-
 }

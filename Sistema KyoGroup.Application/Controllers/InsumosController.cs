@@ -1,11 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaKyoGroup.Application.Extensions;
+using SistemaKyoGroup.Application.Helpers;
 using SistemaKyoGroup.Application.Models;
 using SistemaKyoGroup.Application.Models.ViewModels;
+using SistemaKyoGroup.BLL.Common;
 using SistemaKyoGroup.BLL.Service;
+using SistemaKyoGroup.DAL.Grid;
 using SistemaKyoGroup.Models;
 using System.Diagnostics;
+using System.Linq;
 
 namespace SistemaKyoGroup.Application.Controllers
 {
@@ -31,17 +35,20 @@ namespace SistemaKyoGroup.Application.Controllers
         {
             try
             {
-                var insumos = await _InsumosService.ObtenerTodos();
+                var insumos = await _InsumosService.ObtenerPorUnidadNegocio(IdUnidadNegocio);
 
                 var lista = insumos
-                    .Where(c => IdUnidadNegocio == -1 || c.InsumosUnidadesNegocios.Any(u => u.IdUnidadNegocio == IdUnidadNegocio))
                     .ToList()
                     .Select(c =>
                     {
-                        var proveedorMasBarato = c.InsumosProveedores
-                            .Where(p => p.IdListaProveedorNavigation != null && p.IdListaProveedorNavigation.IdProveedorNavigation != null)
+                        var proveedoresConPrecio = c.InsumosProveedores
+                            .Where(p => p.IdListaProveedorNavigation != null
+                                        && p.IdListaProveedorNavigation.IdProveedorNavigation != null
+                                        && p.IdListaProveedorNavigation.CostoUnitario > 0)
                             .OrderBy(p => p.IdListaProveedorNavigation.CostoUnitario)
-                            .FirstOrDefault();
+                            .ToList();
+
+                        var proveedorMasBarato = proveedoresConPrecio.FirstOrDefault();
 
                         return new VMInsumo
                         {
@@ -59,7 +66,7 @@ namespace SistemaKyoGroup.Application.Controllers
                             ProveedorDestacado = proveedorMasBarato?.IdListaProveedorNavigation?.IdProveedorNavigation?.Nombre ?? "",
                             CostoUnitario = proveedorMasBarato?.IdListaProveedorNavigation?.CostoUnitario ?? 0,
                             PrecioLista = proveedorMasBarato?.IdListaProveedorNavigation?.CostoUnitario ?? 0,
-                            CantidadProveedores = c.InsumosProveedores?.Count ?? 0,
+                            CantidadProveedores = proveedoresConPrecio.Count,
                             IdProveedorLista = proveedorMasBarato?.IdListaProveedorNavigation?.Id ?? 0,
                             IdUsuarioRegistra = (int)c.IdUsuarioRegistra,
                             FechaRegistra = (DateTime)c.FechaRegistra,
@@ -69,6 +76,8 @@ namespace SistemaKyoGroup.Application.Controllers
                             UsuarioModifica = c.IdUsuarioModificaNavigation != null ? c.IdUsuarioModificaNavigation.Usuario : null
                         };
                     })
+                    // Recetas/SubRecetas: solo insumos con proveedor y precio > 0
+                    .Where(x => x.CostoUnitario > 0 && x.IdProveedorLista > 0)
                     .ToList();
 
                 return Ok(lista);
@@ -80,14 +89,41 @@ namespace SistemaKyoGroup.Application.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> ListaPaginada(int IdUnidadNegocio = -1)
+        {
+            try
+            {
+                var draw = DataTablesRequestHelper.GetDraw(Request);
+                var grid = DataTablesRequestHelper.Parse(Request);
+                var result = await _InsumosService.ListarPaginado(IdUnidadNegocio, grid);
+                var data = result.Items.Select(c => InsumoVmMapper.ToViewModel(c)).ToList();
+                return Ok(new
+                {
+                    draw,
+                    recordsTotal = result.Total,
+                    recordsFiltered = result.Filtered,
+                    data
+                });
+            }
+            catch
+            {
+                return Ok(new { draw = 0, recordsTotal = 0, recordsFiltered = 0, data = Array.Empty<VMInsumo>() });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Kpis(int IdUnidadNegocio = -1)
+        {
+            var (total, sinProveedor) = await _InsumosService.ObtenerKpis(IdUnidadNegocio);
+            return Ok(new { total, sinProveedor });
+        }
+
+        [HttpGet]
         public async Task<IActionResult> ListaPorUnidadNegocio(int IdUnidadNegocio)
         {
             try
             {
-                // si querés que -1 signifique "todas", podés switchear al ObtenerTodos()
-                var insumos = (IdUnidadNegocio == -1)
-                    ? await _InsumosService.ObtenerTodos()
-                    : await _InsumosService.ObtenerPorUnidadNegocio(IdUnidadNegocio);
+                var insumos = await _InsumosService.ObtenerPorUnidadNegocio(IdUnidadNegocio);
 
                 var lista = insumos
                     .ToList()
@@ -142,9 +178,12 @@ namespace SistemaKyoGroup.Application.Controllers
                                  .Select(c =>
                                  {
                                      var proveedorActual = c.InsumosProveedores
-                                         .FirstOrDefault(p =>
-                                             p.IdListaProveedorNavigation != null &&
-                                             p.IdListaProveedorNavigation.IdProveedor == IdProveedor);
+                                         .Where(p =>
+                                             p.IdProveedor == IdProveedor ||
+                                             (p.IdListaProveedorNavigation != null &&
+                                              p.IdListaProveedorNavigation.IdProveedor == IdProveedor))
+                                         .OrderBy(p => p.IdListaProveedorNavigation?.CostoUnitario ?? 0)
+                                         .FirstOrDefault();
 
                                      return new VMInsumo
                                      {
@@ -160,7 +199,7 @@ namespace SistemaKyoGroup.Application.Controllers
                                          CostoUnitario = proveedorActual?.IdListaProveedorNavigation?.CostoUnitario ?? 0,
                                          PrecioLista = proveedorActual?.IdListaProveedorNavigation?.CostoUnitario ?? 0,
                                          CantidadProveedores = c.InsumosProveedores?.Count ?? 0,
-                                         IdProveedorLista = proveedorActual?.IdListaProveedorNavigation?.Id ?? 0
+                                         IdProveedorLista = proveedorActual?.IdListaProveedorNavigation?.Id ?? proveedorActual?.IdListaProveedor ?? 0
                                      };
                                  })
                                  .ToList();
@@ -180,16 +219,18 @@ namespace SistemaKyoGroup.Application.Controllers
             {
                 var insumos = await _InsumosService.ObtenerPorUnidadYProveedor(IdUnidadNegocio, IdProveedor);
 
+                // OC / compras: todos los vinculados al proveedor, con o sin precio (> 0)
                 var lista = insumos
                     .ToList()
                     .Select(c =>
                     {
                         var proveedorActual = c.InsumosProveedores
                             .Where(p =>
-                                p.IdListaProveedorNavigation != null &&
-                                p.IdListaProveedorNavigation.IdProveedor == IdProveedor
+                                p.IdProveedor == IdProveedor ||
+                                (p.IdListaProveedorNavigation != null &&
+                                 p.IdListaProveedorNavigation.IdProveedor == IdProveedor)
                             )
-                            .OrderBy(p => p.IdListaProveedorNavigation.CostoUnitario)
+                            .OrderByDescending(p => p.IdListaProveedorNavigation?.CostoUnitario ?? 0)
                             .FirstOrDefault();
 
                         return new VMInsumo
@@ -201,9 +242,11 @@ namespace SistemaKyoGroup.Application.Controllers
                             UnidadMedida = c.IdUnidadMedidaNavigation?.Nombre ?? "",
                             CostoUnitario = proveedorActual?.IdListaProveedorNavigation?.CostoUnitario ?? 0,
                             PrecioLista = proveedorActual?.IdListaProveedorNavigation?.CostoUnitario ?? 0,
-                            IdProveedorLista = proveedorActual?.IdListaProveedorNavigation?.Id ?? 0
+                            CantidadProveedores = 1,
+                            IdProveedorLista = proveedorActual?.IdListaProveedorNavigation?.Id ?? proveedorActual?.IdListaProveedor ?? 0
                         };
                     })
+                    .OrderBy(x => x.Descripcion)
                     .ToList();
 
                 return Ok(lista);
@@ -222,6 +265,18 @@ namespace SistemaKyoGroup.Application.Controllers
             try
             {
                 var userId = User.GetUserId();
+
+                var dup = await _InsumosService.BuscarDuplicado(model.Sku ?? "", model.Descripcion ?? "", 0);
+                if (dup != null)
+                {
+                    return Ok(new
+                    {
+                        valor = false,
+                        tipo = "duplicado",
+                        idReferencia = dup.Id,
+                        mensaje = $"Ya existe un insumo con el mismo SKU o descripción: {dup.Descripcion}."
+                    });
+                }
 
                 var entidad = new Insumo
                 {
@@ -254,6 +309,18 @@ namespace SistemaKyoGroup.Application.Controllers
             {
                 var userId = User.GetUserId();
 
+                var dup = await _InsumosService.BuscarDuplicado(model.Sku ?? "", model.Descripcion ?? "", model.Id);
+                if (dup != null)
+                {
+                    return Ok(new
+                    {
+                        valor = false,
+                        tipo = "duplicado",
+                        idReferencia = dup.Id,
+                        mensaje = $"Ya existe otro insumo con el mismo SKU o descripción: {dup.Descripcion}."
+                    });
+                }
+
                 var entidad = new Insumo
                 {
                     Id = model.Id,
@@ -279,55 +346,56 @@ namespace SistemaKyoGroup.Application.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Eliminar(int id)
+        public async Task<IActionResult> Eliminar(int id, bool cascade = false)
         {
-            try
-            {
-                var ok = await _InsumosService.Eliminar(id);
-                return Ok(new { valor = ok, mensaje = ok ? "Insumo eliminado correctamente" : "No se pudo eliminar el insumo" });
-            }
-            catch (Exception ex)
-            {
-                var msg = DbErrorHelper.FriendlyMessage(ex, "insumo");
-                return Ok(new { valor = false, mensaje = msg });
-            }
+            var sr = await DeleteOperationHelper.ExecuteDeleteAsync(
+                c => _InsumosService.Eliminar(id, c),
+                "el insumo",
+                cascade,
+                id);
+            return Ok(sr.ToEliminarJson());
         }
 
 
         [HttpGet]
         public async Task<IActionResult> EditarInfo(int id)
         {
-            var insumo = await _InsumosService.Obtener(id);
-            if (insumo == null) return NotFound();
-
-            var vm = new VMInsumo
+            try
             {
-                Id = insumo.Id,
-                Sku = insumo.Sku,
-                Descripcion = insumo.Descripcion,
-                IdCategoria = insumo.IdCategoria,
-                IdUnidadMedida = insumo.IdUnidadMedida,
-                FechaActualizacion = insumo.FechaActualizacion,
-                IdUsuarioRegistra = (int)insumo.IdUsuarioRegistra,
-                FechaRegistra = (DateTime)insumo.FechaRegistra,
-                IdUsuarioModifica = insumo.IdUsuarioModifica,
-                FechaModifica = insumo.FechaModifica,
-                UsuarioRegistra = insumo.IdUsuarioRegistraNavigation != null ? insumo.IdUsuarioRegistraNavigation.Usuario : null,
-                UsuarioModifica = insumo.IdUsuarioModificaNavigation != null ? insumo.IdUsuarioModificaNavigation.Usuario : null,
-                InsumosProveedores = insumo.InsumosProveedores.Select(p => new InsumosProveedor
-                {
-                    Id = p.Id,
-                    IdProveedor = p.IdProveedor,
-                    IdInsumo = p.IdInsumo,
-                    IdListaProveedor = p.IdListaProveedor
-                }).ToList(),
-                InsumosUnidadesNegocios = insumo.InsumosUnidadesNegocios.Select(u => new InsumosUnidadesNegocio
-                {
-                    IdUnidadNegocio = u.IdUnidadNegocio
-                }).ToList()
-            };
+                var insumo = await _InsumosService.Obtener(id);
+                if (insumo == null) return NotFound();
 
-            return Ok(vm);
+                return Ok(new
+                {
+                    Id = insumo.Id,
+                    Sku = insumo.Sku,
+                    Descripcion = insumo.Descripcion,
+                    IdCategoria = insumo.IdCategoria,
+                    IdUnidadMedida = insumo.IdUnidadMedida,
+                    FechaActualizacion = insumo.FechaActualizacion,
+                    IdUsuarioRegistra = insumo.IdUsuarioRegistra,
+                    FechaRegistra = insumo.FechaRegistra,
+                    IdUsuarioModifica = insumo.IdUsuarioModifica,
+                    FechaModifica = insumo.FechaModifica,
+                    UsuarioRegistra = insumo.IdUsuarioRegistraNavigation?.Usuario,
+                    UsuarioModifica = insumo.IdUsuarioModificaNavigation?.Usuario,
+                    InsumosProveedores = (insumo.InsumosProveedores ?? Enumerable.Empty<InsumosProveedor>())
+                        .Select(p => new
+                        {
+                            p.Id,
+                            p.IdProveedor,
+                            p.IdInsumo,
+                            p.IdListaProveedor
+                        }).ToList(),
+                    InsumosUnidadesNegocios = (insumo.InsumosUnidadesNegocios ?? Enumerable.Empty<InsumosUnidadesNegocio>())
+                        .Select(u => new { u.IdUnidadNegocio })
+                        .ToList()
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { valor = false, mensaje = DbErrorHelper.FriendlyMessage(ex, "insumo") });
+            }
         }
 
         public IActionResult Privacy()

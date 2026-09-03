@@ -7,71 +7,99 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"]</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link href="~/css/Login.css" rel="stylesheet" />
-    <link href="~/css/DisenoPantallas.css" rel="stylesheet" />
+    <link href="~/css/Login.css?v=3.2" rel="stylesheet" />
+    <link href="~/css/kyo-theme.css" rel="stylesheet" asp-append-version="true" />
 </head>
 
 <body>
 
-    <div class="login-container">
-        <!-- Parte izquierda: Imagen con fondo azul oscuro -->
-        <div class="left-side">
-            <img src="~/Imagenes/Logo.png" alt="Logo" class="logo" style="width: 100%;">
-        </div>
-
-        <!-- Parte derecha: Formulario de login -->
-        <div class="right-side">
-            <h3>Iniciar Sesión</h3>
-            
-            <form id="loginForm">
-                @Html.AntiForgeryToken() <!-- Token CSRF -->
-
-                <div class="mb-3">
-                    <div class="text-center">
-                        <img src="~/Imagenes/usuario.png" alt="Icono de usuario" class="img-fluid" style="width: 80px;">
-                    </div>
-                    <label for="username" class="form-label">Usuario</label>
-                    <input type="text" class="form-control" id="username" name="username" required>
-                </div>
-
-                <div class="">
-                    <label for="password" class="form-label">Contraseña</label>
-                    <div class="input-group">
-                        <input type="password" class="form-control" id="password" name="password" required>
+    <div class="login-page">
+        <div class="login-container">
+            <!-- Panel izquierdo: branding -->
+            <div class="login-brand">
+                <div class="login-brand-inner">
+                    <img src="~/Imagenes/Logo.png" alt="Logo KyO Group" class="login-logo">
+                    <p class="login-brand-tagline">Sistema de Gestión Integral</p>
+                    <div class="login-brand-dots">
+                        <span></span><span></span><span></span>
                     </div>
                 </div>
+            </div>
 
-                 <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="rememberMe">
-                    <label class="form-check-label" for="rememberMe">Recordar credenciales</label>
-                    <i id="checkIcon" class="fa fa-check-circle" style="color: green; display: none;"></i>
+            <!-- Panel derecho: formulario -->
+            <div class="login-form-panel">
+                <div class="login-form-inner">
+                    <div class="login-header">
+                        <h1 class="login-title">Bienvenido</h1>
+                        <p class="login-subtitle">Ingresa tus credenciales para continuar</p>
+                    </div>
+
+                    <form id="loginForm" class="login-form">
+                        @Html.AntiForgeryToken()
+
+                        <div class="login-field">
+                            <label for="username" class="login-label">Usuario</label>
+                            <div class="login-input-wrap">
+                                <i class="fa fa-user login-input-icon" aria-hidden="true"></i>
+                                <input type="text" class="login-input" id="username" name="username"
+                                       placeholder="Tu nombre de usuario" required autocomplete="username">
+                            </div>
+                        </div>
+
+                        <div class="login-field">
+                            <label for="password" class="login-label">Contraseña</label>
+                            <div class="login-input-wrap">
+                                <i class="fa fa-lock login-input-icon" aria-hidden="true"></i>
+                                <input type="password" class="login-input login-input-password" id="password" name="password"
+                                       placeholder="Tu contraseña" required autocomplete="current-password">
+                                <button type="button" class="login-toggle-pwd" id="togglePassword"
+                                        aria-label="Mostrar contraseña" title="Mostrar contraseña">
+                                    <i class="fa fa-eye" id="togglePasswordIcon" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="login-remember">
+                            <label class="login-checkbox-wrap" for="rememberMe">
+                                <input type="checkbox" class="login-checkbox" id="rememberMe">
+                                <span class="login-checkbox-box">
+                                    <i class="fa fa-check" aria-hidden="true"></i>
+                                </span>
+                                <span class="login-checkbox-label">Recordar credenciales</span>
+                            </label>
+                        </div>
+
+                        <div id="diverrorMessage" class="login-error" role="alert" style="display: none;">
+                            <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+                            <span id="errorMessage"></span>
+                        </div>
+
+                        <button type="submit" class="login-btn" id="btnLogin">
+                            <span id="btnLoginText">Ingresar al sistema</span>
+                            <span id="btnLoginLoading" class="login-loading d-none">
+                                <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+                                Ingresando...
+                            </span>
+                        </button>
+                    </form>
                 </div>
-
-
-                <!-- Mostrar error si existe -->
-                <div id="diverrorMessage" class="alert alert-danger" Rol="alert" style="display: none;">
-                    <a id="errorMessage"></a>
-                </div>
-
-               
-
-                <button type="submit" class="btn btn-primary">Ingresar</button>
-            </form>
+            </div>
         </div>
     </div>
 
     <script>
-    var loginUrl = '@Url.Action("IniciarSesion", "Login")';
-
-</script>
+        var loginUrl = '@Url.Action("IniciarSesion", "Login")';
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/js/login.js?v=1.0"></script>
+    <script src="~/js/SessionManager.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/Login.js?v=2.3"></script>
 
-  
 </body>
 </html>

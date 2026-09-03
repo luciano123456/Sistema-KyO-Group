@@ -16,8 +16,22 @@ namespace SistemaKyoGroup.BLL.Service
             _repo = repo;
         }
 
-        public Task<bool> Insertar(Compra m) => _repo.Insertar(m);
-        public Task<bool> Actualizar(Compra m) => _repo.Actualizar(m);
+        public async Task<bool> Insertar(Compra m)
+        {
+            if (!Validar(m))
+                return false;
+
+            return await _repo.Insertar(m);
+        }
+
+        public async Task<bool> Actualizar(Compra m)
+        {
+            if (!Validar(m))
+                return false;
+
+            return await _repo.Actualizar(m);
+        }
+
         public Task<(bool eliminado, string mensaje)> Eliminar(int id) => _repo.Eliminar(id);
         public Task<Compra> Obtener(int id) => _repo.Obtener(id);
         public Task<IQueryable<Compra>> ObtenerTodos() => _repo.ObtenerTodos();
@@ -33,6 +47,17 @@ namespace SistemaKyoGroup.BLL.Service
             return _repo.ObtenerTodosConFiltros(
                 idUnidadNegocio, idLocal, idProveedor,
                 fechaDesde, fechaHasta, idUsuario);
+        }
+
+        private static bool Validar(Compra model)
+        {
+            if (model.IdProveedor <= 0)
+                return false;
+
+            if (model.ComprasInsumos == null || !model.ComprasInsumos.Any())
+                return false;
+
+            return true;
         }
     }
 }

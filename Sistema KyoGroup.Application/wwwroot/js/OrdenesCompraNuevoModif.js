@@ -9,6 +9,7 @@ let ESTADO_PENDIENTE_ID = null;
 let OC_BLOQUEADA = false;
 let OC_ResumenCompras = [];   // array que TIENE que venir del backend con precios reales
 let OC_DetalleOriginal = [];  // detalle crudo de la OC (OrdenesComprasInsumos)
+let insumosModalCache = [];
 
 const _num = v => Number(v ?? 0);
 const fmtARS = v => new Intl.NumberFormat('es-AR', {
@@ -67,18 +68,7 @@ $(document).ready(async () => {
         await inicializarTablaDetalle();
         await cargarDesdeOrdenCompraData();
 
-        // Select2 cabecera
-        $('#UnidadesNegocio, #Locales, #Proveedores, #Estados').select2({
-            width: '100%'
-        });
-
-        // Select2 insumo modal
-        $('#InsumoSelect').select2({
-            dropdownParent: $('#detalleModal'),
-            width: '100%',
-            placeholder: 'Seleccionar un Insumo',
-            allowClear: true
-        });
+        // Select2: inicializado globalmente por site-select2.js
 
         // Forzamos PrecioUnitario como texto para poder mostrar moneda
         const $precio = $('#PrecioUnitario');
@@ -175,11 +165,11 @@ async function listaUnidadesNegocioFilter() {
 async function listaLocalesFilter(idUnidadNegocio = -1) {
     try {
         const data = await fetchJson(`/Locales/ListaPorUnidad?IdUnidadNegocio=${idUnidadNegocio}`, { headers: authHeaders() });
-        return data.map(x => ({ Id: x.Id, Nombre: x.Nombre, IdUnidadNegocio: x.IdUnidadNegocio }));
+        return data.map(x => ({ Id: x.Id, Nombre: x.Nombre, IdUnidadNegocio: x.IdUnidadNegocio ?? x.IdCombo }));
     } catch {
         const data = await fetchJson(`/Locales/Lista`, { headers: authHeaders() });
-        const arr = data.map(x => ({ Id: x.Id, Nombre: x.Nombre, IdUnidadNegocio: x.IdUnidadNegocio }));
-        return idUnidadNegocio > 0 ? arr.filter(x => (x.IdUnidadNegocio ?? -999) === idUnidadNegocio) : arr;
+        const arr = data.map(x => ({ Id: x.Id, Nombre: x.Nombre, IdUnidadNegocio: x.IdUnidadNegocio ?? x.IdCombo }));
+        return idUnidadNegocio > 0 ? arr.filter(x => Number(x.IdUnidadNegocio ?? -999) === idUnidadNegocio) : arr;
     }
 }
 async function listaProveedoresFilter() {
@@ -194,8 +184,20 @@ async function listaOrdenesComprasEstadoFilter() {
 async function listaInsumosFilter(idUnidadNegocio, idProveedor) {
     if (!(idUnidadNegocio > 0) || !(idProveedor > 0)) return [];
 
-    const url = `/Insumos/ListaPorUnidadYProveedor?IdUnidadNegocio=${idUnidadNegocio}&IdProveedor=${idProveedor}`;
-    const data = await fetchJson(url, { headers: authHeaders() });
+    // Preferir lista de precios del proveedor (todos los ítems, con o sin precio)
+    let raw = null;
+    try {
+        raw = await fetchJson(
+            `/ProveedoresInsumos/ListaParaOrdenCompra?IdProveedor=${idProveedor}&IdUnidadNegocio=${idUnidadNegocio}`,
+            { headers: authHeaders() }
+        );
+    } catch {
+        raw = await fetchJson(
+            `/Insumos/ListaPorUnidadYProveedor?IdUnidadNegocio=${idUnidadNegocio}&IdProveedor=${idProveedor}`,
+            { headers: authHeaders() }
+        );
+    }
+    const data = Array.isArray(raw) ? raw : (raw?.$values || []);
 
     return data.map(x => {
         const costo = _num(
@@ -203,14 +205,19 @@ async function listaInsumosFilter(idUnidadNegocio, idProveedor) {
             x.PrecioUnitario ?? x.precioUnitario ??
             x.PrecioLista ?? x.precioLista ?? 0
         );
+        const idLista = _num(x.IdProveedorLista ?? x.idProveedorLista ?? 0);
+        const idInsumo = _num(x.Id ?? x.id ?? 0);
+        const cantProv = _num(x.CantidadProveedores ?? x.cantidadProveedores ?? (idLista > 0 ? 1 : 0));
 
         return {
-            Id: x.Id ?? x.id ?? '',
+            Id: idInsumo > 0 ? idInsumo : (idLista > 0 ? `L${idLista}` : ''),
             Nombre: x.Descripcion ?? x.descripcion ?? x.Nombre ?? x.nombre ?? '',
             CostoUnitario: costo,
-            IdProveedorLista: x.IdProveedorLista ?? x.idProveedorLista ?? 0
+            IdProveedorLista: idLista,
+            CantidadProveedores: cantProv,
+            IdInsumoCatalogo: idInsumo
         };
-    });
+    }).filter(x => x.Id !== '');
 }
 
 async function cargarCombosCabecera() {
@@ -381,9 +388,7 @@ async function abrirModalDetalle(indice = null) {
     const idProv = Number($('#Proveedores').val() || 0);
 
     if (!(idUN > 0) || !(idProv > 0)) {
-        const msg = 'Debes seleccionar una Unidad de Negocio y un Proveedor antes de añadir insumos.';
-        if (typeof advertenciaModal === 'function') advertenciaModal(msg);
-        else alert(msg);
+        advertenciaModal('Debes seleccionar una Unidad de Negocio y un Proveedor antes de añadir insumos.');
         return;
     }
 
@@ -392,6 +397,7 @@ async function abrirModalDetalle(indice = null) {
 
         const alert = document.getElementById('modalAlert');
         alert?.classList.add('d-none');
+        $('#insumoSinVinculoAlertOC').addClass('d-none');
 
         $('#formDetalle .is-invalid').removeClass('is-invalid');
         $('#formDetalle .invalid-feedback').addClass('d-none');
@@ -415,6 +421,8 @@ async function abrirModalDetalle(indice = null) {
             $('#PrecioUnitario').val(item.precioUnitario ? fmtARS(item.precioUnitario) : '');
             $('#Cantidad').val(item.cantidad || 1);
             $('#SubTotal').val(item.subTotal ? fmtARS(item.subTotal) : '');
+            $('#insumoSinVinculoAlertOC').addClass('d-none');
+            $('#btnGuardarDetalle').prop('disabled', false);
         } else {
             if (idxInput) idxInput.value = '';
             if (titulo) titulo.textContent = 'Agregar Insumo';
@@ -443,6 +451,22 @@ async function poblarInsumosModal(idUnidadNegocio, idProveedor) {
     if (!sel) return;
 
     const insumos = await listaInsumosFilter(idUnidadNegocio, idProveedor);
+    insumosModalCache = insumos.map(x => {
+        const idLista = Number(x.IdProveedorLista || 0);
+        const idCat = Number(x.IdInsumoCatalogo || 0);
+        const idOpt = x.Id; // puede ser número o "L123"
+        return {
+            ...RpInsumoVinculo.normalizar({
+                Id: idOpt,
+                Descripcion: x.Nombre,
+                CostoUnitario: x.CostoUnitario,
+                IdProveedorLista: idLista,
+                CantidadProveedores: (Number(x.CantidadProveedores) > 0 || idLista > 0) ? 1 : 0,
+            }),
+            IdInsumoCatalogo: idCat,
+            IdOption: idOpt
+        };
+    });
 
     suspendValidacionDetalleChange = true;
 
@@ -454,12 +478,13 @@ async function poblarInsumosModal(idUnidadNegocio, idProveedor) {
     placeholder.selected = true;
     sel.appendChild(placeholder);
 
-    insumos.forEach(i => {
+    insumosModalCache.forEach(i => {
         const o = document.createElement('option');
-        o.value = i.Id;
-        o.text = i.Nombre;
+        o.value = String(i.IdOption ?? i.Id);
+        o.text = i.Descripcion;
         o.dataset.costo = i.CostoUnitario || 0;
         o.dataset.idprovlista = i.IdProveedorLista || 0;
+        o.dataset.idinsumo = i.IdInsumoCatalogo || 0;
         sel.appendChild(o);
     });
 
@@ -467,17 +492,31 @@ async function poblarInsumosModal(idUnidadNegocio, idProveedor) {
         .off('change.OC')
         .on('change.OC', function () {
             if (suspendValidacionDetalleChange) return;
-
-            const opt = this.options[this.selectedIndex];
-            const costo = _num(opt?.dataset?.costo || 0);
-            if (costo > 0) {
-                $('#PrecioUnitario').val(fmtARS(costo));
-
-                if (!_num($('#Cantidad').val())) {
-                    $('#Cantidad').val('1');
-                }
-                recalcularSubTotalModal();
+            if ($('#InsumoSelect').prop('disabled')) {
+                $('#insumoSinVinculoAlertOC').addClass('d-none');
+                return;
             }
+
+            const selVal = String(this.value || '');
+            if (!selVal) {
+                $('#insumoSinVinculoAlertOC').addClass('d-none');
+                $('#btnGuardarDetalle').prop('disabled', false);
+                return;
+            }
+
+            const insumo = insumosModalCache.find(x => String(x.IdOption ?? x.Id) === selVal) || null;
+            const ok = RpInsumoVinculo.aplicarSeleccionModal({
+                insumo,
+                alertEl: '#insumoSinVinculoAlertOC',
+                precioEl: '#PrecioUnitario',
+                totalEl: '#SubTotal',
+                btnEl: '#btnGuardarDetalle',
+                cantidadEl: '#Cantidad',
+                fmtMon: fmtARS,
+                contexto: 'orden',
+            });
+
+            if (ok) recalcularSubTotalModal();
 
             validarCampoDetalleIndividual(this);
             actualizarEstadoAlertDetalleModal();
@@ -567,57 +606,108 @@ function validarDetalleModal() {
 /* ================== GUARDAR DETALLE ================== */
 function guardarDetalle() {
     if (OC_BLOQUEADA) return;
-    if (!validarDetalleModal()) return;
 
     const idxInput = getDetalleIndexInput();
     const idx = idxInput ? idxInput.value : '';
-
-    const idInsumo = $('#InsumoSelect').val();
-    const nombreInsumo = $('#InsumoSelect option:selected').text();
-    const precio = parseMoneda($('#PrecioUnitario').val());
-    const cant = _num($('#Cantidad').val());
-    const sub = precio * cant;
-
-    let idProveedorLista = 0;
+    const rawVal = String($('#InsumoSelect').val() || '');
     const opt = document.querySelector('#InsumoSelect option:checked');
-    if (opt) idProveedorLista = _num(opt.dataset.idprovlista || 0);
+    let idProveedorLista = _num(opt?.dataset?.idprovlista || 0);
+    let idInsumo = _num(opt?.dataset?.idinsumo || 0);
 
-    if (!idProveedorLista && idx !== '' && detalleOC[idx])
-        idProveedorLista = detalleOC[idx].idProveedorLista || 0;
+    if (!(idInsumo > 0) && rawVal.startsWith('L')) {
+        idProveedorLista = _num(rawVal.slice(1)) || idProveedorLista;
+    } else if (!(idInsumo > 0)) {
+        idInsumo = _num(rawVal);
+    }
 
-    const item = {
-        id: (idx !== '' && detalleOC[idx]) ? detalleOC[idx].id : 0,
-        idInsumo,
-        nombreInsumo,
-        precioUnitario: precio,
-        cantidad: cant,
-        subTotal: sub,
-        idProveedorLista,
-        cantidadEntregada: (idx !== '' && detalleOC[idx]) ? detalleOC[idx].cantidadEntregada : 0,
-        cantidadRestante: (idx !== '' && detalleOC[idx])
-            ? detalleOC[idx].cantidadRestante
-            : cant,
-        idEstado: (idx !== '' && detalleOC[idx]) ? detalleOC[idx].idEstado : 1,
-        nota: (idx !== '' && detalleOC[idx]) ? detalleOC[idx].nota : ''
-    };
-
-    if (idx !== '' && detalleOC[idx]) {
-        detalleOC[idx] = item;
-    } else {
-        const existingIndex = detalleOC.findIndex(d => String(d.idInsumo) === String(idInsumo));
-        if (existingIndex >= 0) {
-            const ex = detalleOC[existingIndex];
-            const nuevaCant = _num(ex.cantidad) + cant;
-            ex.cantidad = nuevaCant;
-            ex.precioUnitario = precio;
-            ex.subTotal = precio * nuevaCant;
-        } else {
-            detalleOC.push(item);
+    const insumoSel = insumosModalCache.find(x => String(x.IdOption ?? x.Id) === rawVal) || null;
+    if (idx === '' && rawVal) {
+        if (!RpInsumoVinculo.tieneVinculo(insumoSel, 'orden') && !(idProveedorLista > 0)) {
+            RpInsumoVinculo.aplicarSeleccionModal({
+                insumo: insumoSel,
+                alertEl: '#insumoSinVinculoAlertOC',
+                precioEl: '#PrecioUnitario',
+                totalEl: '#SubTotal',
+                btnEl: '#btnGuardarDetalle',
+                cantidadEl: '#Cantidad',
+                fmtMon: fmtARS,
+                contexto: 'orden',
+            });
+            return;
         }
     }
 
-    refrescarTablaDetalle();
-    bootstrap.Modal.getInstance(document.getElementById('detalleModal')).hide();
+    if (!validarDetalleModal()) return;
+
+    return withBusy("#btnGuardarDetalle", async () => {
+        if (!(idInsumo > 0) && idProveedorLista > 0) {
+            try {
+                const idUN = _num($('#UnidadesNegocio').val());
+                const aseg = await fetchJson('/ProveedoresInsumos/AsegurarInsumoCatalogo', {
+                    method: 'POST',
+                    headers: authHeaders({ 'Content-Type': 'application/json;charset=utf-8' }),
+                    body: JSON.stringify({ IdListaProveedor: idProveedorLista, IdUnidadNegocio: idUN })
+                });
+                if (!aseg?.valor || !(_num(aseg.idInsumo ?? aseg.IdInsumo) > 0)) {
+                    errorModal?.(aseg?.mensaje || 'No se pudo vincular el ítem al catálogo de insumos.');
+                    return;
+                }
+                idInsumo = _num(aseg.idInsumo ?? aseg.IdInsumo);
+                idProveedorLista = _num(aseg.idProveedorLista ?? aseg.IdProveedorLista ?? idProveedorLista);
+            } catch (e) {
+                console.error(e);
+                errorModal?.(e?.message || 'No se pudo vincular el ítem al catálogo de insumos.');
+                return;
+            }
+        }
+
+        if (!(idInsumo > 0)) {
+            errorModal?.('Seleccioná un insumo válido.');
+            return;
+        }
+
+        const nombreInsumo = $('#InsumoSelect option:selected').text();
+        const precio = parseMoneda($('#PrecioUnitario').val());
+        const cant = _num($('#Cantidad').val());
+        const sub = precio * cant;
+
+        if (!idProveedorLista && idx !== '' && detalleOC[idx])
+            idProveedorLista = detalleOC[idx].idProveedorLista || 0;
+
+        const item = {
+            id: (idx !== '' && detalleOC[idx]) ? detalleOC[idx].id : 0,
+            idInsumo,
+            nombreInsumo,
+            precioUnitario: precio,
+            cantidad: cant,
+            subTotal: sub,
+            idProveedorLista,
+            cantidadEntregada: (idx !== '' && detalleOC[idx]) ? detalleOC[idx].cantidadEntregada : 0,
+            cantidadRestante: (idx !== '' && detalleOC[idx])
+                ? detalleOC[idx].cantidadRestante
+                : cant,
+            idEstado: (idx !== '' && detalleOC[idx]) ? detalleOC[idx].idEstado : 1,
+            nota: (idx !== '' && detalleOC[idx]) ? detalleOC[idx].nota : ''
+        };
+
+        if (idx !== '' && detalleOC[idx]) {
+            detalleOC[idx] = item;
+        } else {
+            const existingIndex = detalleOC.findIndex(d => String(d.idInsumo) === String(idInsumo));
+            if (existingIndex >= 0) {
+                const ex = detalleOC[existingIndex];
+                const nuevaCant = _num(ex.cantidad) + cant;
+                ex.cantidad = nuevaCant;
+                ex.precioUnitario = precio;
+                ex.subTotal = precio * nuevaCant;
+            } else {
+                detalleOC.push(item);
+            }
+        }
+
+        refrescarTablaDetalle();
+        bootstrap.Modal.getInstance(document.getElementById('detalleModal')).hide();
+    }, { label: "Añadiendo..." });
 }
 
 /* ================== EDITAR / ELIMINAR DETALLE ================== */
@@ -626,10 +716,10 @@ function editarDetalle(i) {
     abrirModalDetalle(i);
 }
 
-function eliminarDetalle(i) {
+async function eliminarDetalle(i) {
     if (OC_BLOQUEADA) return;
     if (!detalleOC[i]) return;
-    if (!confirm('¿Desea eliminar este insumo?')) return;
+    if (!(await confirmarModal('¿Desea eliminar este insumo?'))) return;
     detalleOC.splice(i, 1);
     refrescarTablaDetalle();
 }
@@ -771,7 +861,8 @@ async function ObtenerDatosOrdenCompra(id) {
 }
 
 async function cargarDesdeOrdenCompraData() {
-    const raw = window.OrdenCompraData;
+    const duplicarId = typeof kyoQueryInt === 'function' ? kyoQueryInt('duplicar') : 0;
+    const raw = duplicarId > 0 ? duplicarId : window.OrdenCompraData;
 
     let cab = {};
     let detalleServer = [];
@@ -848,6 +939,10 @@ async function cargarDesdeOrdenCompraData() {
 
         aplicarBloqueoSiCorresponde(cab, detalleServer, resumenCompras);
 
+        if (duplicarId > 0) {
+            aplicarModoDuplicarOC();
+        }
+
     } else {
         $('#tituloOC').text('Nueva Orden de Compra');
         $('#btnNuevoModificarOC').html(`<i class="fa fa-save me-1"></i> Registrar`);
@@ -872,73 +967,106 @@ async function cargarDesdeOrdenCompraData() {
     actualizarEstadoBotonDetalle();
 }
 
+function aplicarModoDuplicarOC() {
+    $('#IdOC').val('');
+    $('#tituloOC').text('Duplicar Orden de Compra');
+    $('#btnNuevoModificarOC').html(`<i class="fa fa-save me-1"></i> Registrar`);
+    $('#btnNuevoModificarOC').removeClass('d-none');
+
+    OC_BLOQUEADA = false;
+    OC_ResumenCompras = [];
+    OC_DetalleOriginal = [];
+
+    if (ESTADO_PENDIENTE_ID != null) {
+        $('#Estados').val(ESTADO_PENDIENTE_ID).trigger('change');
+    }
+    $('#Estados').prop('disabled', true);
+
+    const hoy = new Date();
+    $('#FechaEmision').val(hoy.toISOString().split('T')[0]);
+
+    detalleOC = detalleOC.map(d => ({
+        ...d,
+        id: 0,
+        cantidadEntregada: 0,
+        cantidadRestante: _num(d.cantidad),
+        idEstado: ESTADO_PENDIENTE_ID
+    }));
+
+    refrescarTablaDetalle();
+    actualizarVisibilidadPanelDetalle();
+    actualizarEstadoBotonDetalle();
+}
+
 /* ================== GUARDAR (Insertar / Actualizar) ================== */
 async function guardarOC() {
-    try {
-        if (OC_BLOQUEADA) return;
-        if (!validarCabeceraOC()) return;
-        if (!validarDetalleOC()) return;
+    if (OC_BLOQUEADA) return;
+    if (!validarCabeceraOC()) return;
+    if (!validarDetalleOC()) return;
 
-        const id = Number($('#IdOC').val() || 0);
-        const idUN = _num($('#UnidadesNegocio').val());
-        const idLocal = _num($('#Locales').val());
-        const idProv = _num($('#Proveedores').val());
-        const idEstado = _num($('#Estados').val());
-        const fechaEmision = $('#FechaEmision').val();
-        const fechaEntrega = $('#FechaEntrega').val() || null;
-        const notaInterna = $('#NotaInterna').val() || '';
+    return withBusy("#btnNuevoModificarOC", async () => {
+        try {
+            const id = Number($('#IdOC').val() || 0);
+            const idUN = _num($('#UnidadesNegocio').val());
+            const idLocal = _num($('#Locales').val());
+            const idProv = _num($('#Proveedores').val());
+            const idEstado = _num($('#Estados').val());
+            const fechaEmision = $('#FechaEmision').val();
+            const fechaEntrega = $('#FechaEntrega').val() || null;
+            const notaInterna = $('#NotaInterna').val() || '';
 
-        const totalCalc = detalleOC.reduce((a, r) => a + _num(r.subTotal), 0);
+            const totalCalc = detalleOC.reduce((a, r) => a + _num(r.subTotal), 0);
 
-        const modelo = {
-            Id: id,
-            IdUnidadNegocio: idUN,
-            IdLocal: idLocal,
-            IdProveedor: idProv,
-            FechaEmision: fechaEmision,
-            FechaEntrega: fechaEntrega,
-            CostoTotal: totalCalc,
-            IdEstado: idEstado,
-            NotaInterna: notaInterna,
-            OrdenesComprasInsumos: detalleOC.map(d => ({
-                Id: d.id,
-                IdOrdenCompra: id,
-                IdInsumo: d.idInsumo,
-                IdProveedorLista: d.idProveedorLista,
-                CantidadPedida: d.cantidad,
-                CantidadEntregada: d.cantidadEntregada,
-                CantidadRestante: d.cantidadRestante,
-                PrecioLista: d.precioUnitario,
-                Subtotal: d.subTotal,
-                IdEstado: d.idEstado,
-                NotaInterna: d.nota
-            }))
-        };
+            const modelo = {
+                Id: id,
+                IdUnidadNegocio: idUN,
+                IdLocal: idLocal,
+                IdProveedor: idProv,
+                FechaEmision: fechaEmision,
+                FechaEntrega: fechaEntrega,
+                CostoTotal: totalCalc,
+                IdEstado: idEstado,
+                NotaInterna: notaInterna,
+                OrdenesComprasInsumos: detalleOC.map(d => ({
+                    Id: d.id,
+                    IdOrdenCompra: id,
+                    IdInsumo: d.idInsumo,
+                    IdProveedorLista: d.idProveedorLista,
+                    CantidadPedida: d.cantidad,
+                    CantidadEntregada: d.cantidadEntregada,
+                    CantidadRestante: d.cantidadRestante,
+                    PrecioLista: d.precioUnitario,
+                    Subtotal: d.subTotal,
+                    IdEstado: d.idEstado,
+                    NotaInterna: d.nota
+                }))
+            };
 
-        const url = id === 0 ? "/OrdenesCompras/Insertar" : "/OrdenesCompras/Actualizar";
-        const method = id === 0 ? "POST" : "PUT";
+            const url = id === 0 ? "/OrdenesCompras/Insertar" : "/OrdenesCompras/Actualizar";
+            const method = id === 0 ? "POST" : "PUT";
 
-        const r = await fetch(url, {
-            method,
-            headers: authHeaders({ 'Content-Type': 'application/json;charset=utf-8' }),
-            body: JSON.stringify(modelo)
-        });
+            const r = await fetch(url, {
+                method,
+                headers: authHeaders({ 'Content-Type': 'application/json;charset=utf-8' }),
+                body: JSON.stringify(modelo)
+            });
 
-        if (!r.ok) throw new Error(await r.text());
-        const j = await r.json();
+            if (!r.ok) throw new Error(await r.text());
+            const j = await r.json();
 
-        if (j.valor === false) {
-            advertenciaModal?.(j.mensaje || 'No se pudo guardar');
-            return;
+            if (j.valor === false) {
+                advertenciaModal?.(j.mensaje || 'No se pudo guardar');
+                return;
+            }
+
+            exitoModal?.(j.mensaje || 'Guardado correctamente');
+            window.location.href = "/OrdenesCompras";
+
+        } catch (e) {
+            console.error('Error guardando OC:', e);
+            errorModal?.('Error al guardar la orden de compra.');
         }
-
-        exitoModal?.(j.mensaje || 'Guardado correctamente');
-        window.location.href = "/OrdenesCompras";
-
-    } catch (e) {
-        console.error('Error guardando OC:', e);
-        errorModal?.('Error al guardar la orden de compra.');
-    }
+    });
 }
 
 /* ================== TARJETAS RESUMEN + PDF ================== */
@@ -1093,7 +1221,7 @@ document.addEventListener("click", e => {
 function exportarOcPdf() {
     const { jsPDF } = window.jspdf || {};
     if (!jsPDF) {
-        alert("No se encontró jsPDF.");
+        errorModal("No se encontró jsPDF.");
         return;
     }
 

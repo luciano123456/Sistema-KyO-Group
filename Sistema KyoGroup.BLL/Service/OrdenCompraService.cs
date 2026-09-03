@@ -1,5 +1,6 @@
 ﻿using SistemaKyoGroup.DAL.Repository;
 using SistemaKyoGroup.Models;
+using SistemaKyoGroup.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace SistemaKyoGroup.BLL.Service
 
         public Task<bool> Insertar(OrdenesCompra model) => _repo.Insertar(model);
         public Task<bool> Actualizar(OrdenesCompra model) => _repo.Actualizar(model);
-        public Task<(bool eliminado, string mensaje)> Eliminar(int id) => _repo.Eliminar(id);
+        public Task<DeleteResult> Eliminar(int id, bool cascade = false) => _repo.Eliminar(id, cascade);
         public Task<OrdenesCompra> Obtener(int id) => _repo.Obtener(id);
         public Task<IQueryable<OrdenesCompra>> ObtenerTodos() => _repo.ObtenerTodos();
         public Task<IQueryable<OrdenesCompra>> ObtenerPendientes() => _repo.ObtenerPendientes();

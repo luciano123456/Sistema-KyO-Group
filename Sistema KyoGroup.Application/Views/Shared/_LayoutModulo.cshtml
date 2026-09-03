@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Sushi Club</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/DisenoPantallas.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/GridViewMode.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/GridColumnConfig.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/navbarlogin.css" asp-append-version="true" />
+    @await RenderSectionAsync("Estilos", required: false)
+    <link rel="stylesheet" href="~/css/RpDataTable.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/kyo-theme.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/RpSelect2.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/kyo-modals.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/kyo-toasts.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/RpPresence.css" asp-append-version="true" />
+</head>
+<body class="layout-modulo">
+    <partial name="~/Views/Shared/Partials/NavBarLogin.cshtml" />
+
+    <div class="container-fluid px-3 px-lg-4 pb-4 layout-modulo-content">
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <partial name="~/Views/Shared/Partials/HistorialModal.cshtml" />
+    <partial name="~/Views/Shared/Partials/SessionModals.cshtml" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/RpModulos.js" asp-append-version="true"></script>
+    <script src="~/js/SessionManager.js" asp-append-version="true"></script>
+    <script src="~/js/RpPresence.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/site-table-loading.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+    <script src="~/js/site-select2.js" asp-append-version="true"></script>
+    <script src="~/js/site-grid-actions.js" asp-append-version="true"></script>
+    <script src="~/js/site-grid-bulk.js" asp-append-version="true"></script>
+    <script src="~/js/site-datatable-rows.js" asp-append-version="true"></script>
+    <script src="~/js/site-grid-server.js" asp-append-version="true"></script>
+    <script src="~/js/GridViewMode.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

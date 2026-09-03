@@ -19,6 +19,15 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
         public int CambioAdmin { get; set; } = 0;
         public int IdEstado { get; set; }
 
+        public string? AvatarColor { get; set; }
+        public string? AvatarIcono { get; set; }
+        public string? AvatarFoto { get; set; }
+
+        /// <summary>Presencia: calculada sobre FechaUltimaActividad con tolerancia de 5 min.</summary>
+        public bool EnLinea { get; set; }
+        public DateTime? FechaUltimaActividad { get; set; }
+        public string? UltimoModulo { get; set; }
+
         public List<VMUnidadAsignada> Unidades { get; set; } = new();
     }
 

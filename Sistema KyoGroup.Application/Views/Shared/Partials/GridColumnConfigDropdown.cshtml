@@ -1,0 +1,12 @@
+@{
+    var btnId = ViewData["ColConfigBtnId"]?.ToString() ?? "dropdownColumnas";
+    var menuId = ViewData["ColConfigMenuId"]?.ToString() ?? "configColumnasMenu";
+}
+<div class="dropdown rp-col-config">
+    <button class="btn rp-col-config-btn dropdown-toggle" type="button" id="@btnId"
+            data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+        <span class="rp-col-config-btn-icon"><i class="fa fa-columns"></i></span>
+        <span class="rp-col-config-btn-text">Columnas</span>
+    </button>
+    <div class="dropdown-menu dropdown-menu-end rp-col-config-menu" id="@menuId" aria-labelledby="@btnId"></div>
+</div>

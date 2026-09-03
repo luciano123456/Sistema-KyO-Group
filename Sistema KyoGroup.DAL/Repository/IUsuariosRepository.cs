@@ -1,21 +1,20 @@
 ﻿using SistemaKyoGroup.Models;
-using System;
-using System.Collections.Generic;
+using SistemaKyoGroup.DAL.Grid;
+using SistemaKyoGroup.Models.Common;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SistemaKyoGroup.DAL.Repository
 {
     public interface IUsuariosRepository<TEntityModel> where TEntityModel : class
     {
-        Task<bool> Eliminar(int id);
+        Task<DeleteResult> Eliminar(int id, bool cascade = false);
         Task<bool> Actualizar(User model);
         Task<bool> Insertar(User model);
         Task<User> Obtener(int id);
         Task<User> ObtenerUsuario(string usuario);
         Task<IQueryable<User>> ObtenerTodos();
+        Task<GridResult<User>> ListarPaginado(GridQuery query);
 
         Task<List<UsuariosUnidadesNegocio>> ObtenerUnidadesDeUsuario(int idUsuario);
         Task<List<UsuariosLocal>> ObtenerLocalesDeUsuario(int idUsuario);

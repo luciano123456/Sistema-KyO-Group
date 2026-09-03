@@ -1,18 +1,16 @@
 ﻿using SistemaKyoGroup.Models;
-using System;
+using SistemaKyoGroup.Models.Common;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SistemaKyoGroup.DAL.Repository
 {
     public interface IRecetaRepository<TEntityModel> where TEntityModel : class
     {
-        Task<bool> Eliminar(int id);
-        Task<bool> Actualizar(Receta model);
-        Task<bool> Insertar(Receta model);
+        Task<DeleteResult> Eliminar(int id, bool cascade = false);
+        Task<(bool ok, string mensaje)> Actualizar(Receta model);
+        Task<(bool ok, string mensaje)> Insertar(Receta model);
         Task<Receta> Obtener(int id);
         Task<IQueryable<Receta>> ObtenerTodos();
         Task<IQueryable<Receta>> ObtenerTodosUnidadNegocio(int idUnidadNegocio, int userId);

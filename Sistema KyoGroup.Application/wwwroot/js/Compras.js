@@ -1,4 +1,4 @@
-﻿/********************  Compras.js (INDEX — patrón OrdenesCompras)  ********************/
+/********************  Compras.js (INDEX → patrón OrdenesCompras)  ********************/
 let gridCompras;
 let isEditing = false;
 
@@ -18,21 +18,22 @@ async function fetchJson(url, options = {}) {
 }
 
 /* ================== CONFIG DE FILTROS POR COLUMNA ================== */
-/* 0 Acciones | 1 Nº | 2 Fecha | 3 UN | 4 Local | 5 Proveedor | 6 O.C. | 7 Subtotal | 8 SubtotalFinal | 9 Nota */
+/* 0 Acciones | 1 Id | 2 N° | 3 Fecha | 4 UN | 5 Local | 6 Proveedor | 7 O.C. | 8 Subtotal | 9 SubtotalFinal | 10 Nota */
 const columnConfig = [
-    { index: 1, filterType: 'text' },                                          // Nº
-    { index: 2, filterType: 'text' },                                          // Fecha
-    { index: 3, filterType: 'select', fetchDataFunc: listaUnidadesNegocioFilter }, // UN
+    { index: 2, filterType: 'text' },                                          // N°
+    { index: 3, filterType: 'text' },                                          // Fecha
+    { index: 4, filterType: 'select', fetchDataFunc: listaUnidadesNegocioFilter }, // UN
     {
-        index: 4,
+        index: 5,
         filterType: 'select',
-        fetchDataFunc: () => listaLocalesFilter(Number(document.getElementById('UnidadNegocioFiltro')?.value ?? -1))
+        dependsOnIndex: 4,
+        fetchDataFunc: (idUN) => listaLocalesFilter(Number(idUN || document.getElementById('UnidadNegocioFiltro')?.value || -1))
     },
-    { index: 5, filterType: 'select', fetchDataFunc: listaProveedoresFilter }, // Proveedor
-    { index: 6, filterType: 'text' },                                          // O.C.
-    { index: 7, filterType: 'text' },                                          // Subtotal
-    { index: 8, filterType: 'text' },                                          // Subtotal Final
-    { index: 9, filterType: 'text' },                                          // Nota
+    { index: 6, filterType: 'select', fetchDataFunc: listaProveedoresFilter }, // Proveedor
+    { index: 7, filterType: 'text' },                                          // O.C.
+    { index: 8, filterType: 'text' },                                          // Subtotal
+    { index: 9, filterType: 'text' },                                          // Subtotal Final
+    { index: 10, filterType: 'text' },                                          // Nota
 ];
 
 /* ================== FORMATOS / KPIs ================== */
@@ -105,8 +106,8 @@ $(document).ready(async () => {
     await listaProveedoresFiltro();
     prepararLocalTopInicial();
 
-    document.getElementById('UnidadNegocioFiltro')?.addEventListener('change', async (e) => {
-        const idUN = Number(e.target.value ?? -1);
+    $('#UnidadNegocioFiltro').on('change', async function () {
+        const idUN = Number($(this).val() ?? -1);
         await poblarLocalesTop(idUN);
     });
 
@@ -124,25 +125,44 @@ function nuevaCompra() {
 function editarCompra(id) {
     window.location.href = '/Compras/NuevoModif/' + id;
 }
+function duplicarCompra(id) {
+    window.location.href = '/Compras/NuevoModif?duplicar=' + id;
+}
 
 async function eliminarCompra(id) {
-    const ok = window.confirm("¿Desea eliminar la Compra?");
-    if (!ok) return;
+    let cambios = [];
     try {
-        const r = await fetch("/Compras/Eliminar?id=" + id, {
-            method: "DELETE",
+        const data = await fetchJson(`/Compras/ImpactoPreciosEliminar?id=${id}`, { headers: authHeaders() });
+        cambios = data?.cambios || data?.Cambios || [];
+    } catch (e) {
+        console.warn('No se pudo obtener impacto de precios', e);
+    }
+
+    const ok = await confirmarImpactoPreciosCompra('eliminar', cambios, {
+        mensaje: cambios.length
+            ? 'Al eliminar esta compra se revertirán estos precios de lista al valor anterior:'
+            : '¿Desea eliminar la Compra?'
+    });
+    if (!ok) return false;
+
+    try {
+        const r = await fetch(`/Compras/Eliminar?id=${id}`, {
+            method: 'DELETE',
             headers: authHeaders()
         });
-        if (!r.ok) throw new Error("Error al eliminar la compra.");
+        if (!r.ok) throw new Error(await r.text().catch(() => 'Error al eliminar.'));
         const j = await r.json();
-        if (j.valor) {
+        if (j?.valor || j?.Valor) {
             await aplicarFiltrosCompras();
-            exitoModal(j.mensaje || "Compra eliminada correctamente");
-        } else {
-            advertenciaModal(j.mensaje || "No se pudo eliminar");
+            exitoModal(j.mensaje || j.Mensaje || 'Compra eliminada correctamente');
+            return true;
         }
+        errorModal(j?.mensaje || j?.Mensaje || 'No se pudo eliminar la compra.');
+        return false;
     } catch (e) {
         console.error(e);
+        errorModal('No se pudo eliminar la compra.');
+        return false;
     }
 }
 
@@ -222,6 +242,7 @@ async function listaCompras(f) {
 
 /* ================== DATATABLE ================== */
 async function configurarDataTableCompras(data) {
+    if (window.ensureKyoExportLibs) await window.ensureKyoExportLibs();
     if (!gridCompras) {
         $('#grd_Compras thead tr').clone(true).addClass('filters').appendTo('#grd_Compras thead');
 
@@ -229,35 +250,14 @@ async function configurarDataTableCompras(data) {
             data: data,
             language: {
                 sLengthMenu: "Mostrar MENU registros",
-                lengthMenu: "Anzeigen von _MENU_ Einträgen",
+                lengthMenu: "Anzeigen von _MENU_ Einträge",
                 url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
             },
-            scrollX: "100px",
+            scrollX: false,
             scrollCollapse: true,
             columns: [
-                {
-                    data: "Id",
-                    title: '',
-                    width: "1%",
-                    render: function (data) {
-                        return `
-      <div class="acciones-menu" data-id="${data}">
-        <button class='btn btn-sm btnacciones' type='button' title='Acciones'>
-          <i class='fa fa-ellipsis-v fa-lg text-white'></i>
-        </button>
-        <div class="acciones-dropdown" style="display:none">
-          <button class='btn btn-sm btneditar' type='button' onclick='editarCompra(${data})'>
-            <i class='fa fa-pencil-square-o text-success'></i> Editar
-          </button>
-          <button class='btn btn-sm btneliminar' type='button' onclick='eliminarCompra(${data})'>
-            <i class='fa fa-trash-o text-danger'></i> Eliminar
-          </button>
-        </div>
-      </div>`;
-                    },
-                    orderable: false,
-                    searchable: false,
-                },
+                columnaGridAcciones({ editar: 'editarCompra', duplicar: 'duplicarCompra', historial: 'verHistorialCompra', eliminar: 'eliminarCompra' }),
+                columnaGridId(),
                 { data: null, title: 'N°', render: r => r.Id ?? r.Numero ?? '' },
                 { data: null, title: 'Fecha', render: r => fmtDate(r.Fecha) },
                 {
@@ -333,84 +333,27 @@ async function configurarDataTableCompras(data) {
                 'pageLength'
             ],
             orderCellsTop: true,
-            fixedHeader: true,
+            fixedHeader: false,
 
             initComplete: async function () {
                 const api = this.api();
 
-                // Filtros por columna
-                columnConfig.forEach(async (config) => {
-                    const cell = $('.filters th').eq(config.index);
-
-                    if (config.filterType === 'select') {
-                        const select = $('<select id="filter' + config.index + '"><option value="">Seleccionar</option></select>')
-                            .appendTo(cell.empty())
-                            .on('change', async function () {
-                                const selectedText = $(this).find('option:selected').text();
-                                await api.column(config.index)
-                                    .search(this.value ? '^' + selectedText + '$' : '', true, false)
-                                    .draw();
-                            });
-
-                        const lst = await config.fetchDataFunc();
-                        lst.forEach(function (item) {
-                            select.append(
-                                '<option value="' + (item.Id ?? item.id) + '">'
-                                + (item.Nombre ?? item.nombre ?? item.text) +
-                                '</option>'
-                            );
-                        });
-
-                    } else if (config.filterType === 'text') {
-                        const input = $('<input type="text" placeholder="Buscar..." />')
-                            .appendTo(cell.empty())
-                            .off('keyup change')
-                            .on('keyup change', function (e) {
-                                e.stopPropagation();
-                                const regexr = '({search})';
-                                const cursorPosition = this.selectionStart;
-                                api.column(config.index)
-                                    .search(
-                                        this.value !== ''
-                                            ? regexr.replace('{search}', '(((' + this.value + ')))')
-                                            : '',
-                                        this.value !== '',
-                                        this.value === ''
-                                    )
-                                    .draw();
-                                $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
-                            });
-                    }
+                await kyoBindColumnFilters(api, {
+                    columns: columnConfig,
+                    skipIndexes: [0]
                 });
-
-                // sin filtro en columna de acciones
-                $('.filters th').eq(0).html('');
 
                 configurarOpcionesColumnasCompras();
 
                 setTimeout(() => gridCompras.columns.adjust(), 10);
 
                 // UX (hover + doble click + selección)
-                $('#grd_Compras tbody').on('mouseenter', 'tr', function () {
-                    $(this).css('cursor', 'pointer');
-                });
                 $('#grd_Compras tbody').on('dblclick', 'tr', function () {
                     const id = gridCompras.row(this).data()?.Id;
                     if (id) editarCompra(id);
                 });
 
-                let filaSeleccionada = null;
-                $('#grd_Compras tbody').on('click', 'tr', function () {
-                    if (filaSeleccionada) {
-                        $(filaSeleccionada).removeClass('seleccionada');
-                        $('td', filaSeleccionada).removeClass('seleccionada');
-                    }
-                    filaSeleccionada = $(this);
-                    $(filaSeleccionada).addClass('seleccionada');
-                    $('td', filaSeleccionada).addClass('seleccionada');
-                });
-
-                const visible = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '0') === '1';
+                const visible = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '1') === '1';
                 setFiltrosState(visible);
             },
         });
@@ -418,63 +361,20 @@ async function configurarDataTableCompras(data) {
     } else {
         gridCompras.clear().rows.add(data).draw();
         renderKpis(data || []);
-        const visible = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '0') === '1';
+        const visible = (localStorage.getItem(LS_FILTROS_VISIBLE) ?? '1') === '1';
         setFiltrosState(visible);
     }
 }
 
 /* ================== CONFIGURAR OPCIONES COLUMNAS ================== */
 function configurarOpcionesColumnasCompras() {
-    const grid = $('#grd_Compras').DataTable();
-    const columnas = grid.settings().init().columns;
-    const container = $('#configColumnasMenuCompras');
-
-    const storageKey = `Compras_Columnas`;
-    const savedConfig = JSON.parse(localStorage.getItem(storageKey)) || {};
-
-    container.empty();
-
-    columnas.forEach((col, index) => {
-        if (index > 0) {
-            const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined
-                ? savedConfig[`col_${index}`]
-                : true;
-            grid.column(index).visible(isChecked);
-
-            const columnName = col.title || col.data || `Col ${index}`;
-            container.append(`
-                <li>
-                    <label class="dropdown-item">
-                        <input type="checkbox" class="toggle-column" data-column="${index}" ${isChecked ? 'checked' : ''}>
-                        ${columnName}
-                    </label>
-                </li>
-            `);
-        }
-    });
-
-    $('.toggle-column').on('change', function () {
-        const columnIdx = parseInt($(this).data('column'), 10);
-        const isChecked = $(this).is(':checked');
-        savedConfig[`col_${columnIdx}`] = isChecked;
-        localStorage.setItem(storageKey, JSON.stringify(savedConfig));
-        grid.column(columnIdx).visible(isChecked);
-        setTimeout(() => grid.columns.adjust(), 40);
+    initGridColumnConfig({
+        gridSelector: '#grd_Compras',
+        menuSelector: '#configColumnasMenuCompras',
+        storageKey: 'Compras_Columnas',
+        skipColumn: (_col, index) => index === 0,
     });
 }
-
-/* ================== DROPDOWN ACCIONES ================== */
-function toggleAcciones(id) {
-    const $menu = $(`.acciones-menu[data-id="${id}"] .acciones-dropdown`);
-    $('.acciones-dropdown').not($menu).hide();
-    $menu.toggle();
-}
-
-$(document).on('click', function (e) {
-    if (!$(e.target).closest('.acciones-menu').length) $('.acciones-dropdown').hide();
-});
-
-
 
 /* ================== LISTAS PARA COMBOS (selects de filtros) ================== */
 async function listaUnidadesNegocioFilter() {
@@ -482,13 +382,24 @@ async function listaUnidadesNegocioFilter() {
     return data.map(x => ({ Id: x.Id, Nombre: x.Nombre }));
 }
 async function listaLocalesFilter(idUnidadNegocio = -1) {
+    const mapLocal = (x) => ({
+        Id: x.Id,
+        Nombre: x.Nombre,
+        IdUnidadNegocio: x.IdUnidadNegocio ?? x.IdCombo
+    });
+
+    if (!(Number(idUnidadNegocio) > 0)) {
+        const data = await fetchJson(`/Locales/Lista`, { headers: authHeaders() });
+        return (data || []).map(mapLocal);
+    }
+
     try {
         const data = await fetchJson(`/Locales/ListaPorUnidad?IdUnidadNegocio=${idUnidadNegocio}`, { headers: authHeaders() });
-        return data.map(x => ({ Id: x.Id, Nombre: x.Nombre, IdUnidadNegocio: x.IdUnidadNegocio }));
+        return (data || []).map(mapLocal);
     } catch {
         const data = await fetchJson(`/Locales/Lista`, { headers: authHeaders() });
-        const arr = data.map(x => ({ Id: x.Id, Nombre: x.Nombre, IdUnidadNegocio: x.IdUnidadNegocio }));
-        return idUnidadNegocio > 0 ? arr.filter(x => (x.IdUnidadNegocio ?? -999) === idUnidadNegocio) : arr;
+        const arr = (data || []).map(mapLocal);
+        return arr.filter(x => Number(x.IdUnidadNegocio ?? -999) === Number(idUnidadNegocio));
     }
 }
 async function listaProveedoresFilter() {
@@ -522,7 +433,7 @@ async function listaProveedoresFiltro() {
     });
 }
 
-/* ===== Local (top) — VACÍO y DESHABILITADO hasta elegir UN ===== */
+/* ===== Local (top) → VACÍO y DESHABILITADO hasta elegir UN ===== */
 function prepararLocalTopInicial() {
     const select = document.getElementById("LocalFiltro");
     if (!select) return;

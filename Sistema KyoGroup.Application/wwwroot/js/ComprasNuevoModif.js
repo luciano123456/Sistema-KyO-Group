@@ -63,25 +63,7 @@ function formatearMiles(v) {
     return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
-function formatearSinMiles(v) {
-    if (v == null) return 0;
-    let s = String(v).trim();
-    if (!s) return 0;
-
-    s = s.replace(/[^\d.,-]/g, '');
-
-    const hasComma = s.includes(',');
-    const hasDot = s.includes('.');
-
-    if (hasComma && hasDot) {
-        s = s.replace(/\./g, '').replace(',', '.');
-    } else if (hasComma) {
-        s = s.replace(',', '.');
-    }
-
-    const num = parseFloat(s);
-    return isNaN(num) ? 0 : num;
-}
+// formatearSinMiles → site.js (parseNumeroLoose)
 
 // para evitar falsos positivos por decimales ($0,001)
 function esCasiCero(n) {
@@ -117,13 +99,19 @@ $(document).ready(async () => {
         initSelect2OC();
         hookDescuentosBlur();
 
+        const duplicarId = typeof kyoQueryInt === 'function' ? kyoQueryInt('duplicar') : 0;
+
         // Si viene OC inicial (solo en NUEVA compra basada en OC)
-        if (typeof IdOrdenCompraInicial === "number" && IdOrdenCompraInicial > 0 && compraIdInicial === 0) {
+        if (!duplicarId && typeof IdOrdenCompraInicial === "number" && IdOrdenCompraInicial > 0 && compraIdInicial === 0) {
             await seleccionarOCInicial(IdOrdenCompraInicial);
         }
 
-        // Si vengo a EDITAR una compra
-        if (compraIdInicial > 0) {
+        // Duplicar compra existente
+        if (duplicarId > 0) {
+            await cargarCompraExistente(duplicarId);
+            aplicarModoDuplicarCompra();
+        } else if (compraIdInicial > 0) {
+            // Si vengo a EDITAR una compra
             await cargarCompraExistente(compraIdInicial);
         }
 
@@ -494,6 +482,21 @@ async function cargarCompraExistente(id) {
     }
 }
 
+function aplicarModoDuplicarCompra() {
+    compraIdInicial = 0;
+    $("#IdCompra").val("");
+    $("#tituloCompra").text("Duplicar Compra");
+    const btn = document.getElementById("btnNuevoModificarCompra");
+    if (btn) btn.innerHTML = `<i class="fa fa-save"></i> Registrar`;
+
+    detallesCompra = detallesCompra.map(d => ({
+        ...d,
+        IdCompraInsumo: 0
+    }));
+    renderDetalleCompra();
+    recalcularTotales();
+}
+
 /********************  BLOQUE 2 — DETALLE Y EDICIÓN INLINE  ********************/
 
 /* ===========================================================
@@ -857,77 +860,101 @@ function validarDetalleCompra() {
 }
 
 async function guardarCompra() {
-    try {
-        if (!validarCabeceraCompra() || !validarDetalleCompra()) return;
+    if (!validarCabeceraCompra() || !validarDetalleCompra()) return;
 
-        const id = _num($("#IdCompra").val());
+    return withBusy("#btnNuevoModificarCompra", async () => {
+        try {
+            const id = _num($("#IdCompra").val());
 
-        const payload = {
-            Id: id,
-            IdUnidadNegocio: _num($("#IdUnidadNegocio").val()),
-            IdLocal: _num($("#IdLocal").val()),
-            IdProveedor: _num($("#IdProveedor").val()),
-            IdOrdenCompra: _num($("#OrdenCompraSelect").val()),
-            Fecha: $("#FechaCompra").val(),
-            NotaInterna: $("#NotaInterna").val(),
+            const payload = {
+                Id: id,
+                IdUnidadNegocio: _num($("#IdUnidadNegocio").val()),
+                IdLocal: _num($("#IdLocal").val()),
+                IdProveedor: _num($("#IdProveedor").val()),
+                IdOrdenCompra: _num($("#OrdenCompraSelect").val()),
+                Fecha: $("#FechaCompra").val(),
+                NotaInterna: $("#NotaInterna").val(),
 
-            Subtotal: formatearSinMiles($("#Subtotal").val()),
-            Descuentos: formatearSinMiles($("#Descuentos").val()),
-            SubtotalFinal: formatearSinMiles($("#SubtotalFinal").val()),
+                Subtotal: formatearSinMiles($("#Subtotal").val()),
+                Descuentos: formatearSinMiles($("#Descuentos").val()),
+                SubtotalFinal: formatearSinMiles($("#SubtotalFinal").val()),
 
-            ComprasInsumos: detallesCompra.map(d => ({
-                Id: d.IdCompraInsumo || 0,
-                IdInsumo: d.IdInsumo,
-                IdProveedorLista: d.IdProveedorLista,
+                ComprasInsumos: detallesCompra.map(d => ({
+                    Id: d.IdCompraInsumo || 0,
+                    IdInsumo: d.IdInsumo,
+                    IdProveedorLista: d.IdProveedorLista,
 
-                Cantidad: d.CantRecibida,
+                    Cantidad: d.CantRecibida,
 
-                PrecioLista: d.PrecioListaOC,
-                PrecioFactura: d.PrecioFactura,
-                Diferencia: d.DifPrecio,
+                    PrecioLista: d.PrecioListaOC,
+                    PrecioFactura: d.PrecioFactura,
+                    Diferencia: d.DifPrecio,
 
-                PorcDescuento: 0,
-                DescuentoUnitario: 0,
-                PrecioFinal: d.PrecioFactura,
-                DescuentoTotal: 0,
+                    PorcDescuento: 0,
+                    DescuentoUnitario: 0,
+                    PrecioFinal: d.PrecioFactura,
+                    DescuentoTotal: 0,
 
-                SubtotalConDescuento: d.Subtotal,
-                SubtotalFinal: d.Subtotal,
+                    SubtotalConDescuento: d.Subtotal,
+                    SubtotalFinal: d.Subtotal,
 
-                IdOrdenCompraInsumo: d.IdOrdenCompraInsumo || null,
-                CantidadPedidaOc: d.CantPedida,
-                CantidadEntregadaOc: d.CantPedida - d.CantPendienteOC,
-                CantidadPendienteOc: d.CantPendienteOC,
+                    IdOrdenCompraInsumo: d.IdOrdenCompraInsumo || null,
+                    CantidadPedidaOc: d.CantPedida,
+                    CantidadEntregadaOc: d.CantPedida - d.CantPendienteOC,
+                    CantidadPendienteOc: d.CantPendienteOC,
 
-                IdEstadoOcInsumo: d.EstadoId,
-                EstadoOcNombre: d.EstadoNombre,
-                EstadoManualOC: d.EstadoId
-            }))
-        };
+                    IdEstadoOcInsumo: d.EstadoId,
+                    EstadoOcNombre: d.EstadoNombre,
+                    EstadoManualOC: d.EstadoId
+                }))
+            };
 
-        const url = id > 0 ? "/Compras/Actualizar" : "/Compras/Insertar";
-        const method = id > 0 ? "PUT" : "POST";
+            const url = id > 0 ? "/Compras/Actualizar" : "/Compras/Insertar";
+            const method = id > 0 ? "PUT" : "POST";
 
-        const r = await fetch(url, {
-            method: method,
-            headers: authHeaders({ "Content-Type": "application/json" }),
-            body: JSON.stringify(payload)
-        });
+            let cambios = [];
+            try {
+                const rImpacto = await fetch("/Compras/ImpactoPreciosGuardar", {
+                    method: "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify(payload)
+                });
+                if (rImpacto.ok) {
+                    const impacto = await rImpacto.json();
+                    cambios = impacto?.cambios || impacto?.Cambios || [];
+                }
+            } catch (e) {
+                console.warn("No se pudo obtener impacto de precios", e);
+            }
 
-        if (!r.ok) throw new Error(await r.text());
+            const okPrecios = await confirmarImpactoPreciosCompra("guardar", cambios, {
+                mensaje: cambios.length
+                    ? "Al aceptar esta compra, estos productos cambiarán de precio en la lista del proveedor:"
+                    : (id > 0 ? "¿Guardar los cambios de la compra?" : "¿Registrar esta compra?")
+            });
+            if (!okPrecios) return;
 
-        const resp = await r.json();
+            const r = await fetch(url, {
+                method: method,
+                headers: authHeaders({ "Content-Type": "application/json" }),
+                body: JSON.stringify(payload)
+            });
 
-        if (resp.valor) {
-            window.location.href = "/Compras";
-        } else {
-            advertenciaModal?.(resp.mensaje ?? "No se pudo guardar.");
+            if (!r.ok) throw new Error(await r.text());
+
+            const resp = await r.json();
+
+            if (resp.valor) {
+                window.location.href = "/Compras";
+            } else {
+                advertenciaModal?.(resp.mensaje ?? "No se pudo guardar.");
+            }
+
+        } catch (e) {
+            console.error(e);
+            advertenciaModal?.("Error inesperado al guardar la compra.");
         }
-
-    } catch (e) {
-        console.error(e);
-        advertenciaModal?.("Error inesperado al guardar la compra.");
-    }
+    });
 }
 
 /********************  FIN COMPLETO  ********************/

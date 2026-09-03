@@ -36,6 +36,8 @@ namespace SistemaKyoGroup.Application.Models.ViewModels
 
         public DateTime? FechaModifica { get; set; }
 
+        public string? UsuarioRegistra { get; set; }
+        public string? UsuarioModifica { get; set; }
 
         public virtual User? IdUsuarioModificaNavigation { get; set; }
 

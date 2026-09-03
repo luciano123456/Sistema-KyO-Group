@@ -1,0 +1,309 @@
+@{
+    Layout = "_LayoutModulo";
+    ViewData["Title"] = "Análisis de proveedores";
+}
+
+@section Estilos {
+    <link href="~/css/ProveedoresGestion.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/AnalisisDatos.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/ProveedoresAnalisis.css" rel="stylesheet" asp-append-version="true" />
+}
+
+<div class="container-fluid page-99 pa-dash" id="paDashboard">
+    <header class="pa-hero">
+        <div class="pa-hero-glow pa-hero-glow--rose"></div>
+        <div class="pa-hero-glow pa-hero-glow--sage"></div>
+        <div class="pa-hero-pattern" aria-hidden="true"></div>
+        <div class="pa-hero-inner">
+            <div class="pa-hero-left">
+                <a href="@Url.Action("Index", "Proveedores")" class="pa-back" title="Volver">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+                <div class="pa-hero-mark"><i class="fa fa-line-chart"></i></div>
+                <div>
+                    <p class="pa-eyebrow"><span class="pa-dot"></span> Inteligencia de compras · KyO</p>
+                    <h1 class="pa-title">Análisis de proveedores</h1>
+                    <p class="pa-sub">Gasto, deuda, precios, insumos y cuenta corriente en un solo panel</p>
+                </div>
+            </div>
+            <div class="pa-hero-right">
+                <div class="pa-period-pill">
+                    <i class="fa fa-calendar"></i>
+                    <span id="paPeriodoLabel">Este mes</span>
+                </div>
+                <button type="button" class="pa-btn-primary" id="btnPaActualizar">
+                    <i class="fa fa-refresh"></i> Actualizar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="pa-toolbar">
+        <div class="pa-chips" id="paPeriodos">
+            <button type="button" class="pa-chip active" data-periodo="mes">Este mes</button>
+            <button type="button" class="pa-chip" data-periodo="3m">3 meses</button>
+            <button type="button" class="pa-chip" data-periodo="6m">6 meses</button>
+            <button type="button" class="pa-chip" data-periodo="ytd">Este año</button>
+            <button type="button" class="pa-chip" data-periodo="custom">Personalizado</button>
+        </div>
+        <div class="pa-filters">
+            <div class="pa-field">
+                <label>Desde</label>
+                <input type="date" class="form-control form-control-sm" id="paDesde" />
+            </div>
+            <div class="pa-field">
+                <label>Hasta</label>
+                <input type="date" class="form-control form-control-sm" id="paHasta" />
+            </div>
+            <div class="pa-field">
+                <label>Unidad negocio</label>
+                <select class="form-select form-select-sm" id="paUnidad"><option value="0">Todas</option></select>
+            </div>
+            <div class="pa-field">
+                <label>Local</label>
+                <select class="form-select form-select-sm" id="paLocal"><option value="0">Todos</option></select>
+            </div>
+            <div class="pa-field">
+                <label>Proveedor</label>
+                <select class="form-select form-select-sm" id="paProveedor"><option value="0">Todos</option></select>
+            </div>
+        </div>
+    </div>
+
+    <nav class="pa-nav" id="paNav">
+        <a href="#paSecResumen" class="pa-nav-link active"><i class="fa fa-th-large"></i> Resumen</a>
+        <a href="#paSecTendencia" class="pa-nav-link"><i class="fa fa-area-chart"></i> Tendencia</a>
+        <a href="#paSecRanking" class="pa-nav-link"><i class="fa fa-trophy"></i> Ranking</a>
+        <a href="#paSecCc" class="pa-nav-link"><i class="fa fa-credit-card"></i> Cuenta cte.</a>
+        <a href="#paSecInsumos" class="pa-nav-link"><i class="fa fa-cubes"></i> Insumos</a>
+        <a href="#paSecTabla" class="pa-nav-link"><i class="fa fa-table"></i> Detalle</a>
+    </nav>
+
+    <div class="pa-loading d-none" id="paLoading">
+        <div class="pa-loading-spinner"></div>
+        <span>Cargando análisis…</span>
+    </div>
+
+    <!-- RESUMEN -->
+    <section class="pa-section" id="paSecResumen">
+        <div class="pa-section-head">
+            <h2><i class="fa fa-th-large"></i> Resumen del período</h2>
+            <p>Indicadores clave vs período anterior equivalente</p>
+        </div>
+        <div class="pa-kpi-grid" id="paKpiGrid">
+            <article class="pa-kpi pa-kpi--rose">
+                <div class="pa-kpi-icon"><i class="fa fa-shopping-cart"></i></div>
+                <div>
+                    <span class="pa-kpi-label">Total comprado</span>
+                    <strong class="pa-kpi-value" id="paKpiTotal">—</strong>
+                    <small class="pa-kpi-delta" id="paKpiVar">—</small>
+                </div>
+            </article>
+            <article class="pa-kpi pa-kpi--sage">
+                <div class="pa-kpi-icon"><i class="fa fa-files-o"></i></div>
+                <div>
+                    <span class="pa-kpi-label">Compras</span>
+                    <strong class="pa-kpi-value" id="paKpiCant">—</strong>
+                    <small class="pa-kpi-hint">Ticket <span id="paKpiTicket">—</span></small>
+                </div>
+            </article>
+            <article class="pa-kpi pa-kpi--sky">
+                <div class="pa-kpi-icon"><i class="fa fa-truck"></i></div>
+                <div>
+                    <span class="pa-kpi-label">Proveedores activos</span>
+                    <strong class="pa-kpi-value" id="paKpiProv">—</strong>
+                    <small class="pa-kpi-hint">Top: <span id="paKpiTop">—</span></small>
+                </div>
+            </article>
+            <article class="pa-kpi pa-kpi--amber">
+                <div class="pa-kpi-icon"><i class="fa fa-exclamation-triangle"></i></div>
+                <div>
+                    <span class="pa-kpi-label">Deuda CC</span>
+                    <strong class="pa-kpi-value" id="paKpiDeuda">—</strong>
+                    <small class="pa-kpi-hint">Pagado período <span id="paKpiPagado">—</span></small>
+                </div>
+            </article>
+            <article class="pa-kpi">
+                <div class="pa-kpi-icon"><i class="fa fa-clipboard"></i></div>
+                <div>
+                    <span class="pa-kpi-label">Órdenes de compra</span>
+                    <strong class="pa-kpi-value" id="paKpiOc">—</strong>
+                    <small class="pa-kpi-hint" id="paKpiOcDetalle">—</small>
+                </div>
+            </article>
+            <article class="pa-kpi">
+                <div class="pa-kpi-icon"><i class="fa fa-cube"></i></div>
+                <div>
+                    <span class="pa-kpi-label">Insumos distintos</span>
+                    <strong class="pa-kpi-value" id="paKpiInsumos">—</strong>
+                    <small class="pa-kpi-hint">Debe <span id="paKpiDebe">—</span> · Haber <span id="paKpiHaber">—</span></small>
+                </div>
+            </article>
+        </div>
+
+        <div class="row g-3 mt-1">
+            <div class="col-lg-7">
+                <div class="pa-panel h-100">
+                    <div class="pa-panel-head">
+                        <h3><i class="fa fa-bar-chart"></i> Top proveedores por compras</h3>
+                    </div>
+                    <div class="pa-chart-wrap"><canvas id="chartTopProveedores"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="pa-panel h-100">
+                    <div class="pa-panel-head">
+                        <h3><i class="fa fa-pie-chart"></i> Distribución de gasto</h3>
+                    </div>
+                    <div class="pa-chart-wrap pa-chart-wrap--sm"><canvas id="chartDistribucion"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TENDENCIA -->
+    <section class="pa-section" id="paSecTendencia">
+        <div class="pa-section-head">
+            <h2><i class="fa fa-area-chart"></i> Tendencia y desglose</h2>
+            <p>Evolución diaria de compras y mezcla por unidad / local</p>
+        </div>
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="pa-panel">
+                    <div class="pa-panel-head">
+                        <h3><i class="fa fa-line-chart"></i> Compras en el tiempo</h3>
+                    </div>
+                    <div class="pa-chart-wrap"><canvas id="chartSerie"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="pa-panel h-100">
+                    <div class="pa-panel-head">
+                        <h3><i class="fa fa-building"></i> Por unidad de negocio</h3>
+                    </div>
+                    <div class="pa-chart-wrap pa-chart-wrap--sm"><canvas id="chartUnidad"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="pa-panel h-100">
+                    <div class="pa-panel-head">
+                        <h3><i class="fa fa-map-marker"></i> Por local</h3>
+                    </div>
+                    <div class="pa-chart-wrap pa-chart-wrap--sm"><canvas id="chartLocal"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RANKING -->
+    <section class="pa-section" id="paSecRanking">
+        <div class="pa-section-head">
+            <h2><i class="fa fa-trophy"></i> Ranking y participación</h2>
+            <p>Quién concentra el gasto y cómo se reparte</p>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-5">
+                <div class="pa-panel h-100">
+                    <div class="pa-panel-head">
+                        <h3><i class="fa fa-list-ol"></i> Participación %</h3>
+                    </div>
+                    <div class="pa-rank-list" id="paRankList"></div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="pa-panel h-100">
+                    <div class="pa-panel-head">
+                        <h3><i class="fa fa-tasks"></i> Órdenes de compra por estado</h3>
+                    </div>
+                    <div class="pa-chart-wrap pa-chart-wrap--sm"><canvas id="chartOcEstado"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CUENTA CORRIENTE -->
+    <section class="pa-section" id="paSecCc">
+        <div class="pa-section-head">
+            <h2><i class="fa fa-credit-card"></i> Cuenta corriente</h2>
+            <p>Deuda, pagos del período y flujo debe/haber</p>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-7">
+                <div class="pa-panel h-100">
+                    <div class="pa-panel-head">
+                        <h3><i class="fa fa-balance-scale"></i> Flujo debe / haber</h3>
+                    </div>
+                    <div class="pa-chart-wrap"><canvas id="chartFlujoCc"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="pa-panel h-100">
+                    <div class="pa-panel-head">
+                        <h3><i class="fa fa-exclamation-circle"></i> Deuda por proveedor</h3>
+                    </div>
+                    <div class="pa-chart-wrap pa-chart-wrap--sm"><canvas id="chartDeuda"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- INSUMOS -->
+    <section class="pa-section" id="paSecInsumos">
+        <div class="pa-section-head">
+            <h2><i class="fa fa-cubes"></i> Insumos y precios</h2>
+            <p>Qué se compró más y dónde la factura se desvió de la lista</p>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-7">
+                <div class="pa-panel h-100">
+                    <div class="pa-panel-head">
+                        <h3><i class="fa fa-bar-chart"></i> Top insumos por monto</h3>
+                    </div>
+                    <div class="pa-chart-wrap"><canvas id="chartInsumos"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="pa-panel h-100">
+                    <div class="pa-panel-head">
+                        <h3><i class="fa fa-exchange"></i> Alertas precio factura vs lista</h3>
+                    </div>
+                    <div class="pa-alert-list" id="paAlertasPrecio"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TABLA -->
+    <section class="pa-section" id="paSecTabla">
+        <div class="pa-section-head">
+            <h2><i class="fa fa-table"></i> Detalle por proveedor</h2>
+            <p>Consolidado de compras, pagos y saldo de cuenta corriente</p>
+        </div>
+        <div class="pa-panel">
+            <div class="table-responsive">
+                <table class="table pa-table" id="paTablaProv">
+                    <thead>
+                        <tr>
+                            <th>Proveedor</th>
+                            <th class="text-end">Compras</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-end">Ticket</th>
+                            <th class="text-end">% Gasto</th>
+                            <th class="text-end">Pagado</th>
+                            <th class="text-end">Deuda CC</th>
+                            <th>Última compra</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="paTablaBody"></tbody>
+                </table>
+            </div>
+            <div class="pa-empty d-none" id="paTablaEmpty">No hay compras en el período seleccionado.</div>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="~/js/ProveedoresAnalisis.js" asp-append-version="true"></script>
+}

@@ -1,5 +1,5 @@
-﻿/* =============================================================
- * Insumos.js (FULL) — adaptado a header KPI + filtros
+/* =============================================================
+ * Insumos.js (FULL) ? adaptado a header KPI + filtros
  * Sin remover nada. Agrega KPIs + filtros top + token en fetch.
  * ============================================================= */
 
@@ -7,14 +7,14 @@ let gridInsumos;
 let isEditing = false;
 
 const columnConfig = [
-    { index: 1, filterType: 'text' },
     { index: 2, filterType: 'text' },
     { index: 3, filterType: 'text' },
-    { index: 4, filterType: 'select', fetchDataFunc: listaUnidadesMedidaFilter },
-    { index: 5, filterType: 'select', fetchDataFunc: listaInsumosCategoriaFilter },
-    { index: 6, filterType: 'text' },
+    { index: 4, filterType: 'text' },
+    { index: 5, filterType: 'select', fetchDataFunc: listaUnidadesMedidaFilter },
+    { index: 6, filterType: 'select', fetchDataFunc: listaInsumosCategoriaFilter },
     { index: 7, filterType: 'text' },
     { index: 8, filterType: 'text' },
+    { index: 9, filterType: 'text' },
 ];
 
 let unidadesNegocioSeleccionados = [];
@@ -65,9 +65,10 @@ function actualizarKpisInsumos(data) {
  * ========================== */
 $(document).ready(() => {
 
-    // Cargar opciones del filtro top y luego lista inicial
+    // Cargar opciones del filtro top y luego grilla server-side
     _cargarFiltrosInsumos().then(() => {
-        aplicarFiltrosInsumos(); // primer carga
+        initInsumosGrid();
+        cargarKpisInsumos();
     });
 
     // Inicializar combos, validaciones del form de edición
@@ -98,82 +99,84 @@ $(document).ready(() => {
  * CRUD / Guardado
  * ============================================================ */
 function guardarCambios() {
-
     if (!validarCampos()) return;
 
- 
-   
+    return withBusy("#btnGuardar", () => {
+        const idInsumo = $("#txtId").val();
 
-    const idInsumo = $("#txtId").val();
+        const esNuevo = !idInsumo || idInsumo === "0";
+        const nuevoModelo = {
+            Id: esNuevo ? 0 : parseInt(idInsumo),
+            Descripcion: $("#txtDescripcion").val(),
+            Sku: $("#txtSku").val(),
+            IdUnidadMedida: parseInt($("#UnidadesMedida").val()),
+            IdCategoria: parseInt($("#Categorias").val()),
+            InsumosUnidadesNegocios: unidadesNegocioSeleccionados.map(id => ({ IdUnidadNegocio: id })),
+            InsumosProveedores: ProveedoresAsignados.map(p => ({
+                IdProveedor: p.IdProveedor,
+                IdListaProveedor: p.IdListaProveedor
+            }))
+        };
 
-    const nuevoModelo = {
-        Id: idInsumo !== "" ? parseInt(idInsumo) : 0,
-        Descripcion: $("#txtDescripcion").val(),
-        Sku: $("#txtSku").val(),
-        IdUnidadMedida: parseInt($("#UnidadesMedida").val()),
-        IdCategoria: parseInt($("#Categorias").val()),
-        InsumosUnidadesNegocios: unidadesNegocioSeleccionados.map(id => ({ IdUnidadNegocio: id })),
-        InsumosProveedores: ProveedoresAsignados.map(p => ({
-            IdProveedor: p.IdProveedor,
-            IdListaProveedor: p.IdListaProveedor
-        }))
-    };
+        const url = esNuevo ? "/Insumos/Insertar" : "/Insumos/Actualizar";
+        const method = esNuevo ? "POST" : "PUT";
 
-    const url = idInsumo === "" ? "Insumos/Insertar" : "Insumos/Actualizar";
-    const method = idInsumo === "" ? "POST" : "PUT";
-
-    fetch(url, {
-        method,
-        headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify(nuevoModelo)
-    })
-        .then(async response => {
-            const data = await response.json();
-
-            if (data.valor == false && data.mensaje != null) {
-                errorModal(data.mensaje);
-                return;
-            } else if (data.valor == false) {
-                errorModal("El insumo no se ha podido guardar correctamente");
-                return;
-            }
-
-            if (idInsumo != "") {
-                $('#modalEdicion').modal('hide');
-            } else {
-                limpiarModal();
-                seleccionarTodasUN();   // ✅ simula “Seleccionar todos” de UN
-            };
-
-            exitoModal(data.mensaje || "Insumo guardado correctamente");
-
-            // Mantener compatibilidad con llamadas existentes
-            if (typeof aplicarFiltros === 'function') aplicarFiltros();
-            else aplicarFiltrosInsumos();
-
+        return fetch(url, {
+            method,
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(nuevoModelo)
         })
-        .catch(error => {
-            errorModal(error.message);
-            console.error('Error:', error);
-        });
+            .then(async response => {
+                const data = await response.json();
+
+                if (data.valor == false && data.mensaje != null) {
+                    errorModal(data.mensaje);
+                    return;
+                } else if (data.valor == false) {
+                    errorModal("El insumo no se ha podido guardar correctamente");
+                    return;
+                }
+
+                if (!esNuevo) {
+                    if (typeof bsHide === 'function') bsHide('#modalEdicion');
+                    else $('#modalEdicion').modal('hide');
+                } else {
+                    limpiarModal();
+                    seleccionarTodasUN();
+                }
+
+                exitoModal(data.mensaje || "Insumo guardado correctamente");
+
+                if (typeof aplicarFiltros === 'function') aplicarFiltros();
+                else aplicarFiltrosInsumos();
+
+            })
+            .catch(error => {
+                errorModal(error.message);
+                console.error('Error:', error);
+            });
+    });
 }
 
 async function nuevoInsumo() {
+    try {
+        limpiarModal();
+        await listaUnidadesNegocio(true);
+        await listaUnidadesMedida();
+        await listaInsumosCategoria();
 
+        if (typeof bsShow === 'function') bsShow('#modalEdicion');
+        else $('#modalEdicion').modal('show');
 
-    limpiarModal();
-    await listaUnidadesNegocio(true);     // ← auto-select all
-    await listaUnidadesMedida();
-    await listaInsumosCategoria();
-
-    
-    //resetModalInsumo();
-    $('#modalEdicion').modal('show');
-    $("#btnGuardar").text("Registrar");
-    $("#modalEdicionLabel").text("Nuevo Insumo");
+        $("#btnGuardar").text("Registrar");
+        $("#modalEdicionLabel").text("Nuevo Insumo");
+    } catch (err) {
+        console.error(err);
+        errorModal(err?.message || "No se pudo abrir el alta de insumo.");
+    }
 }
 
 function seleccionarTodasUN() {
@@ -188,44 +191,70 @@ function seleccionarTodasUN() {
 
 
 async function mostrarModal(modelo) {
-    limpiarModal();
+    try {
+        limpiarModal();
 
-    const campos = ["Id", "Sku", "Descripcion"];
-    campos.forEach(campo => { $(`#txt${campo}`).val(modelo[campo]); });
+        const idVal = modelo?.Id && Number(modelo.Id) > 0 ? modelo.Id : "";
+        $("#txtId").val(idVal);
+        $("#txtSku").val(modelo?.Sku ?? "");
+        $("#txtDescripcion").val(modelo?.Descripcion ?? "");
 
-    await listaUnidadesNegocio();
-    await listaUnidadesMedida();
-    await listaInsumosCategoria();
-    setInfoAuditoria(modelo);
+        await listaUnidadesNegocio();
+        await listaUnidadesMedida();
+        await listaInsumosCategoria();
+        setInfoAuditoria(modelo);
 
+        const idCat = modelo?.IdCategoria ?? "";
+        const idUm = modelo?.IdUnidadMedida ?? "";
+        if (window.KyoSelect2?.setValue) {
+            KyoSelect2.setValue(document.getElementById('Categorias'), idCat);
+            KyoSelect2.setValue(document.getElementById('UnidadesMedida'), idUm);
+        } else {
+            const cat = document.getElementById("Categorias");
+            const um = document.getElementById("UnidadesMedida");
+            if (cat) cat.value = String(idCat);
+            if (um) um.value = String(idUm);
+            $("#Categorias").trigger('change');
+            $("#UnidadesMedida").trigger('change');
+        }
 
-    document.getElementById("Categorias").value = modelo.IdCategoria;
-    document.getElementById("UnidadesMedida").value = modelo.IdUnidadMedida;
+        const unidades = unwrapJsonList(modelo?.InsumosUnidadesNegocios || modelo?.insumosUnidadesNegocios);
+        const idsUnidades = unidades.map(x => parseInt(x.IdUnidadNegocio ?? x.idUnidadNegocio)).filter(n => Number.isFinite(n));
+        unidadesNegocioSeleccionados = [];
 
-    const idsUnidades = modelo.InsumosUnidadesNegocios?.map(x => parseInt(x.IdUnidadNegocio)) ?? [];
-    unidadesNegocioSeleccionados = [];
+        document.querySelectorAll(".unidades-check").forEach(cb => {
+            const id = parseInt(cb.value);
+            const seleccionado = idsUnidades.includes(id);
+            cb.checked = seleccionado;
+            if (seleccionado) unidadesNegocioSeleccionados.push(id);
+        });
 
-    document.querySelectorAll(".unidades-check").forEach(cb => {
-        const id = parseInt(cb.value);
-        const seleccionado = idsUnidades.includes(id);
-        cb.checked = seleccionado;
-        if (seleccionado) unidadesNegocioSeleccionados.push(id);
-    });
+        actualizarTextoUnidadesNegocio();
 
+        const proveedores = unwrapJsonList(modelo?.InsumosProveedores || modelo?.insumosProveedores);
+        ProveedoresAsignados = proveedores.map(x => ({
+            IdInsumo: x.IdInsumo ?? x.idInsumo,
+            IdProveedor: x.IdProveedor ?? x.idProveedor,
+            IdListaProveedor: x.IdListaProveedor ?? x.idListaProveedor
+        }));
+        actualizarBadgeProveedoresAsignados();
 
+        if (typeof bsShow === 'function') bsShow('#modalEdicion');
+        else $('#modalEdicion').modal('show');
+        $("#btnGuardar").text(idVal ? "Guardar" : "Registrar");
+        $("#modalEdicionLabel").text(idVal ? "Editar Insumo" : "Duplicar Insumo");
+    } catch (err) {
+        console.error(err);
+        errorModal(err?.message || "No se pudo abrir el insumo.");
+    }
+}
 
-    actualizarTextoUnidadesNegocio();
-
-    // Proveedores asignados
-    ProveedoresAsignados = modelo.InsumosProveedores?.map(x => ({
-        IdInsumo: x.IdInsumo,
-        IdProveedor: x.IdProveedor,
-        IdListaProveedor: x.IdListaProveedor
-    })) ?? [];
-
-    $('#modalEdicion').modal('show');
-    $("#btnGuardar").text("Guardar");
-    $("#modalEdicionLabel").text("Editar Insumo");
+function unwrapJsonList(data) {
+    if (data == null) return [];
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.$values)) return data.$values;
+    if (Array.isArray(data.values)) return data.values;
+    return [];
 }
 
 /* ============================================================
@@ -258,8 +287,12 @@ async function _cargarFiltrosInsumos() {
 }
 
 async function aplicarFiltrosInsumos() {
-    const un = document.getElementById("UnidadNegocioFiltro")?.value || _defaultUnidadNegocio();
-    await listaInsumos(un);
+    if (gridInsumos) {
+        kyoGridReload(gridInsumos);
+    } else {
+        await initInsumosGrid();
+    }
+    await cargarKpisInsumos();
 }
 
 // Wrapper para no romper llamadas existentes
@@ -294,117 +327,93 @@ async function aplicarFiltrosOldCompat() { // (por si lo llamabas en algún lado
     return aplicarFiltrosInsumos();
 }
 
+async function cargarKpisInsumos() {
+    const un = document.getElementById("UnidadNegocioFiltro")?.value || _defaultUnidadNegocio();
+    try {
+        const response = await fetch(`/Insumos/Kpis?IdUnidadNegocio=${un}`, {
+            method: 'GET',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        const elTot = document.getElementById('kpiCantInsumos');
+        const elSin = document.getElementById('kpiSinProveedor');
+        if (elTot) elTot.textContent = data.total ?? 0;
+        if (elSin) elSin.textContent = data.sinProveedor ?? 0;
+    } catch { /* KPIs opcionales */ }
+}
+
 async function listaInsumos(UnidadNegocio) {
-    const url = `/Insumos/ListaPorUnidadNegocio?IdUnidadNegocio=${UnidadNegocio}`;
-    const response = await fetch(url, {
+    await aplicarFiltrosInsumos();
+}
+
+const editarInsumo = id => {
+    fetch("/Insumos/EditarInfo?id=" + id, {
         method: 'GET',
         headers: {
             'Authorization': 'Bearer ' + token,
             'Content-Type': 'application/json'
         }
-    });
-    const data = await response.json();
-    await configurarDataTable(data);
-}
-
-const editarInsumo = id => {
-    $('.acciones-dropdown').hide();
-    fetch("Insumos/EditarInfo?id=" + id,
-        {
-            method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-            }
+    })
+        .then(async response => {
+            if (!response.ok) throw new Error("No se pudo cargar el insumo.");
+            const dataJson = await response.json();
+            if (dataJson?.valor === false) throw new Error(dataJson.mensaje || "No se pudo cargar el insumo.");
+            if (!dataJson) throw new Error("No se pudo cargar el insumo.");
+            await mostrarModal(dataJson);
         })
-        .then(response => {
-            if (!response.ok) throw new Error("Ha ocurrido un error.");
-            return response.json();
-        })
-        .then(dataJson => {
-            if (dataJson !== null) {
-                mostrarModal(dataJson);
-            } else {
-                throw new Error("Ha ocurrido un error.");
-            }
-        })
-        .catch(() => {
-            errorModal("Ha ocurrido un error.");
+        .catch((err) => {
+            console.error(err);
+            errorModal(err?.message || "Ha ocurrido un error.");
         });
 };
 
 async function eliminarInsumo(id) {
-    let resultado = window.confirm("¿Desea eliminar el Insumo?");
-    if (!resultado) return;
-
-    try {
-        const response = await fetch("Insumos/Eliminar?id=" + id, {
-            method: "DELETE",
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const dataJson = await response.json();
-        if (!dataJson.valor) {
-            errorModal(dataJson.mensaje || "No se pudo eliminar.");
-            return;
-        }
-
-
-        if (dataJson.valor) {
+    return eliminarConCascada({
+        url: '/Insumos/Eliminar',
+        id,
+        confirmMsg: '¿Desea eliminar el Insumo?',
+        headers: () => ({
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+        }),
+        onSuccess: async (j) => {
             aplicarFiltrosInsumos();
-            exitoModal("Insumo eliminado correctamente");
-
+            exitoModal(j.mensaje || 'Insumo eliminado correctamente');
         }
-    } catch (error) {
-        console.error("Ha ocurrido un error:", error);
-    }
+    });
 }
 
 /* ============================================================
  * DataTable
  * ============================================================ */
-async function configurarDataTable(data) {
-    if (!gridInsumos) {
-        $('#grd_Insumos thead tr').clone(true).addClass('filters').appendTo('#grd_Insumos thead');
-        gridInsumos = $('#grd_Insumos').DataTable({
-            data: data,
+async function initInsumosGrid() {
+    if (window.ensureKyoExportLibs) await window.ensureKyoExportLibs();
+    if (gridInsumos) return;
+
+    $('#grd_Insumos thead tr').clone(true).addClass('filters').appendTo('#grd_Insumos thead');
+    gridInsumos = $('#grd_Insumos').DataTable({
+        serverSide: true,
+        processing: true,
+        ajax: kyoServerGridAjax('/Insumos/ListaPaginada', () => ({
+            IdUnidadNegocio: document.getElementById('UnidadNegocioFiltro')?.value ?? _defaultUnidadNegocio()
+        })),
             language: {
                 sLengthMenu: "Mostrar MENU registros",
-                lengthMenu: "Anzeigen von _MENU_ Einträgen",
+                lengthMenu: "Anzeigen von _MENU_ Einträge",
                 url: "//cdn.datatables.net/plug-ins/2.0.7/i18n/es-MX.json"
             },
-            scrollX: "100px",
+            scrollX: false,
             scrollCollapse: true,
             columns: [
-                {
-                    data: "Id",
-                    title: '',
-                    width: "1%",
-                    render: function (data) {
-                        return `
-      <div class="acciones-menu" data-id="${data}">
-        <button class='btn btn-sm btnacciones' type='button' title='Acciones'>
-          <i class='fa fa-ellipsis-v fa-lg text-white' aria-hidden='true'></i>
-        </button>
-        <div class="acciones-dropdown" style="display:none">
-          <button class='btn btn-sm btneditar'  type='button' onclick='editarInsumo(${data})'   title='Editar'>
-            <i class='fa fa-pencil-square-o fa-lg text-success' aria-hidden='true'></i> Editar
-          </button>
-          <button class='btn btn-sm btnduplicar' type='button' onclick='duplicarInsumo(${data})' title='Duplicar'>
-            <i class='fa fa-clone fa-lg text-info' aria-hidden='true'></i> Duplicar
-          </button>
-          <button class='btn btn-sm btneliminar' type='button' onclick='eliminarInsumo(${data})' title='Eliminar'>
-            <i class='fa fa-trash-o fa-lg text-danger' aria-hidden='true'></i> Eliminar
-          </button>
-        </div>
+                columnaGridAcciones(null, null, function (id) {
+                    return `<div class="rp-row-actions" data-id="${id}">
+        <button type="button" class="btn btn-sm rp-act rp-act-edit" title="Editar" onclick="editarInsumo(${id})"><i class="fa fa-pencil-square-o"></i></button>
+        <button type="button" class="btn btn-sm rp-act rp-act-view" title="Duplicar" onclick="duplicarInsumo(${id})"><i class="fa fa-clone"></i></button>
+        <button type="button" class="btn btn-sm rp-act rp-act-view" title="Historial" onclick="verHistorialInsumo(${id})"><i class="fa fa-history"></i></button>
+        <button type="button" class="btn btn-sm rp-act rp-act-del" title="Eliminar" onclick="eliminarInsumo(${id})"><i class="fa fa-trash-o"></i></button>
       </div>`;
-                    },
-                    orderable: false,
-                    searchable: false,
-                },
+                }),
+                columnaGridId(),
 
                 { data: 'Descripcion' },
                 { data: 'FechaActualizacion' },
@@ -432,7 +441,7 @@ async function configurarDataTable(data) {
                     text: 'Exportar Excel',
                     filename: 'Reporte Insumos',
                     title: '',
-                    exportOptions: { columns: [0, 1, 2, 3] },
+                    exportOptions: { columns: [2, 3, 4, 5] },
                     className: 'btn-exportar-excel',
                 },
                 {
@@ -440,20 +449,20 @@ async function configurarDataTable(data) {
                     text: 'Exportar PDF',
                     filename: 'Reporte Insumos',
                     title: '',
-                    exportOptions: { columns: [0, 1, 2, 3] },
+                    exportOptions: { columns: [2, 3, 4, 5] },
                     className: 'btn-exportar-pdf',
                 },
                 {
                     extend: 'print',
                     text: 'Imprimir',
                     title: '',
-                    exportOptions: { columns: [0, 1, 2, 3] },
+                    exportOptions: { columns: [2, 3, 4, 5] },
                     className: 'btn-exportar-print'
                 },
                 'pageLength'
             ],
             orderCellsTop: true,
-            fixedHeader: true,
+            fixedHeader: false,
 
             columnDefs: [
                 {
@@ -464,53 +473,23 @@ async function configurarDataTable(data) {
                         }
                         return '';
                     },
-                    targets: [2]
+                    targets: [3]
                 },
                 {
                     render: function (data) {
                         return formatNumber(data);
                     },
-                    targets: [7]
+                    targets: [8]
                 }
             ],
 
             initComplete: async function () {
                 const api = this.api();
 
-                // Filtros por columna
-                columnConfig.forEach(async (config) => {
-                    const cell = $('.filters th').eq(config.index);
-
-                    if (config.filterType === 'select') {
-                        const select = $('<select id="filter' + config.index + '"><option value="">Seleccionar</option></select>')
-                            .appendTo(cell.empty())
-                            .on('change', async function () {
-                                const val = $(this).val();
-                                const selectedText = $(this).find('option:selected').text();
-                                await api.column(config.index).search(val ? '^' + selectedText + '$' : '', true, false).draw();
-                            });
-
-                        const data = await config.fetchDataFunc();
-                        data.forEach(function (item) {
-                            select.append('<option value="' + item.Id + '">' + item.Nombre + '</option>');
-                        });
-                    } else if (config.filterType === 'text') {
-                        const input = $('<input type="text" placeholder="Buscar..." />')
-                            .appendTo(cell.empty())
-                            .off('keyup change')
-                            .on('keyup change', function (e) {
-                                e.stopPropagation();
-                                const regexr = '({search})';
-                                const cursorPosition = this.selectionStart;
-                                api.column(config.index)
-                                    .search(this.value !== '' ? regexr.replace('{search}', '(((' + this.value + ')))') : '', this.value !== '', this.value === '')
-                                    .draw();
-                                $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
-                            });
-                    }
+                await kyoBindColumnFilters(api, {
+                    columns: columnConfig,
+                    skipIndexes: [0, 1]
                 });
-
-                $('.filters th').eq(0).html('');
 
                 configurarOpcionesColumnas();
 
@@ -518,8 +497,8 @@ async function configurarDataTable(data) {
                     gridInsumos.columns.adjust();
                 }, 10);
 
-                // KPIs con los datos actuales de la tabla
-                actualizarKpisInsumos(api.rows().data().toArray());
+                // KPIs desde endpoint dedicado (totales del filtro actual)
+                cargarKpisInsumos();
 
                 // (Permanece tu lógica de íconos de mapa si la usabas)
                 $('body').on('mouseenter', '#grd_Insumos .fa-map-marker', function () {
@@ -532,69 +511,22 @@ async function configurarDataTable(data) {
                 });
             },
         });
+}
 
-    } else {
-        gridInsumos.clear().rows.add(data).draw();
-        actualizarKpisInsumos(data); // NUEVO: refrescar KPIs al recargar
-    }
+/* compat: llamadas antiguas */
+async function configurarDataTable() {
+    await initInsumosGrid();
 }
 
 /* ============================================================
  * Configuración columnas (persistencia localStorage)
  * ============================================================ */
 function configurarOpcionesColumnas() {
-    const grid = $('#grd_Insumos').DataTable();
-    const columnas = grid.settings().init().columns;
-    const container = $('#configColumnasMenu');
-
-    const storageKey = `Insumos_Columnas`;
-    const savedConfig = JSON.parse(localStorage.getItem(storageKey)) || {};
-
-    container.empty();
-
-    columnas.forEach((col, index) => {
-        if (col.data && col.data !== "Id") {
-            const isChecked = savedConfig && savedConfig[`col_${index}`] !== undefined ? savedConfig[`col_${index}`] : true;
-
-            grid.column(index).visible(isChecked);
-
-            const columnName = col.data;
-
-            container.append(`
-                <li>
-                    <label class="dropdown-item">
-                        <input type="checkbox" class="toggle-column" data-column="${index}" ${isChecked ? 'checked' : ''}>
-                        ${columnName}
-                    </label>
-                </li>
-            `);
-        }
+    initGridColumnConfig({
+        gridSelector: '#grd_Insumos',
+        menuSelector: '#configColumnasMenu',
+        storageKey: 'Insumos_Columnas',
     });
-
-    $('.toggle-column').on('change', function () {
-        const columnIdx = parseInt($(this).data('column'), 10);
-        const isChecked = $(this).is(':checked');
-        savedConfig[`col_${columnIdx}`] = isChecked;
-        localStorage.setItem(storageKey, JSON.stringify(savedConfig));
-        grid.column(columnIdx).visible(isChecked);
-    });
-}
-
-/* ============================================================
- * Dropdown Acciones (no tocar)
- * ============================================================ */
-$(document).on('click', function (e) {
-    if (!$(e.target).closest('.acciones-menu').length) {
-        $('.acciones-dropdown').hide();
-    }
-});
-function toggleAcciones(id) {
-    const $dropdown = $(`.acciones-menu[data-id="${id}"] .acciones-dropdown`);
-    if ($dropdown.is(":visible")) $dropdown.hide();
-    else {
-        $('.acciones-dropdown').hide();
-        $dropdown.show();
-    }
 }
 
 /* ============================================================
@@ -609,7 +541,9 @@ async function listaUnidadesNegocioFilter() {
             'Content-Type': 'application/json'
         }
     });
+    if (!response.ok) throw new Error('No se pudieron cargar las unidades de negocio.');
     const data = await response.json();
+    if (!Array.isArray(data)) return [];
     return data.map(x => ({ Id: x.Id, Nombre: x.Nombre }));
 }
 
@@ -622,7 +556,9 @@ async function listaUnidadesMedidaFilter() {
             'Content-Type': 'application/json'
         }
     });
+    if (!response.ok) throw new Error('No se pudieron cargar las unidades de medida.');
     const data = await response.json();
+    if (!Array.isArray(data)) return [];
     return data.map(x => ({ Id: x.Id, Nombre: x.Nombre }));
 }
 
@@ -635,13 +571,16 @@ async function listaInsumosCategoriaFilter() {
             'Content-Type': 'application/json'
         }
     });
+    if (!response.ok) throw new Error('No se pudieron cargar las categorías.');
     const data = await response.json();
+    if (!Array.isArray(data)) return [];
     return data.map(x => ({ Id: x.Id, Nombre: x.Nombre }));
 }
 
 async function listaUnidadesNegocio(autoSelectAll = false) {
     const data = await listaUnidadesNegocioFilter();
     const contenedor = document.getElementById("listaUnidades");
+    if (!contenedor) return;
 
     contenedor.innerHTML = `
         <div class="form-check">
@@ -651,7 +590,7 @@ async function listaUnidadesNegocio(autoSelectAll = false) {
         <hr class="my-2" />
     `;
 
-    data.forEach(p => {
+    (Array.isArray(data) ? data : []).forEach(p => {
         const wrapper = document.createElement("div");
         wrapper.className = "form-check";
         wrapper.innerHTML = `
@@ -663,6 +602,7 @@ async function listaUnidadesNegocio(autoSelectAll = false) {
 
     // Listeners
     const master = document.getElementById("checkTodosUnidades");
+    if (!master) return;
     master.addEventListener("change", function () {
         document.querySelectorAll(".unidades-check").forEach(cb => cb.checked = this.checked);
         actualizarTextoUnidadesNegocio();
@@ -676,10 +616,10 @@ async function listaUnidadesNegocio(autoSelectAll = false) {
         });
     });
 
-    // ✅ AUTO: simular “Seleccionar todos” al terminar de armar la lista
+    // AUTO: simular "Seleccionar todos" al terminar de armar la lista
     if (autoSelectAll) {
         master.checked = true;
-        master.dispatchEvent(new Event('change', { bubbles: true })); // dispara el handler
+        master.dispatchEvent(new Event('change', { bubbles: true }));
     }
 }
 
@@ -731,8 +671,73 @@ async function listaUnidadesNegocioFiltro() {
 /* ============================================================
  * Modal Proveedores Asignados
  * ============================================================ */
+function _paEsc(s) {
+    return String(s ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function actualizarBadgeProveedoresAsignados() {
+    const badge = document.getElementById('badgeProveedoresAsignados');
+    if (!badge) return;
+    const n = Array.isArray(ProveedoresAsignados) ? ProveedoresAsignados.length : 0;
+    badge.textContent = String(n);
+    badge.classList.toggle('d-none', n <= 0);
+}
+
+function actualizarContadoresPa() {
+    const rows = document.querySelectorAll('#tablaProveedoresAsignados tbody tr');
+    let visible = 0;
+    let selected = 0;
+    let visibleChecked = 0;
+    let visibleTotal = 0;
+
+    rows.forEach(row => {
+        if (row.style.display === 'none') return;
+        visible++;
+        const cb = row.querySelector('.chk-asignacion');
+        if (!cb) return;
+        visibleTotal++;
+        if (cb.checked) {
+            selected++;
+            visibleChecked++;
+        }
+    });
+
+    // Contar seleccionados (incluye ocultos por filtro)
+    selected = document.querySelectorAll('#tablaProveedoresAsignados tbody .chk-asignacion:checked').length;
+
+    const elV = document.getElementById('paVisibleCount');
+    const elS = document.getElementById('paSelectedCount');
+    if (elV) elV.textContent = String(visible);
+    if (elS) elS.textContent = String(selected);
+
+    const empty = document.getElementById('paEmptyState');
+    if (empty) empty.classList.toggle('d-none', visible > 0);
+
+    const master = document.getElementById('paCheckAllVisible');
+    if (master) {
+        master.indeterminate = visibleChecked > 0 && visibleChecked < visibleTotal;
+        master.checked = visibleTotal > 0 && visibleChecked === visibleTotal;
+    }
+}
+
+function toggleAsignacionesVisibles(checked) {
+    document.querySelectorAll('#tablaProveedoresAsignados tbody tr').forEach(row => {
+        if (row.style.display === 'none') return;
+        const cb = row.querySelector('.chk-asignacion');
+        if (!cb) return;
+        cb.checked = !!checked;
+        row.classList.toggle('fila-asignada', !!checked);
+    });
+    actualizarContadoresPa();
+}
+
 function abrirModalProveedoresAsignados() {
-    const idInsumo = $("#txtId").val();
+    const idInsumo = parseInt($("#txtId").val(), 10);
+    const idI = Number.isFinite(idInsumo) && idInsumo > 0 ? idInsumo : 0;
 
     fetch(`/ProveedoresInsumos/Lista?idProveedor=-1`, {
         method: 'GET',
@@ -741,33 +746,46 @@ function abrirModalProveedoresAsignados() {
             'Content-Type': 'application/json'
         }
     })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('No se pudo cargar la lista de proveedores.');
+            return response.json();
+        })
         .then(data => {
+            const list = Array.isArray(data) ? data : (data?.$values || []);
             const tbody = document.querySelector("#tablaProveedoresAsignados tbody");
             tbody.innerHTML = "";
 
             const asignados = [];
             const noAsignados = [];
 
-            const idI = parseInt($("#txtId").val());
-
-            data.forEach(item => {
-                const isChecked = ProveedoresAsignados.some(x =>
-                    x.IdInsumo === idI &&
-                    x.IdProveedor === parseInt(item.IdProveedor) &&
-                    x.IdListaProveedor === parseInt(item.Id)
+            list.forEach(item => {
+                const idProv = parseInt(item.IdProveedor ?? item.idProveedor, 10);
+                const idLista = parseInt(item.Id ?? item.id, 10);
+                const isChecked = (ProveedoresAsignados || []).some(x =>
+                    parseInt(x.IdListaProveedor, 10) === idLista &&
+                    parseInt(x.IdProveedor, 10) === idProv
                 );
+
+                const codigo = item.Codigo ?? item.codigo ?? '';
+                const desc = item.Descripcion ?? item.descripcion ?? '';
+                const prov = item.Proveedor ?? item.proveedor ?? '';
+                const costo = item.CostoUnitario ?? item.costoUnitario;
 
                 const tr = document.createElement("tr");
                 tr.className = isChecked ? "fila-asignada" : "";
                 tr.innerHTML = `
-                    <td>${item.Proveedor}</td>
-                    <td>${item.Descripcion}</td>
-                    <td>${item.Codigo}</td>
                     <td>
-                        <input type="checkbox" class="chk-asignacion" 
-                            data-idproveedor="${item.IdProveedor}" 
-                            data-idlistaproveedor="${item.Id}" 
+                        <span class="pa-prov">${_paEsc(prov)}</span>
+                    </td>
+                    <td>
+                        <div class="pa-desc">${_paEsc(desc)}</div>
+                        ${costo != null && costo !== '' ? `<div class="pa-meta">Unitario: ${_paEsc(Number(costo).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 4 }))}</div>` : ''}
+                    </td>
+                    <td><code class="pa-code">${codigo ? _paEsc(codigo) : '—'}</code></td>
+                    <td class="text-center">
+                        <input type="checkbox" class="form-check-input chk-asignacion"
+                            data-idproveedor="${idProv}"
+                            data-idlistaproveedor="${idLista}"
                             ${isChecked ? "checked" : ""}>
                     </td>
                 `;
@@ -777,49 +795,93 @@ function abrirModalProveedoresAsignados() {
 
             [...asignados, ...noAsignados].forEach(tr => tbody.appendChild(tr));
 
-            $('#modalProveedoresAsignados')
-                .appendTo('body')
-                .modal({ backdrop: false, keyboard: false })
-                .modal('show');
+            // Filtros limpios al abrir
+            ['filtroDescripcionProveedor', 'filtroCodigoProveedor', 'filtroProveedor'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+
+            tbody.querySelectorAll('.chk-asignacion').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    cb.closest('tr')?.classList.toggle('fila-asignada', cb.checked);
+                    actualizarContadoresPa();
+                });
+            });
+
+            filtrarTablaProveedor();
+
+            if (typeof bsShow === 'function') {
+                bsShow('#modalProveedoresAsignados', { backdrop: true, keyboard: true });
+            } else {
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('modalProveedoresAsignados')).show();
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            errorModal(err.message || 'No se pudo abrir proveedores asignados.');
         });
 }
 
-function guardarAsignacionesProveedores() {
-    const checks = document.querySelectorAll(".chk-asignacion");
-    ProveedoresAsignados = []; // reset intencional
+async function guardarAsignacionesProveedores() {
+    return withBusy("#btnGuardarAsignaciones", async () => {
+        try {
+            const checks = document.querySelectorAll("#tablaProveedoresAsignados .chk-asignacion");
+            const idInsumo = parseInt($("#txtId").val(), 10);
+            const idI = Number.isFinite(idInsumo) && idInsumo > 0 ? idInsumo : 0;
 
-    checks.forEach(cb => {
-        if (cb.checked) {
-            const idProveedor = parseInt(cb.dataset.idproveedor);
-            const idListaProveedor = parseInt(cb.dataset.idlistaproveedor);
-
-            ProveedoresAsignados.push({
-                IdProveedor: idProveedor,
-                IdListaProveedor: idListaProveedor
+            const next = [];
+            checks.forEach(cb => {
+                if (!cb.checked) return;
+                const idProveedor = parseInt(cb.dataset.idproveedor, 10);
+                const idListaProveedor = parseInt(cb.dataset.idlistaproveedor, 10);
+                if (!Number.isFinite(idProveedor) || !Number.isFinite(idListaProveedor)) return;
+                next.push({
+                    IdInsumo: idI || undefined,
+                    IdProveedor: idProveedor,
+                    IdListaProveedor: idListaProveedor
+                });
             });
-        }
-    });
 
-    $('#modalProveedoresAsignados').modal('hide');
+            ProveedoresAsignados = next;
+            actualizarBadgeProveedoresAsignados();
+
+            if (typeof bsHide === 'function') await bsHide('#modalProveedoresAsignados');
+            else {
+                const el = document.getElementById('modalProveedoresAsignados');
+                if (el && window.bootstrap?.Modal) bootstrap.Modal.getOrCreateInstance(el).hide();
+            }
+
+            if (typeof exitoModal === 'function') {
+                exitoModal(next.length
+                    ? `${next.length} proveedor(es) vinculados. Guardá el insumo para confirmar.`
+                    : 'Sin proveedores vinculados. Guardá el insumo para confirmar.');
+            }
+        } catch (e) {
+            console.error(e);
+            errorModal(e.message || 'No se pudieron aplicar las asignaciones.');
+        }
+    }, { label: "Aplicando..." });
 }
 
 function filtrarTablaProveedor() {
-    const descripcion = document.getElementById("filtroDescripcionProveedor").value.toLowerCase();
-    const codigo = document.getElementById("filtroCodigoProveedor").value.toLowerCase();
-    const proveedor = document.getElementById("filtroProveedor").value.toLowerCase();
+    const descripcion = (document.getElementById("filtroDescripcionProveedor")?.value || "").toLowerCase().trim();
+    const codigo = (document.getElementById("filtroCodigoProveedor")?.value || "").toLowerCase().trim();
+    const proveedor = (document.getElementById("filtroProveedor")?.value || "").toLowerCase().trim();
 
     document.querySelectorAll("#tablaProveedoresAsignados tbody tr").forEach(row => {
-        const colProveedor = row.children[0]?.textContent.toLowerCase();
-        const colDescripcion = row.children[1]?.textContent.toLowerCase();
-        const colCodigo = row.children[2]?.textContent.toLowerCase();
+        const colProveedor = (row.children[0]?.textContent || "").toLowerCase();
+        const colDescripcion = (row.children[1]?.textContent || "").toLowerCase();
+        const colCodigo = (row.children[2]?.textContent || "").toLowerCase();
 
         const coincide =
-            colDescripcion.includes(descripcion) &&
-            colCodigo.includes(codigo) &&
-            colProveedor.includes(proveedor);
+            (!descripcion || colDescripcion.includes(descripcion)) &&
+            (!codigo || colCodigo.includes(codigo)) &&
+            (!proveedor || colProveedor.includes(proveedor));
 
         row.style.display = coincide ? "" : "none";
     });
+
+    actualizarContadoresPa();
 }
 
 /* ============================================================
@@ -908,6 +970,7 @@ function limpiarModal() {
     if (errorMsg) errorMsg.classList.add("d-none");
 
     ProveedoresAsignados = [];
+    actualizarBadgeProveedoresAsignados();
 }
 
 function validarCampoIndividual(el) {
@@ -995,7 +1058,7 @@ function validarCampos() {
 const _KEY_UN_FILTRO = 'Insumos_Filtro_UnidadNegocio';
 const _KEY_BAR_VISIBLE = 'Insumos_FiltroBar_Visible';
 
-// ——— helpers
+// === helpers
 function ensureOpcionTodosUnidad() {
     const sel = document.getElementById('UnidadNegocioFiltro');
     if (!sel) return;
@@ -1029,7 +1092,7 @@ function getUnidadNegocioFiltro() {
     return Number.isFinite(n) ? n : -1;
 }
 
-// ——— init persistente del filtro + toggle de barra
+// === init persistente del filtro + toggle de barra
 
 function initFiltroUnidadNegocioPersistente() {
     ensureOpcionTodosUnidad();
@@ -1071,110 +1134,57 @@ function initFiltroUnidadNegocioPersistente() {
     });
 }
 
-// ——— aplicar/limpiar (mantengo tu flujo)
-function aplicarFiltrosInsumos() {
-    // Usa la API existente
-    const idUnidad = getUnidadNegocioFiltro();
-    listaUnidadesNegocioFiltro(); // opcional si querés refrescar opciones
-    listaInsumos(idUnidad);       // <- tu función existente
-}
-
-// wrapper para compatibilidad con el botón o código viejo
-function aplicarFiltros() {
-    aplicarFiltrosInsumos();
-}
-
-function limpiarFiltrosInsumos() {
-    setUnidadNegocioFiltro(-1);   // setea a "Todos" + persiste + dispara change si hay Select2
-    aplicarFiltrosInsumos();      // recarga la grilla con default
-}
-
-// ——— inicialización en document.ready
-document.addEventListener('DOMContentLoaded', () => {
-    // Si querés Select2 en el filtro (opcional)
-    if (window.jQuery && jQuery.fn && jQuery.fn.select2) {
-        $('#UnidadNegocioFiltro').select2({
-            placeholder: 'Todos',
-            allowClear: false,
-            width: '100%'
-        });
-    }
-
-    // Llenar el combo (usa tu función real)
-    // cuando termine de llenar, llamá a initFiltroUnidadNegocioPersistente();
-    (async function bootstrapFiltro() {
-        try {
-            await listaUnidadesNegocioFiltro(); // <- tu función que pobla el select
-        } finally {
-            initFiltroUnidadNegocioPersistente();
-            // primera carga respetando el valor guardado
-            //aplicarFiltrosInsumos();
-        }
-    })();
-});
 
 
-// Duplica un insumo: abre el modal con los datos precargados, pero en modo INSERT (Id vacío)
+// Duplica un insumo: abre el modal precargado en modo INSERT (sin Id / SKU único)
 async function duplicarInsumo(id) {
-    $('.acciones-dropdown').hide();
-
     try {
-        const resp = await fetch("Insumos/EditarInfo?id=" + id, {
+        const resp = await fetch("/Insumos/EditarInfo?id=" + id, {
             method: 'GET',
             headers: {
                 'Authorization': 'Bearer ' + token,
                 'Content-Type': 'application/json'
             }
         });
-        if (!resp.ok) throw new Error("Ha ocurrido un error.");
+        if (!resp.ok) throw new Error("No se pudo cargar el insumo.");
 
         const origen = await resp.json();
-        if (!origen) throw new Error("Ha ocurrido un error.");
+        if (origen?.valor === false) throw new Error(origen.mensaje || "No se pudo cargar el insumo.");
+        if (!origen) throw new Error("No se pudo cargar el insumo.");
 
-        // ===== Normalización para duplicar =====
-        // 1) Id vacío => forzamos INSERT en guardarCambios()
+        const skuOrigen = String(origen.Sku || "").trim();
+        const unidades = unwrapJsonList(origen.InsumosUnidadesNegocios || origen.insumosUnidadesNegocios);
+        const proveedores = unwrapJsonList(origen.InsumosProveedores || origen.insumosProveedores);
+
         const copia = {
             ...origen,
-            Id: 0, // importante para no pisar el original
-            // Si querés evitar duplicar SKU por restricciones únicas, dejalo vacío:
-            // Sku: "",
-            // Si preferís copiarlo tal cual, comentá la línea de arriba:
-            Sku: origen.Sku || "",
-            Descripcion: ((origen.Descripcion || "") + " (copia)").trim(),
-
-            // Auditoría en blanco
+            Id: 0,
+            Sku: skuOrigen ? `${skuOrigen}-COPIA` : "",
+            Descripcion: typeof kyoTextoCopia === 'function'
+                ? kyoTextoCopia(origen.Descripcion)
+                : `${(origen.Descripcion || "").trim()} (copia)`.trim(),
             IdUsuarioRegistra: null,
             FechaRegistra: null,
             IdUsuarioModifica: null,
             FechaModifica: null,
-
-            // Colecciones: mantenemos UNs y Proveedores (si querés empezar sin Proveedores, dejá [] )
-            InsumosUnidadesNegocios: Array.isArray(origen.InsumosUnidadesNegocios)
-                ? origen.InsumosUnidadesNegocios.map(u => ({ IdUnidadNegocio: u.IdUnidadNegocio }))
-                : [],
-            InsumosProveedores: Array.isArray(origen.InsumosProveedores)
-                ? origen.InsumosProveedores.map(p => ({
-                    IdProveedor: p.IdProveedor,
-                    IdListaProveedor: p.IdListaProveedor
-                }))
-                : []
+            UsuarioRegistra: null,
+            UsuarioModifica: null,
+            InsumosUnidadesNegocios: unidades.map(u => ({
+                IdUnidadNegocio: u.IdUnidadNegocio ?? u.idUnidadNegocio
+            })),
+            InsumosProveedores: proveedores.map(p => ({
+                IdProveedor: p.IdProveedor ?? p.idProveedor,
+                IdListaProveedor: p.IdListaProveedor ?? p.idListaProveedor
+            }))
         };
 
-        // Abrimos el modal con la copia
         await mostrarModal(copia);
-
-        // Forzamos modo "nuevo"
-        $("#txtId").val("");                     // <- esto hace que guardarCambios use INSERT
+        $("#txtId").val("");
         $("#btnGuardar").text("Registrar");
         $("#modalEdicionLabel").text("Duplicar Insumo");
-
-        // Opcional: si NO querés copiar los Proveedores, descomentá:
-        // ProveedoresAsignados = [];
-        // (y si querés reflejar visualmente el cambio, cerrá/abra el modal o re-renderizá la tabla de Proveedores asignados si aplica)
-
     } catch (e) {
         console.error(e);
-        errorModal("Ha ocurrido un error.");
+        errorModal(e?.message || "Ha ocurrido un error al duplicar el insumo.");
     }
 }
 
@@ -1245,24 +1255,6 @@ async function recargarCategoriasYSeleccionar(idSeleccionar = null) {
 
 
 // Botón [+] al lado de Categorías
-document.getElementById('btnAddCategoria')?.addEventListener('click', async () => {
-    try {
-        // Abre directamente el modal de Configuraciones en "Insumos Categorías"
-        const nuevoId = await openConfigAndWait({
-            nombre: 'Insumos Categorias',
-            controller: 'InsumosCategoria'
-        });
-
-        // Recargar el combo y seleccionar automáticamente lo recién creado
-        await recargarCategoriasYSeleccionar(nuevoId);
-    } catch (e) {
-        // Si el usuario canceló o no se creó nada, no hacemos nada
-        // console.debug(e);
-    }
-});
-
-
-
 // Carga /UnidadesMedida/Lista y selecciona el último (o por id si se pasa).
 async function recargarUnidadesMedidaYSeleccionar(idSeleccionar = null) {
     const sel = document.getElementById('UnidadesMedida');
@@ -1305,66 +1297,3 @@ async function recargarUnidadesMedidaYSeleccionar(idSeleccionar = null) {
 }
 
 
-document.getElementById('btnAddUM')?.addEventListener('click', async () => {
-    try {
-        // Abre el modal de Configuraciones en la sección Unidades de Medida
-        await openConfigAndWait({ nombre: 'Unidades de Medida', controller: 'UnidadesMedida' });
-    } catch (_) {
-        // usuario canceló: no pasa nada
-    } finally {
-        // Siempre recargo y selecciono el último
-        await recargarUnidadesMedidaYSeleccionar();
-    }
-});
-
-
-
-function seleccionarTodasUnidadesNegocio() {
-    const master = document.getElementById('checkTodosUnidades');
-    const checks = document.querySelectorAll('.unidades-check');
-
-    checks.forEach(cb => cb.checked = true);
-
-    // sincronizo el array y la UI del “botón select”
-    unidadesNegocioSeleccionados = Array.from(checks).map(cb => parseInt(cb.value));
-    if (master) master.checked = true;
-
-    actualizarTextoUnidadesNegocio();
-    const btn = document.getElementById("btnUnidadesNegocio");
-    if (btn) validarCampoIndividual(btn);
-}
-
-
-
-
-document.getElementById('modalEdicion')?.addEventListener('show.bs.modal', () => {
-    resetErroresModal('#modalEdicion');
-});
-
-// Usa estos helpers que ya tenés unificados
-// fieldContainer, feedbackEl, setInvalid, _isEmpty  (o como los hayas nombrado)
-
-function wireLiveValidationInsumo() {
-    const ids = ['#txtDescripcion', '#txtSku', '#UnidadesMedida', '#Categorias'];
-
-    ids.forEach(sel => {
-        const el = document.querySelector(sel);
-        if (!el) return;
-
-        const reval = () => setInvalid(el, _isEmpty(el));   // limpia o marca según valor
-        el.addEventListener('change', reval);
-        el.addEventListener('input', reval);
-        el.addEventListener('blur', reval);
-    });
-
-    // Si usás select2 en alguno, revalidá también sus eventos
-    if (window.jQuery && $.fn.select2) {
-        $('#UnidadesMedida, #Categorias')
-            .on('select2:select select2:clear', function () {
-                setInvalid(this, _isEmpty(this));
-            });
-    }
-}
-
-// Llamalo una sola vez cuando cargas el modal/página:
-document.addEventListener('DOMContentLoaded', wireLiveValidationInsumo);

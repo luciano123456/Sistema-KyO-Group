@@ -1,26 +1,29 @@
 .form-control:focus, .form-select:focus {
-    border-color: #4dabf7;
-    box-shadow: 0 0 0 0.1rem rgba(77, 171, 247, 0.5);
+    border-color: #f4a4b8;
+    box-shadow: 0 0 0 0.15rem rgba(244, 164, 184, 0.25);
 }
 
 .card-header.bg-gradient {
-    background: linear-gradient(to right, #2c3e50, #34495e);
+    background: linear-gradient(to right, #fce4ec, #e8dff5);
+    color: #3d3548;
 }
 
 .nav-tabs .nav-link.active {
-    background-color: #1a1a1a !important;
-    color: #fff !important;
-    border-color: #4dabf7 #4dabf7 #1a1a1a;
+    background-color: rgba(244, 164, 184, 0.15) !important;
+    color: #e8879f !important;
+    border-color: #f4a4b8 #f4a4b8 transparent;
 }
 
-
 .bg-gradient-primary {
-    background: linear-gradient(90deg, #1366f2, #6aaefc);
+    background: linear-gradient(90deg, #b5d99c, #8bc34a);
     border-radius: 0.4rem;
+    color: #fff;
 }
 
 .modal-content {
-    background-color: #323844 !important;
-    border-radius: 0 0 0.5rem 0.5rem;
-    box-shadow: none;
+    background-color: #fff !important;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(90, 70, 90, 0.12);
+    border: 1px solid rgba(90, 70, 90, 0.1);
+    color: #3d3548;
 }

@@ -1,264 +1,548 @@
-﻿
-<link href="~/css/DisenoPantallas.css" rel="stylesheet" />
-<link href="~/css/navbarlogin.css" rel="stylesheet" />
+<nav class="navbar navbar-expand-lg rp-navbar sticky-top">
+<link href="~/css/RpAvatar.css?v=1.0" rel="stylesheet" />
 
-<nav class="navbar navbar-expand-lg navbar-light" style="background-color: rgba(112, 112, 112, 0.1);">
-    <div class="container-fluid">
-        <a class="navbar-brand">Sushi Club</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-contRoles="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <div class="container-fluid px-3 px-lg-4">
+
+        <a class="navbar-brand rp-brand" href="@Url.Action("Index", "Proveedores")">
+
+            <img src="/Imagenes/logo.png" alt="KyO Group" class="rp-brand-logo" />
+
+            <span class="rp-brand-text">
+
+                <strong>KyO Group</strong>
+
+                <small>Sushi Club</small>
+
+            </span>
+
+        </a>
+
+
+
+        <button class="navbar-toggler rp-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Menú">
+
             <span class="navbar-toggler-icon"></span>
+
         </button>
+
+
+
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 rp-nav-main">
 
 
-                <li class="nav-item" id="seccionProveedores">
-                    <a class="nav-link" href="@Url.Action("Index", "Insumos")">Insumos</a>
+
+                <li class="nav-item dropdown" id="seccionProveedores">
+
+                    <a class="nav-link dropdown-toggle rp-nav-link" href="#" id="proveedoresDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+
+                        <i class="fa fa-truck"></i><span>Proveedores</span>
+
+                    </a>
+
+                    <ul class="dropdown-menu rp-nav-dropdown" aria-labelledby="proveedoresDropdown">
+
+                        <li class="rp-nav-dropdown-header">Gestión de proveedores</li>
+
+                        <li>
+
+                            <a class="dropdown-item rp-nav-item" href="@Url.Action("Index", "Proveedores")">
+
+                                <span class="rp-nav-item-icon"><i class="fa fa-list"></i></span>
+
+                                <span class="rp-nav-item-body">
+
+                                    <span class="rp-nav-item-title">Listado</span>
+
+                                    <span class="rp-nav-item-sub">Todos los proveedores</span>
+
+                                </span>
+
+                            </a>
+
+                        </li>
+
+                        <li>
+
+                            <a class="dropdown-item rp-nav-item" href="@Url.Action("Gestion", "Proveedores", new { id = 0 })">
+
+                                <span class="rp-nav-item-icon"><i class="fa fa-pencil-square-o"></i></span>
+
+                                <span class="rp-nav-item-body">
+
+                                    <span class="rp-nav-item-title">Gestión</span>
+
+                                    <span class="rp-nav-item-sub">Alta y edición por pestañas</span>
+
+                                </span>
+
+                            </a>
+
+                        </li>
+
+                        <li>
+
+                            <a class="dropdown-item rp-nav-item" href="@Url.Action("Index", "ProveedoresCuentaCorriente")">
+
+                                <span class="rp-nav-item-icon"><i class="fa fa-money"></i></span>
+
+                                <span class="rp-nav-item-body">
+
+                                    <span class="rp-nav-item-title">Cuentas corrientes</span>
+
+                                    <span class="rp-nav-item-sub">Saldos y movimientos</span>
+
+                                </span>
+
+                            </a>
+
+                        </li>
+
+                        <li>
+
+                            <a class="dropdown-item rp-nav-item" href="@Url.Action("Analisis", "Proveedores")">
+
+                                <span class="rp-nav-item-icon"><i class="fa fa-bar-chart"></i></span>
+
+                                <span class="rp-nav-item-body">
+
+                                    <span class="rp-nav-item-title">Análisis</span>
+
+                                    <span class="rp-nav-item-sub">Indicadores por proveedor</span>
+
+                                </span>
+
+                            </a>
+
+                        </li>
+
+                        <li>
+
+                            <a class="dropdown-item rp-nav-item" href="@Url.Action("Index", "ProveedoresInsumos")">
+
+                                <span class="rp-nav-item-icon"><i class="fa fa-tags"></i></span>
+
+                                <span class="rp-nav-item-body">
+
+                                    <span class="rp-nav-item-title">Lista precios</span>
+
+                                    <span class="rp-nav-item-sub">Insumos por proveedor</span>
+
+                                </span>
+
+                            </a>
+
+                        </li>
+
+                        <li><hr class="dropdown-divider rp-nav-divider" /></li>
+
+                        <li class="rp-nav-dropdown-header">Operaciones</li>
+
+                        <li>
+
+                            <a class="dropdown-item rp-nav-item rp-nav-item-accent" href="@Url.Action("Index", "Compras")">
+
+                                <span class="rp-nav-item-icon"><i class="fa fa-shopping-cart"></i></span>
+
+                                <span class="rp-nav-item-body">
+
+                                    <span class="rp-nav-item-title">Compras</span>
+
+                                    <span class="rp-nav-item-sub">Registro de compras</span>
+
+                                </span>
+
+                            </a>
+
+                        </li>
+
+                        <li>
+
+                            <a class="dropdown-item rp-nav-item rp-nav-item-accent" href="@Url.Action("Index", "OrdenesCompras")">
+
+                                <span class="rp-nav-item-icon"><i class="fa fa-file-text-o"></i></span>
+
+                                <span class="rp-nav-item-body">
+
+                                    <span class="rp-nav-item-title">Órdenes de compra</span>
+
+                                    <span class="rp-nav-item-sub">Pedidos a proveedores</span>
+
+                                </span>
+
+                            </a>
+
+                        </li>
+
+                    </ul>
+
                 </li>
 
-                <li class="nav-item" id="seccionProveedores">
-                    <a class="nav-link" href="@Url.Action("Index", "Proveedores")">Proveedores</a>
+
+
+                <li class="nav-item dropdown" id="seccionRecetas">
+
+                    <a class="nav-link dropdown-toggle rp-nav-link" href="#" id="recetasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+
+                        <i class="fa fa-cutlery"></i><span>Recetas</span>
+
+                    </a>
+
+                    <ul class="dropdown-menu rp-nav-dropdown" aria-labelledby="recetasDropdown">
+
+                        <li>
+
+                            <a class="dropdown-item rp-nav-item" href="@Url.Action("Index", "Recetas")">
+
+                                <span class="rp-nav-item-icon"><i class="fa fa-book"></i></span>
+
+                                <span class="rp-nav-item-body">
+
+                                    <span class="rp-nav-item-title">Recetas</span>
+
+                                    <span class="rp-nav-item-sub">Platos finales</span>
+
+                                </span>
+
+                            </a>
+
+                        </li>
+
+                        <li>
+
+                            <a class="dropdown-item rp-nav-item" href="@Url.Action("Index", "SubRecetas")">
+
+                                <span class="rp-nav-item-icon"><i class="fa fa-flask"></i></span>
+
+                                <span class="rp-nav-item-body">
+
+                                    <span class="rp-nav-item-title">SubRecetas</span>
+
+                                    <span class="rp-nav-item-sub">Preparaciones base</span>
+
+                                </span>
+
+                            </a>
+
+                        </li>
+
+                    </ul>
+
                 </li>
 
-                <li class="nav-item" id="seccionProveedoresInsumos">
-                    <a class="nav-link" href="@Url.Action("Index", "ProveedoresInsumos")">Proveedores Insumos</a>
+
+
+                <li class="nav-item" id="seccionInsumos">
+
+                    <a class="nav-link rp-nav-link" href="@Url.Action("Index", "Insumos")">
+
+                        <i class="fa fa-cubes"></i><span>Insumos</span>
+
+                    </a>
+
                 </li>
 
 
-                <li class="nav-item" id="seccionSubRecetas">
-                    <a class="nav-link" href="@Url.Action("Index", "SubRecetas")">Subrecetas</a>
+
+                <li class="nav-item dropdown" id="seccionVentas">
+
+                    <a class="nav-link dropdown-toggle rp-nav-link" href="#" id="ventasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+
+                        <i class="fa fa-shopping-bag"></i><span>Ventas</span>
+
+                    </a>
+
+                    <ul class="dropdown-menu rp-nav-dropdown" aria-labelledby="ventasDropdown">
+
+                        <li class="rp-nav-dropdown-header">Ventas Maxi Rest</li>
+
+                        <li>
+
+                            <a class="dropdown-item rp-nav-item" href="@Url.Action("Index", "Ventas")">
+
+                                <span class="rp-nav-item-icon"><i class="fa fa-list"></i></span>
+
+                                <span class="rp-nav-item-body">
+
+                                    <span class="rp-nav-item-title">Importaciones</span>
+
+                                    <span class="rp-nav-item-sub">Histórico por local y fecha</span>
+
+                                </span>
+
+                            </a>
+
+                        </li>
+
+                        <li>
+
+                            <a class="dropdown-item rp-nav-item" href="@Url.Action("Importar", "Ventas")">
+
+                                <span class="rp-nav-item-icon"><i class="fa fa-upload"></i></span>
+
+                                <span class="rp-nav-item-body">
+
+                                    <span class="rp-nav-item-title">Importar</span>
+
+                                    <span class="rp-nav-item-sub">Excel RankingVentas</span>
+
+                                </span>
+
+                            </a>
+
+                        </li>
+
+                        <li>
+
+                            <a class="dropdown-item rp-nav-item" href="@Url.Action("Analisis", "Ventas")">
+
+                                <span class="rp-nav-item-icon"><i class="fa fa-bar-chart"></i></span>
+
+                                <span class="rp-nav-item-body">
+
+                                    <span class="rp-nav-item-title">Análisis</span>
+
+                                    <span class="rp-nav-item-sub">Promedios, top y matriz</span>
+
+                                </span>
+
+                            </a>
+
+                        </li>
+
+                    </ul>
+
                 </li>
 
-                <li class="nav-item" id="seccionRecetas">
-                    <a class="nav-link" href="@Url.Action("Index", "Recetas")">Recetas</a>
-                </li>
 
-                <li class="nav-item" id="seccionOrdenesCompra">
-                    <a class="nav-link" href="@Url.Action("Index", "OrdenesCompras")">Órdenes de Compra</a>
-                </li>
 
-                <li class="nav-item" id="seccionCompra">
-                    <a class="nav-link" href="@Url.Action("Index", "Compras")">Compras</a>
+                <li class="nav-item" id="seccionAnalisisDatos">
+
+                    <a class="nav-link rp-nav-link" href="@Url.Action("Index", "AnalisisDatos")">
+
+                        <i class="fa fa-line-chart"></i><span>Análisis</span>
+
+                    </a>
+
                 </li>
 
 
 
                 <li class="nav-item dropdown" id="seccionConfiguraciones" hidden>
-                    <a class="nav-link dropdown-toggle" href="#" id="configDropdownLink" Rol="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Configuraciones
+
+                    <a class="nav-link dropdown-toggle rp-nav-link" href="#" id="configDropdownLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+
+                        <i class="fa fa-cogs"></i><span>Configuraciones</span>
+
                     </a>
-                    <ul class="dropdown-menu" aria-labelledby="configDropdownLink">
-                        <li><a class="dropdown-item" href="@Url.Action("Index", "Usuarios")">Usuarios</a></li>
-                        <li><a class="dropdown-item" onclick="abrirConfiguraciones()">Otras</a></li>
+
+                    <ul class="dropdown-menu rp-nav-dropdown dropdown-menu-end" aria-labelledby="configDropdownLink">
+
+                        <li><a class="dropdown-item rp-nav-item" href="@Url.Action("Index", "Usuarios")">Usuarios</a></li>
+
+                        <li><a class="dropdown-item rp-nav-item" href="#" onclick="abrirConfiguraciones()">Otras</a></li>
+
                     </ul>
+
                 </li>
+
             </ul>
 
-            <!-- Usuario Dropdown -->
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" Rol="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-lg me-2" id="userName"></i> <!-- Ícono de Font Awesome 4.7 -->
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="#" onclick="window.location.href='/Usuarios/Configuracion';">Configuración</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="cerrarSesion()">Cerrar Sesión</a></li>
-                    </ul>
+
+
+            <ul class="navbar-nav ms-auto rp-nav-user">
+
+                <li class="nav-item d-flex align-items-center me-2 d-none" id="sessionCountdownNav">
+
+                    <div class="rp-session-timer" id="sessionCountdown" title="Tiempo restante de sesión">
+
+                        <i class="fa fa-clock-o" aria-hidden="true"></i>
+
+                        <span class="rp-session-timer-label">Sesión</span>
+
+                        <strong id="sessionCountdownText">--:--:--</strong>
+
+                    </div>
+
                 </li>
+
+                <li class="nav-item dropdown">
+
+                    <a class="nav-link dropdown-toggle rp-user-pill" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+
+                        <span class="rp-user-avatar"><i class="fa fa-user"></i></span>
+
+                        <span class="rp-user-name" id="userName">Usuario</span>
+
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end rp-nav-dropdown rp-user-menu" aria-labelledby="userDropdown">
+
+                        <li><a class="dropdown-item rp-nav-item" href="/Usuarios/Configuracion"><i class="fa fa-sliders me-2"></i> Configuración</a></li>
+
+                        <li><hr class="dropdown-divider rp-nav-divider" /></li>
+
+                        <li><a class="dropdown-item rp-nav-item rp-nav-item-danger" href="#" onclick="cerrarSesion()"><i class="fa fa-sign-out me-2"></i> Cerrar sesión</a></li>
+
+                    </ul>
+
+                </li>
+
             </ul>
+
         </div>
+
     </div>
+
 </nav>
 
-
-<!-- Modal Configuraciones (lista/edición) - ADAPTADO AL SEGUNDO DISEÑO -->
-<div class="modal fade theme-indigo" id="modalConfiguracion" tabindex="-1" aria-labelledby="modalConfiguracionLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content modal-config shadow-lg border-0 rounded-3">
-
-            <!-- Header -->
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="modalConfiguracionLabel">
-                    <i class="fa fa-cogs me-2"></i> Configuración
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+<!-- Modal: panel de configuraciones -->
+<div class="modal fade rp-modal" id="ModalEdicionConfiguraciones" tabindex="-1" aria-labelledby="ModalEdicionConfiguracionesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-config-panel">
+        <div class="modal-content rp-modal-content">
+            <div class="modal-header rp-modal-header">
+                <div>
+                    <div class="rp-modal-title" id="ModalEdicionConfiguracionesLabel">
+                        <i class="fa fa-sliders"></i> Configuraciones
+                    </div>
+                    <div class="rp-modal-subtitle">Catalogos y preferencias del sistema</div>
+                </div>
+                <button type="button" class="btn-close rp-btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-
-            <!-- Body -->
             <div class="modal-body">
-                <!-- Mensaje vacío -->
-                <div id="lblListaVacia" class="alert alert-warning text-center py-2 mb-3" hidden>No hay resultados.</div>
+                <div class="rp-search-box rp-config-secciones-search">
+                    <i class="fa fa-search rp-search-icon"></i>
+                    <input type="text" id="txtBuscarSeccionesConfiguracion" class="rp-input rp-search-input" placeholder="Buscar seccion..." autocomplete="off" />
+                </div>
+                <label id="lblSeccionesConfiguracionVacio" class="rp-empty-label rp-config-secciones-empty" hidden></label>
 
-                <!-- Contenedor lista + buscador -->
-                <div class="list-container border rounded-3 p-2">
-                    <div class="mb-2 d-flex gap-2">
-                        <input type="text" class="form-control form-control-sm" id="txtBuscarConfig" placeholder="Buscar..." oninput="filtrarConfiguracionesLocal(this.value)">
-                    </div>
-
-                    <div id="configuracion-list" class="config-list">
-                        <!-- La lista dinámica se inyecta aquí -->
-                    </div>
+                <div class="rp-config-grid" id="rpConfigSeccionesGrid">
+                    <button type="button" class="rp-config-card" data-buscar="roles permisos" onclick="abrirConfiguracion('Rol', 'Roles')">
+                        <div class="rp-config-icon blue"><i class="fa fa-shield"></i></div>
+                        <div><div class="rp-config-title">Roles</div><div class="rp-config-sub">Accesos y permisos</div></div>
+                    </button>
+                    <button type="button" class="rp-config-card" data-buscar="unidades negocio" onclick="abrirConfiguracion('Unidad de Negocio', 'UnidadesNegocio')">
+                        <div class="rp-config-icon blue"><i class="fa fa-building"></i></div>
+                        <div><div class="rp-config-title">Unidades de Negocio</div><div class="rp-config-sub">Areas de trabajo</div></div>
+                    </button>
+                    <button type="button" class="rp-config-card" data-buscar="sucursales locales puntos venta" onclick="abrirConfiguracion('Sucursal','Locales','Unidad de Negocio','UnidadesNegocio','Unidad de Negocio')">
+                        <div class="rp-config-icon blue"><i class="fa fa-map-marker"></i></div>
+                        <div><div class="rp-config-title">Sucursales</div><div class="rp-config-sub">Puntos de venta por unidad</div></div>
+                    </button>
+                    <button type="button" class="rp-config-card" data-buscar="unidades medida" onclick="abrirConfiguracion('Unidad de Medida', 'UnidadesMedida')">
+                        <div class="rp-config-icon blue"><i class="fa fa-balance-scale"></i></div>
+                        <div><div class="rp-config-title">Unidades de Medida</div><div class="rp-config-sub">Pesos y volúmenes</div></div>
+                    </button>
+                    <button type="button" class="rp-config-card" data-buscar="rubros ventas categorias" onclick="abrirConfiguracion('Rubro', 'Rubros')">
+                        <div class="rp-config-icon rose"><i class="fa fa-bookmark"></i></div>
+                        <div><div class="rp-config-title">Rubros de ventas</div><div class="rp-config-sub">ROLLS, NIGUIRIS, DELIVERY…</div></div>
+                    </button>
+                    <button type="button" class="rp-config-card" data-buscar="insumos categorias" onclick="abrirConfiguracion('Insumos Categorias', 'InsumosCategoria')">
+                        <div class="rp-config-icon blue"><i class="fa fa-tags"></i></div>
+                        <div><div class="rp-config-title">Insumos Categorias</div><div class="rp-config-sub">Tipos de insumos</div></div>
+                    </button>
+                    <button type="button" class="rp-config-card" data-buscar="subrecetas categorias" onclick="abrirConfiguracion('SubRecetas Categorias', 'SubRecetasCategoria')">
+                        <div class="rp-config-icon blue"><i class="fa fa-cutlery"></i></div>
+                        <div><div class="rp-config-title">SubRecetas Categorias</div><div class="rp-config-sub">Preparaciones base</div></div>
+                    </button>
+                    <button type="button" class="rp-config-card" data-buscar="recetas categorias" onclick="abrirConfiguracion('Recetas Categorias', 'RecetasCategoria')">
+                        <div class="rp-config-icon blue"><i class="fa fa-book"></i></div>
+                        <div><div class="rp-config-title">Recetas Categorias</div><div class="rp-config-sub">Platos finales</div></div>
+                    </button>
+                    <button type="button" class="rp-config-card" data-buscar="ordenes compra estados" onclick="abrirConfiguracion('Ordenes de Compra - Estados', 'OrdenesComprasEstado')">
+                        <div class="rp-config-icon purple"><i class="fa fa-list-alt"></i></div>
+                        <div><div class="rp-config-title">OC - Estados</div><div class="rp-config-sub">Estados de la orden</div></div>
+                    </button>
+                    <button type="button" class="rp-config-card" data-buscar="oc insumos estados" onclick="abrirConfiguracion('OC Insumos - Estados', 'OrdenesComprasInsumosEstado')">
+                        <div class="rp-config-icon purple"><i class="fa fa-cubes"></i></div>
+                        <div><div class="rp-config-title">OC Insumos - Estados</div><div class="rp-config-sub">Estados de ítems</div></div>
+                    </button>
+                    <button type="button" class="rp-config-card" data-buscar="estados usuarios" onclick="abrirConfiguracion('Estado de Usuario', 'EstadosUsuarios')">
+                        <div class="rp-config-icon blue"><i class="fa fa-user-circle"></i></div>
+                        <div><div class="rp-config-title">Estados de usuarios</div><div class="rp-config-sub">Estados del usuario</div></div>
+                    </button>
                 </div>
 
-                <!-- Formulario de edición -->
-                <div id="contenedorNombreConfiguracion" class="mt-4" hidden>
-                    <label id="lblNombre" for="txtNombreConfiguracion" class="form-label fw-bold">Nombre</label>
-                    <input type="text" class="form-control" id="txtNombreConfiguracion" required>
-                    <input type="text" class="form-control" id="txtIdConfiguracion" hidden>
-
-                    <!-- Combo dependiente (opcional) -->
-                    <div id="divConfiguracionCombo" class="mt-3" hidden>
-                        <label id="lblConfiguracionCombo" for="cmbConfiguracion" class="form-label fw-bold"></label>
-                        <select class="form-select" id="cmbConfiguracion" required>
-                            <option value="">Seleccione...</option>
-                        </select>
+                <div class="rp-config-view-section">
+                    <div class="rp-config-view-head">
+                        <div class="rp-config-icon teal rp-config-view-head-icon"><i class="fa fa-th-large"></i></div>
+                        <div>
+                            <div class="rp-config-title">Preferencias de visualizacion</div>
+                            <div class="rp-config-sub">Como se muestran los listados en todo el sistema (se guarda en este navegador)</div>
+                        </div>
                     </div>
-
-                    <!-- Campo extra (opcional) -->
-                    <div id="divExtraField" class="mt-3" hidden>
-                        <label id="lblExtraField" for="txtExtraField" class="form-label fw-bold"></label>
-                        <input type="text" class="form-control" id="txtExtraField" placeholder="">
-                    </div>
-
-                    <div class="d-flex gap-2 mt-3 btnModificarConfiguracion-container">
-                        <button id="btnRegistrarModificarConfiguracion" class="btn btn-new flex-fill" onclick="guardarCambiosConfiguracion()">
-                            <i class="fa fa-save me-1"></i> Modificar
+                    <div class="rp-config-grid rp-config-view-grid" id="rpConfigViewOptions">
+                        <button type="button" class="rp-config-card rp-config-view-card" data-rp-view="auto">
+                            <div class="rp-config-icon blue"><i class="fa fa-magic"></i></div>
+                            <div><div class="rp-config-title">Automatico</div><div class="rp-config-sub">Tabla en PC / tarjetas en movil</div></div>
                         </button>
-                        <button class="btn btn-outline-secondary flex-fill" onclick="cancelarModificarConfiguracion()">
-                            <i class="fa fa-times me-1"></i> Cancelar
+                        <button type="button" class="rp-config-card rp-config-view-card" data-rp-view="table">
+                            <div class="rp-config-icon purple"><i class="fa fa-table"></i></div>
+                            <div><div class="rp-config-title">Siempre tabla</div><div class="rp-config-sub">Grilla completa</div></div>
+                        </button>
+                        <button type="button" class="rp-config-card rp-config-view-card" data-rp-view="cards">
+                            <div class="rp-config-icon orange"><i class="fa fa-th-large"></i></div>
+                            <div><div class="rp-config-title">Siempre tarjetas</div><div class="rp-config-sub">Vista compacta tipo cards</div></div>
                         </button>
                     </div>
                 </div>
             </div>
-
-            <!-- Footer -->
-            <div class="modal-footer d-flex justify-content-between">
-                <button id="agregarConfiguracion" class="btn btn-new btnAgregarConfiguracion" onclick="agregarConfiguracion()">
-                    <i class="fa fa-plus me-1"></i> Añadir
-                </button>
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                    <i class="fa fa-times me-1"></i> Cerrar
-                </button>
+            <div class="modal-footer rp-modal-footer">
+                <button type="button" class="rp-btn rp-btn-secondary" data-bs-dismiss="modal"><i class="fa fa-times"></i> Cerrar</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Configuraciones (launcher de categorías) - MISMOS ESTILOS DEL SEGUNDO DISEÑO -->
-<div class="modal fade theme-indigo" id="ModalEdicionConfiguraciones" tabindex="-1" aria-labelledby="ModalEdicionConfiguracionesLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
-        <div class="modal-content modal-config">
-            <div class="modal-header">
-                <h5 class="modal-title" id="ModalEdicionConfiguracionesLabel">
-                    <i class="fa fa-cogs me-2"></i> Configuraciones
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+<!-- Modal: lista / edición de catálogo -->
+<div class="modal fade rp-modal" id="modalConfiguracion" tabindex="-1" aria-labelledby="modalConfiguracionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content rp-modal-content">
+            <div class="modal-header rp-modal-header">
+                <div>
+                    <div class="rp-modal-title" id="modalConfiguracionLabel"><i class="fa fa-cogs"></i> Configuracion</div>
+                    <div class="rp-modal-subtitle">Edita los valores disponibles</div>
+                </div>
+                <button type="button" class="btn-close rp-btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-
-            <div class="modal-body py-3">
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3" id="gridConfiguraciones">
-
-                    <div class="col">
-                        <button type="button" class="config-card w-100"
-                                onclick="abrirConfiguracion('Rol', 'Roles')"
-                                data-label="Rol" data-table="Roles">
-                            <img src="/Imagenes/Roles.png" alt="" class="config-card__img" loading="lazy">
-                            <span class="config-card__title">Roles</span>
-                            <span class="config-card__subtitle">Accesos y permisos</span>
-                        </button>
+            <div class="modal-body">
+                <label id="lblListaVacia" class="rp-empty-label" hidden></label>
+                <div class="rp-search-box" id="contenedorBuscadorConfiguracion">
+                    <i class="fa fa-search rp-search-icon"></i>
+                    <input type="text" id="txtBuscarConfiguracion" class="rp-input rp-search-input" placeholder="Buscar configuracion..." oninput="filtrarConfiguracionesLocal(this.value)" />
+                </div>
+                <div class="rp-list-container" id="configuracion-list"></div>
+                <div id="contenedorNombreConfiguracion" class="rp-edit-panel" hidden>
+                    <label id="lblNombreConfiguracion" class="rp-label" for="txtNombreConfiguracion">Nombre</label>
+                    <input type="text" class="rp-input" id="txtNombreConfiguracion" required />
+                    <input type="hidden" id="txtIdConfiguracion" />
+                    <div id="divConfiguracionCombo" style="margin-top:12px;" hidden>
+                        <label id="lblConfiguracionCombo" class="rp-label" for="cmbConfiguracion"></label>
+                        <select id="cmbConfiguracion" class="rp-input" required><option value="">Seleccione...</option></select>
                     </div>
-
-                    <div class="col">
-                        <button type="button" class="config-card w-100"
-                                onclick="abrirConfiguracion('Unidad de Negocio', 'UnidadesNegocio')"
-                                data-label="Rol" data-table="UnidadesNegocio">
-                            <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
-                            <span class="config-card__title">Unidades de Negocios</span>
-                            <span class="config-card__subtitle">Áreas de trabajo</span>
-                        </button>
+                    <div id="divExtraField" style="margin-top:12px;" hidden>
+                        <label id="lblExtraField" class="rp-label" for="txtExtraField"></label>
+                        <input type="text" class="rp-input" id="txtExtraField" />
                     </div>
-
-                    <div class="col">
-                        <button type="button" class="config-card w-100"
-                                onclick="abrirConfiguracion('Local','Locales','Unidad de Negocio','UnidadesNegocio','Unidad de Negocio')"
-                                data-label="Local" data-table="Locales">
-                            <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
-                            <span class="config-card__title">Locales</span>
-                            <span class="config-card__subtitle">Sucursales activas</span>
-                        </button>
+                    <div class="rp-edit-actions">
+                        <button id="btnRegistrarModificarConfiguracion" type="button" class="rp-btn rp-btn-primary" onclick="guardarCambiosConfiguracion()"><i class="fa fa-check"></i> Guardar</button>
+                        <button type="button" class="rp-btn rp-btn-secondary" onclick="cancelarModificarConfiguracion()"><i class="fa fa-times"></i> Cancelar</button>
                     </div>
-
-                    <div class="col">
-                        <button type="button" class="config-card w-100"
-                                onclick="abrirConfiguracion('Unidad de Medida', 'UnidadesMedida')"
-                                data-label="Unidades de Medida" data-table="UnidadesMedida">
-                            <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
-                            <span class="config-card__title">Unidades de Medida</span>
-                            <span class="config-card__subtitle">Pesos y volúmenes</span>
-                        </button>
-                    </div>
-
-                    <div class="col">
-                        <button type="button" class="config-card w-100"
-                                onclick="abrirConfiguracion('Insumos Categorias', 'InsumosCategoria')"
-                                data-label="Insumos Categorias" data-table="InsumosCategorias">
-                            <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
-                            <span class="config-card__title">Insumos Categorias</span>
-                            <span class="config-card__subtitle">Tipos de insumos</span>
-                        </button>
-                    </div>
-
-                    <div class="col">
-                        <button type="button" class="config-card w-100"
-                                onclick="abrirConfiguracion('SubRecetas Categorias', 'SubRecetasCategoria')"
-                                data-label="Rol" data-table="SubRecetas">
-                            <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
-                            <span class="config-card__title">SubRecetas Categorias</span>
-                            <span class="config-card__subtitle">Preparaciones base</span>
-                        </button>
-                    </div>
-
-                    <div class="col">
-                        <button type="button" class="config-card w-100"
-                                onclick="abrirConfiguracion('Recetas Categorias', 'RecetasCategoria')"
-                                data-label="Rol" data-table="Recetas">
-                            <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
-                            <span class="config-card__title">Recetas Categorias</span>
-                            <span class="config-card__subtitle">Platos finales</span>
-                        </button>
-                    </div>
-
-                    <div class="col">
-                        <button type="button" class="config-card w-100"
-                                onclick="abrirConfiguracion('Ordenes de Compra - Estados', 'OrdenesComprasEstado')"
-                                data-label="Ordenes de Compra - Estados" data-table="OrdenesCompraEstado">
-                            <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
-                            <span class="config-card__title">OC - Estados</span>
-                            <span class="config-card__subtitle">Estados de la orden</span>
-                        </button>
-                    </div>
-
-                    <!-- ===== NUEVOS: Ordenes de Compra Insumos - Estados ===== -->
-                    <div class="col">
-                        <button type="button" class="config-card w-100"
-                                onclick="abrirConfiguracion('OC Insumos - Estados', 'OrdenesComprasInsumosEstado')"
-                                data-label="OC Insumos - Estados" data-table="OrdenesComprasInsumosEstado">
-                            <img src="/Imagenes/configuraciones.png" alt="" class="config-card__img" loading="lazy">
-                            <span class="config-card__title">OC Insumos - Estados</span>
-                            <span class="config-card__subtitle">Estados de ítems</span>
-                        </button>
-                    </div>
-
+                </div>
+                <div class="rp-add-container">
+                    <button id="agregarConfiguracion" type="button" class="rp-btn rp-btn-primary" onclick="agregarConfiguracion()"><i class="fa fa-plus"></i> Anadir</button>
                 </div>
             </div>
-
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-new px-4" data-bs-dismiss="modal">Aceptar</button>
+            <div class="modal-footer rp-modal-footer d-flex justify-content-between w-100">
+                <button type="button" id="btnVolverConfiguraciones" class="rp-btn rp-btn-secondary" onclick="volverConfiguraciones()"><i class="fa fa-arrow-left"></i> Volver</button>
+                <button type="button" class="rp-btn rp-btn-secondary" data-bs-dismiss="modal"><i class="fa fa-times"></i> Cerrar</button>
             </div>
         </div>
     </div>
 </div>
 
+<script src="~/js/RpAvatar.js?v=1.0" asp-append-version="true"></script>
+<script src="~/js/NavBarLogin.js?v=1.8" asp-append-version="true"></script>
 
-<script src="~/js/NavBarLogin.js?v=1.2" asp-append-version="true"></script>
+

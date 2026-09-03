@@ -1,97 +1,211 @@
-﻿@using Microsoft.Extensions.Configuration
-
-@inject IConfiguration Configuration
-
-@{
-    var ambienteTest = Configuration.GetValue<int>("AmbienteTest");
+﻿@{
+    Layout = "~/Views/Shared/_LayoutModulo.cshtml";
+    ViewData["Title"] = "Mis datos";
 }
 
-@model SistemaKyoGroup.Models.User
-@{
-    ViewData["Title"] = "Configuración";
+@section Estilos {
+    <link href="~/css/RpAvatar.css?v=1.0" rel="stylesheet" />
+    <link href="~/css/Usuarios.css?v=6.2" rel="stylesheet" />
 }
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"]</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    @*<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LUfwmPel+Fu+sGprUURlOB3Jv3EE6l/BKrJ8rBN3tOSl2l+3uxGg6XZem8uf6Fdi" crossorigin="anonymous">*@
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-
-    <link href="~/css/site.css" rel="stylesheet" />
-
-</head>
-
-
- <partial name="~/Views/Shared/Partials/BotonMenu.cshtml" />
-
-<div class="container d-flex justify-content-center align-items-center " style="min-height: 1vh;">
-    <div class="card p-4" style="background-color: rgba(230, 240, 240, 2); box-shadow: 0 4px 10px rgba(40, 138, 237, 1); width: 100%; max-width: 700px;">
-        <h2 class="text-center mb-4 text-white">Configuración</h2>
-
-        @* Mostrar el mensaje de éxito si se actualizó correctamente *@
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success">
-                @TempData["SuccessMessage"]
+<div class="rp-perfil-page">
+    <div class="rp-perfil-shell">
+        <header class="rp-perfil-hero">
+            <div class="rp-perfil-hero-inner">
+                <div class="rp-perfil-hero-top">
+                    <div class="rp-perfil-avatar-wrap">
+                        <div class="rp-perfil-avatar rp-avatar-circle rp-avatar-circle--md" id="rpPerfilAvatar" aria-hidden="true">
+                            <i class="fa fa-user"></i>
+                        </div>
+                    </div>
+                    <div class="rp-perfil-hero-main">
+                        <p class="rp-perfil-kicker">Configuracion de cuenta</p>
+                        <h1 class="rp-perfil-hero-title">Mis datos</h1>
+                        <div class="rp-perfil-hero-meta">
+                            <span class="rp-perfil-meta-item rp-perfil-meta-item--user">
+                                <i class="fa fa-user"></i>
+                                <span id="rpPerfilUsuario">...</span>
+                            </span>
+                            <span class="rp-perfil-meta-item rp-perfil-meta-item--ok">
+                                <i class="fa fa-check-circle"></i> Sesion activa
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <p class="rp-perfil-hero-sub">
+                    Actualiza tu nombre, contacto, avatar y contrasena. Los cambios se aplican a tu usuario en todo el sistema.
+                </p>
             </div>
-        }
+        </header>
 
+        <div id="msjerror" class="rp-perfil-alert d-none" role="alert"></div>
 
-
-        <form method="put" asp-action="Actualizar">
-
-            <input type="hidden" id="Id" name="Id" value="@Model.Id" />
-
-            <div class="mb-3">
-                <label for="Nombre" class="form-label text-danger">Nombre (*)</label>
-                <input type="text" class="form-control form-control-sm" id="Nombre" name="Nombre" value="@Model.Nombre" required />
-            </div>
-
-            <div class="mb-3">
-                <label for="Apellido" class="form-label text-danger">Apellido (*)</label>
-                <input type="text" class="form-control form-control-sm" id="Apellido" name="Apellido" value="@Model.Apellido" required />
+        <section class="rp-perfil-block" id="rpAvatarSection">
+            <div class="rp-perfil-block-head">
+                <span class="rp-perfil-block-icon blue"><i class="fa fa-picture-o"></i></span>
+                <div>
+                    <h2>Tu avatar</h2>
+                    <p>Elegi color, icono o subi una foto. Siempre se muestra en circulo.</p>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label for="DNI" class="form-label text-danger">DNI (*)</label>
-                <input type="text" class="form-control form-control-sm" id="DNI" name="DNI" value="@Model.Dni" required />
-            </div>
+            <div class="rp-avatar-editor">
+                <div class="rp-avatar-editor-preview">
+                    <div class="rp-perfil-avatar rp-avatar-circle rp-avatar-circle--lg" id="rpAvatarPreview" aria-hidden="true">
+                        <i class="fa fa-user"></i>
+                    </div>
+                    <div class="rp-avatar-editor-actions">
+                        <label class="rp-perfil-btn rp-perfil-btn--ghost rp-avatar-upload-btn" for="rpAvatarFileInput">
+                            <i class="fa fa-camera"></i> Subir foto
+                        </label>
+                        <input type="file" id="rpAvatarFileInput" accept="image/jpeg,image/png,image/webp,image/gif" class="d-none" />
+                        <button type="button" class="rp-perfil-btn rp-perfil-btn--ghost rp-avatar-remove-btn d-none" id="rpAvatarRemoveBtn">
+                            <i class="fa fa-trash-o"></i> Quitar foto
+                        </button>
+                    </div>
+                    <small class="rp-perfil-hint">JPG, PNG, WEBP o GIF. Max. 2.5 MB.</small>
+                </div>
 
-            <div class="mb-3">
-                <label for="Telefono" class="form-label">Teléfono</label>
-                <input type="text" class="form-control form-control-sm" id="Telefono" name="Telefono" value="@Model.Telefono" />
+                <div class="rp-avatar-editor-controls" id="rpAvatarIconControls">
+                    <div class="rp-avatar-control-group">
+                        <label class="rp-perfil-label">Color</label>
+                        <div class="rp-avatar-swatches" id="rpAvatarSwatches" role="listbox" aria-label="Color del avatar"></div>
+                    </div>
+                    <div class="rp-avatar-control-group">
+                        <label class="rp-perfil-label">Icono</label>
+                        <div class="rp-avatar-icons" id="rpAvatarIcons" role="listbox" aria-label="Icono del avatar"></div>
+                    </div>
+                    <p class="rp-avatar-photo-note d-none" id="rpAvatarPhotoNote">
+                        <i class="fa fa-info-circle"></i> Tenes una foto activa. Si la quitas, vuelve el icono por defecto.
+                    </p>
+                </div>
             </div>
+        </section>
 
-            <div class="mb-3">
-                <label for="Direccion" class="form-label">Dirección</label>
-                <input type="text" class="form-control form-control-sm" id="Direccion" name="Direccion" value="@Model.Direccion" />
-            </div>
+        <form id="formularioActualizar" class="rp-perfil-form" autocomplete="off">
+            <input type="hidden" id="Id" name="Id" />
 
+            <section class="rp-perfil-block">
+                <div class="rp-perfil-block-head">
+                    <span class="rp-perfil-block-icon teal"><i class="fa fa-user"></i></span>
+                    <div>
+                        <h2>Informacion personal</h2>
+                        <p>Datos visibles en el sistema y reportes.</p>
+                    </div>
+                </div>
+                <div class="row g-4 g-xl-5 rp-perfil-grid">
+                    <div class="col-md-6">
+                        <label for="Nombre" class="rp-perfil-label">Nombre (*)</label>
+                        <div class="rp-perfil-field">
+                            <i class="fa fa-user-o"></i>
+                            <input type="text" class="form-control" id="Nombre" name="Nombre" maxlength="100" required placeholder="Tu nombre" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Apellido" class="rp-perfil-label">Apellido (*)</label>
+                        <div class="rp-perfil-field">
+                            <i class="fa fa-user-o"></i>
+                            <input type="text" class="form-control" id="Apellido" name="Apellido" maxlength="100" required placeholder="Tu apellido" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="DNI" class="rp-perfil-label">DNI</label>
+                        <div class="rp-perfil-field">
+                            <i class="fa fa-id-card-o"></i>
+                            <input type="text" class="form-control" id="DNI" name="DNI" maxlength="20" placeholder="Documento" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Telefono" class="rp-perfil-label">Telefono</label>
+                        <div class="rp-perfil-field">
+                            <i class="fa fa-phone"></i>
+                            <input type="text" class="form-control" id="Telefono" name="Telefono" maxlength="50" placeholder="Contacto" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Correo" class="rp-perfil-label">Correo</label>
+                        <div class="rp-perfil-field">
+                            <i class="fa fa-envelope-o"></i>
+                            <input type="email" class="form-control" id="Correo" name="Correo" maxlength="120" placeholder="email@ejemplo.com" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Direccion" class="rp-perfil-label">Direccion</label>
+                        <div class="rp-perfil-field">
+                            <i class="fa fa-map-marker"></i>
+                            <input type="text" class="form-control" id="Direccion" name="Direccion" maxlength="200" placeholder="Calle, numero, localidad" />
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-        @*     <div class="mb-3">
-                <label for="Correo" class="form-label">Correo</label>
-                <input type="text" class="form-control form-control-sm" id="Correo" name="Correo" value="@Model." />
-            </div> *@
+            <section class="rp-perfil-block">
+                <div class="rp-perfil-block-head">
+                    <span class="rp-perfil-block-icon amber"><i class="fa fa-lock"></i></span>
+                    <div>
+                        <h2>Seguridad</h2>
+                        <p>Confirma con tu contrasena actual para guardar cambios.</p>
+                    </div>
+                </div>
+                <div class="row g-4 g-xl-5 rp-perfil-grid">
+                    <div class="col-md-6">
+                        <label for="Contrasena" class="rp-perfil-label">Contrasena actual (*)</label>
+                        <div class="rp-perfil-field">
+                            <i class="fa fa-key"></i>
+                            <input type="password" class="form-control" id="Contrasena" name="Contrasena" required autocomplete="current-password" placeholder="********" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="ContrasenaNueva" class="rp-perfil-label">Contrasena nueva</label>
+                        <div class="rp-perfil-field">
+                            <i class="fa fa-refresh"></i>
+                            <input type="password" class="form-control" id="ContrasenaNueva" name="ContrasenaNueva" autocomplete="new-password" placeholder="Opcional" />
+                        </div>
+                        <small class="rp-perfil-hint">Dejala vacia si no queres cambiarla.</small>
+                    </div>
+                </div>
+            </section>
 
-            <div class="mb-3">
-                <label for="Contrasena" class="form-label text-danger">Contraseña Actual (*)</label>
-                <input type="password" class="form-control form-control-sm" id="Contrasena" name="Contrasena" required />
-            </div>
+            <section class="rp-perfil-block rp-perfil-block--last">
+                <div class="rp-perfil-block-head">
+                    <span class="rp-perfil-block-icon purple"><i class="fa fa-th-large"></i></span>
+                    <div>
+                        <h2>Preferencias</h2>
+                        <p>Como se muestran los listados en este navegador.</p>
+                    </div>
+                </div>
+                <span class="rp-perfil-label rp-perfil-label--spaced">Vista de listados</span>
+                <div class="rp-perfil-pills-wrap">
+                    <div class="rp-perfil-pills" id="rpPerfilViewPills" role="group" aria-label="Vista de listados">
+                        <button type="button" class="rp-perfil-pill" data-view="auto">
+                            <i class="fa fa-magic"></i>
+                            <span>Automatico</span>
+                            <small>PC tabla / movil tarjetas</small>
+                        </button>
+                        <button type="button" class="rp-perfil-pill" data-view="table">
+                            <i class="fa fa-table"></i>
+                            <span>Siempre tabla</span>
+                            <small>Grilla completa</small>
+                        </button>
+                        <button type="button" class="rp-perfil-pill" data-view="cards">
+                            <i class="fa fa-th"></i>
+                            <span>Siempre tarjetas</span>
+                            <small>Vista compacta</small>
+                        </button>
+                    </div>
+                </div>
+            </section>
 
-            <div class="mb-3">
-                <label for="ContrasenaNueva" class="form-label">Contraseña Nueva</label>
-                <input type="password" class="form-control form-control-sm" id="ContrasenaNueva" name="ContrasenaNueva" />
-            </div>
-            <label for="msjerror" class="form-label" id="msjerror" hidden></label>
-            <div class="d-flex justify-content-end">
-                <button type="submit"  id="btnGuardar" class="btn btn-primary btn-sm">Guardar Cambios</button>
-            </div>
+            <footer class="rp-perfil-footer">
+                <button type="submit" id="btnGuardar" class="rp-perfil-btn rp-perfil-btn--primary">
+                    <i class="fa fa-check"></i> Guardar cambios
+                </button>
+            </footer>
         </form>
     </div>
 </div>
 
-<script src="~/js/usuariosconfiguracion.js"></script>
+@section Scripts {
+    <script src="~/js/RpAvatar.js?v=1.0"></script>
+    <script src="~/js/UsuariosConfiguracion.js?v=6.2"></script>
+}

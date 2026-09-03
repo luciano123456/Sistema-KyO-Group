@@ -21,7 +21,7 @@ public enum DbErrorKind
 public sealed record DbErrorResult(
     DbErrorKind Kind,
     string Message,                 // Mensaje amigable para UI
-    string? Constraint,             // Nombre del constraint/índice si se pudo extraer
+    string? Constraint,             // Nombre del constraint/Ã­ndice si se pudo extraer
     IReadOnlyList<string> Fields,   // Campos inferidos a partir del nombre del constraint
     int? ProviderErrorCode,         // Ej: SqlException.Number
     string? Provider,               // "SqlServer", "Npgsql", "Sqlite", etc
@@ -42,21 +42,21 @@ public sealed class DbErrorOptions
     public IDictionary<string, string> ConstraintFieldMap { get; init; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Texto por defecto para errores genéricos.
+    /// Texto por defecto para errores genÃ©ricos.
     /// </summary>
     public string DefaultFriendlyMessage { get; init; } =
-        "No se pudo completar la operación. Inténtalo nuevamente o contacta soporte.";
+        "No se pudo completar la operaciÃ³n. IntÃ©ntalo nuevamente o contacta soporte.";
 }
 
 public static class DbErrorHelper
 {
     private static readonly Regex ConstraintNameRegex =
-        // captura nombres típicos de constraints/índices en mensajes de distintos providers
-        new(@"(?:constraint|índice|index|unique|key)\s+['""]?([A-Za-z0-9_\-\.]+)['""]?",
+        // captura nombres tÃ­picos de constraints/Ã­ndices en mensajes de distintos providers
+        new(@"(?:constraint|Ã­ndice|index|unique|key)\s+['""]?([A-Za-z0-9_\-\.]+)['""]?",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     /// <summary>
-    /// Traduce cualquier Exception (de SaveChanges) a un DbErrorResult genérico.
+    /// Traduce cualquier Exception (de SaveChanges) a un DbErrorResult genÃ©rico.
     /// </summary>
     public static DbErrorResult ToFriendlyResult(Exception ex, DbErrorOptions? opts = null)
     {
@@ -72,11 +72,11 @@ public static class DbErrorHelper
             return FromSqlServer(sql, ex, opts);
         }
 
-        // Otros providers (heurísticas por mensaje)
+        // Otros providers (heurÃ­sticas por mensaje)
         var msg = root?.Message ?? ex.Message ?? string.Empty;
         var (constraint, fields) = ExtractConstraintAndFields(msg, opts);
 
-        // Heurísticas cross-provider por mensaje:
+        // HeurÃ­sticas cross-provider por mensaje:
         var text = msg.ToLowerInvariant();
         if (text.Contains("unique") || text.Contains("duplicate") || text.Contains("is not unique"))
         {
@@ -86,28 +86,28 @@ public static class DbErrorHelper
         if (text.Contains("foreign key") || text.Contains("violates foreign key") || text.Contains("constraint failed"))
         {
             return Build(DbErrorKind.ForeignKeyViolation,
-                $"No se puede eliminar/actualizar el {opts.EntityDisplaySingular} porque está asociado a otro recurso.",
+                $"No se puede eliminar/actualizar el {opts.EntityDisplaySingular} porque estÃ¡ asociado a otro recurso.",
                 constraint, fields, null, ProviderName(root), ex);
         }
         if (text.Contains("not null") || text.Contains("cannot be null"))
         {
             return Build(DbErrorKind.NotNullViolation,
-                $"Faltan datos obligatorios. Verificá los campos requeridos.", constraint, fields, null, ProviderName(root), ex);
+                $"Faltan datos obligatorios. VerificÃ¡ los campos requeridos.", constraint, fields, null, ProviderName(root), ex);
         }
         if (text.Contains("deadlock"))
         {
             return Build(DbErrorKind.Deadlock,
-                "El sistema está ocupado (deadlock). Probá nuevamente.", constraint, fields, null, ProviderName(root), ex);
+                "El sistema estÃ¡ ocupado (deadlock). ProbÃ¡ nuevamente.", constraint, fields, null, ProviderName(root), ex);
         }
         if (text.Contains("timeout"))
         {
             return Build(DbErrorKind.Timeout,
-                "Se agotó el tiempo de espera. Intentá de nuevo.", constraint, fields, null, ProviderName(root), ex);
+                "Se agotÃ³ el tiempo de espera. IntentÃ¡ de nuevo.", constraint, fields, null, ProviderName(root), ex);
         }
         if (text.Contains("concurrency"))
         {
             return Build(DbErrorKind.Concurrency,
-                "Otro usuario modificó este registro. Actualizá la pantalla y volvé a intentar.", constraint, fields, null, ProviderName(root), ex);
+                "Otro usuario modificÃ³ este registro. ActualizÃ¡ la pantalla y volvÃ© a intentar.", constraint, fields, null, ProviderName(root), ex);
         }
 
         return Build(DbErrorKind.Unknown, opts.DefaultFriendlyMessage, constraint, fields, null, ProviderName(root), ex);
@@ -123,13 +123,13 @@ public static class DbErrorHelper
             2627 or 2601 => Build(DbErrorKind.UniqueViolation,
                                   ComposeUniqueMessage(fields, opts), constraint, fields, sql.Number, "SqlServer", fullEx),
             547 => Build(DbErrorKind.ForeignKeyViolation,
-                                  $"No se puede eliminar/actualizar el {opts.EntityDisplaySingular} porque está asociado a otro recurso.",
+                                  $"No se puede eliminar/actualizar el {opts.EntityDisplaySingular} porque estÃ¡ asociado a otro recurso.",
                                   constraint, fields, sql.Number, "SqlServer", fullEx),
             1205 => Build(DbErrorKind.Deadlock,
-                                  "El sistema está ocupado (deadlock). Probá nuevamente.",
+                                  "El sistema estÃ¡ ocupado (deadlock). ProbÃ¡ nuevamente.",
                                   constraint, fields, sql.Number, "SqlServer", fullEx),
             -2 => Build(DbErrorKind.Timeout,
-                                  "Se agotó el tiempo de espera. Intentá de nuevo.",
+                                  "Se agotÃ³ el tiempo de espera. IntentÃ¡ de nuevo.",
                                   constraint, fields, sql.Number, "SqlServer", fullEx),
             _ => Build(DbErrorKind.Unknown,
                                   opts.DefaultFriendlyMessage,
@@ -147,11 +147,11 @@ public static class DbErrorHelper
         {
             constraint = m.Groups[1].Value;
 
-            // 1) Mapeo explícito si lo configuraste
+            // 1) Mapeo explÃ­cito si lo configuraste
             if (opts.ConstraintFieldMap.TryGetValue(constraint, out var friendlyField) && !string.IsNullOrWhiteSpace(friendlyField))
                 fields.Add(friendlyField);
 
-            // 2) Heurística: si el nombre del constraint parece incluir el/los campos
+            // 2) HeurÃ­stica: si el nombre del constraint parece incluir el/los campos
             //    UQ_Insumos_SKU   => ["SKU"]
             //    UX_Insumos_Codigo_Proveedor => ["Codigo","Proveedor"]
             var parts = constraint.Split(new[] { '_', '.' }, StringSplitOptions.RemoveEmptyEntries);
@@ -177,9 +177,9 @@ public static class DbErrorHelper
         if (fields.Count == 1)
             return $"Ya existe un {opts.EntityDisplaySingular} con el mismo {fields[0]}.";
         if (fields.Count > 1)
-            return $"Ya existe un {opts.EntityDisplaySingular} con la misma combinación de {string.Join(" + ", fields)}.";
+            return $"Ya existe un {opts.EntityDisplaySingular} con la misma combinaciÃ³n de {string.Join(" + ", fields)}.";
         // fallback
-        return $"Ya existe un {opts.EntityDisplaySingular} con datos que deben ser únicos (revisá duplicados).";
+        return $"Ya existe un {opts.EntityDisplaySingular} con datos que deben ser Ãºnicos (revisÃ¡ duplicados).";
     }
 
     private static string ProviderName(Exception? root)

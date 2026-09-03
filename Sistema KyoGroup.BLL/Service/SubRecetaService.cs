@@ -1,5 +1,6 @@
 ﻿using SistemaKyoGroup.DAL.Repository;
 using SistemaKyoGroup.Models;
+using SistemaKyoGroup.Models.Common;
 
 namespace SistemaKyoGroup.BLL.Service
 {
@@ -12,19 +13,19 @@ namespace SistemaKyoGroup.BLL.Service
         {
             _contactRepo = contactRepo;
         }
-        public async Task<bool> Actualizar(SubReceta model)
+        public async Task<(bool ok, string mensaje)> Insertar(SubReceta model)
+        {
+            return await _contactRepo.Insertar(model);
+        }
+
+        public async Task<(bool ok, string mensaje)> Actualizar(SubReceta model)
         {
             return await _contactRepo.Actualizar(model);
         }
 
-        public async Task<(bool eliminado, string mensaje)> Eliminar(int id)
+        public async Task<DeleteResult> Eliminar(int id, bool cascade = false)
         {
-            return await _contactRepo.Eliminar(id);
-        }
-
-        public async Task<bool> Insertar(SubReceta model)
-        {
-            return await _contactRepo.Insertar(model);
+            return await _contactRepo.Eliminar(id, cascade);
         }
 
         public async Task<SubReceta> Obtener(int id)

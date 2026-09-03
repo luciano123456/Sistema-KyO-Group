@@ -1,37 +1,40 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaKyoGroup.DAL.DataContext;
 using SistemaKyoGroup.Models;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace SistemaKyoGroup.DAL.Repository
 {
     public class UnidadesNegocioRepository : IUnidadesNegocioRepository<UnidadesNegocio>
     {
-
         private readonly SistemaKyoGroupContext _dbcontext;
 
         public UnidadesNegocioRepository(SistemaKyoGroupContext context)
         {
             _dbcontext = context;
         }
+
         public async Task<bool> Actualizar(UnidadesNegocio model)
         {
-            _dbcontext.UnidadesNegocios.Update(model);
+            var existente = await _dbcontext.UnidadesNegocios.FirstOrDefaultAsync(x => x.Id == model.Id);
+            if (existente == null) return false;
+            var antes = existente.Nombre;
+            existente.Nombre = model.Nombre;
             await _dbcontext.SaveChangesAsync();
+            await EntidadHistorialHelper.LogNombreCatalogoAsync(
+                _dbcontext, EntidadHistorialHelper.UnidadNegocio, model.Id,
+                EntidadHistorialHelper.AccionModificacion, $"unidad de negocio \"{existente.Nombre}\"", antes, existente.Nombre);
             return true;
         }
 
         public async Task<bool> Eliminar(int id)
         {
             UnidadesNegocio model = _dbcontext.UnidadesNegocios.First(c => c.Id == id);
+            var nombre = model.Nombre;
             _dbcontext.UnidadesNegocios.Remove(model);
             await _dbcontext.SaveChangesAsync();
+            await EntidadHistorialHelper.LogNombreCatalogoAsync(
+                _dbcontext, EntidadHistorialHelper.UnidadNegocio, id,
+                EntidadHistorialHelper.AccionEliminacion, $"unidad de negocio \"{nombre}\"", nombre, null);
             return true;
         }
 
@@ -39,6 +42,9 @@ namespace SistemaKyoGroup.DAL.Repository
         {
             _dbcontext.UnidadesNegocios.Add(model);
             await _dbcontext.SaveChangesAsync();
+            await EntidadHistorialHelper.LogNombreCatalogoAsync(
+                _dbcontext, EntidadHistorialHelper.UnidadNegocio, model.Id,
+                EntidadHistorialHelper.AccionCreacion, $"unidad de negocio \"{model.Nombre}\"", null, model.Nombre);
             return true;
         }
 
@@ -47,6 +53,7 @@ namespace SistemaKyoGroup.DAL.Repository
             UnidadesNegocio model = await _dbcontext.UnidadesNegocios.FindAsync(id);
             return model;
         }
+
         public async Task<IQueryable<UnidadesNegocio>> ObtenerTodos()
         {
             IQueryable<UnidadesNegocio> query = _dbcontext.UnidadesNegocios;
@@ -57,13 +64,11 @@ namespace SistemaKyoGroup.DAL.Repository
         {
             try
             {
-                // Buscar todas las unidades de negocio asignadas al usuario
                 var query = _dbcontext.UsuariosUnidadesNegocios
                     .AsNoTracking()
                     .Include(x => x.IdUnidadNegocioNavigation)
                     .Where(x => x.IdUsuario == idUsuario)
                     .Select(x => x.IdUnidadNegocioNavigation);
-
                 return await Task.FromResult(query);
             }
             catch
@@ -71,8 +76,5 @@ namespace SistemaKyoGroup.DAL.Repository
                 return Enumerable.Empty<UnidadesNegocio>().AsQueryable();
             }
         }
-
-
-
     }
 }

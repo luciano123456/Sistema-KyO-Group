@@ -1,0 +1,46 @@
+<!-- Modal sesión por expirar (últimos 5 minutos) -->
+<div class="modal fade" id="modalSessionPorExpirar" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rp-session-renew-modal">
+            <div class="modal-header colorEncabezado">
+                <i class="fa fa-hourglass-half rp-session-ico-warning me-2"></i>
+                <h5 class="modal-title fw-bold me-auto">Sesión por expirar</h5>
+            </div>
+            <div class="modal-body text-center">
+                <p class="fs-5 fw-semibold m-0">Tu sesión está por finalizar</p>
+                <p class="text-muted small mt-2 mb-3">Quedan menos de 5 minutos. Podés renovarla para seguir trabajando sin interrupciones.</p>
+                <div class="rp-session-renew-countdown">
+                    <span class="rp-session-renew-countdown-label">Tiempo restante</span>
+                    <strong id="modalSessionPorExpirarCountdown">--:--</strong>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center flex-wrap gap-2">
+                <button type="button" class="btn btn-secondary px-3" id="btnSessionPorExpirarContinuar" data-bs-dismiss="modal">
+                    Continuar
+                </button>
+                <button type="button" class="btn btn-warning px-4" id="btnSessionRenovar">
+                    <i class="fa fa-refresh me-1"></i> Renovar sesión
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal sesión expirada -->
+<div class="modal fade" id="modalSessionExpirada" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header colorEncabezado">
+                <i class="fa fa-clock-o rp-session-ico-danger me-2"></i>
+                <h5 class="modal-title fw-bold me-auto">Sesión expirada</h5>
+            </div>
+            <div class="modal-body text-center">
+                <p class="fs-5 fw-semibold m-0">La sesión ha expirado</p>
+                <p class="text-muted small mt-2 mb-0">Volvé a iniciar sesión para continuar.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-danger px-4" id="btnSessionExpiradaAceptar">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>

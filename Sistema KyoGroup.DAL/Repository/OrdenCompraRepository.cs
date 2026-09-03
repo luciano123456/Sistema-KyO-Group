@@ -1,7 +1,9 @@
 ﻿// DAL/Repository/OrdenCompraRepository.cs
 using Microsoft.EntityFrameworkCore;
+using SistemaKyoGroup.DAL;
 using SistemaKyoGroup.DAL.DataContext;
 using SistemaKyoGroup.Models;
+using SistemaKyoGroup.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,10 +14,14 @@ namespace SistemaKyoGroup.DAL.Repository
     public class OrdenCompraRepository : IOrdenCompraRepository<OrdenesCompra>
     {
         private readonly SistemaKyoGroupContext _dbcontext;
+        private readonly ICompraRepository<Compra> _compraRepo;
 
-        public OrdenCompraRepository(SistemaKyoGroupContext context)
+        public OrdenCompraRepository(
+            SistemaKyoGroupContext context,
+            ICompraRepository<Compra> compraRepo)
         {
             _dbcontext = context;
+            _compraRepo = compraRepo;
         }
 
         /* ============================================================
@@ -42,7 +48,9 @@ namespace SistemaKyoGroup.DAL.Repository
                     d.CantidadEntregada = d.CantidadEntregada;
                     d.CantidadRestante = d.CantidadPedida - d.CantidadEntregada;
 
-                    d.IdProveedorLista = d.IdProveedorLista;
+                    // 0 no es un Id válido de lista → FK
+                    if (d.IdProveedorLista is null or <= 0)
+                        d.IdProveedorLista = null;
 
                     d.Subtotal = d.PrecioLista * d.CantidadPedida;
 
@@ -58,6 +66,9 @@ namespace SistemaKyoGroup.DAL.Repository
                         d.IdUsuarioRegistra = model.IdUsuarioRegistra;
                 }
 
+                if (model.IdEstado <= 0)
+                    model.IdEstado = 1;
+
                 // ----------- Costo total cabecera ----------- 
                 model.CostoTotal = model.OrdenesComprasInsumos.Sum(x => x.Subtotal);
 
@@ -69,13 +80,31 @@ namespace SistemaKyoGroup.DAL.Repository
 
                 await _dbcontext.SaveChangesAsync();  // Inserta cabecera + detalle
 
+                var uid = model.IdUsuarioRegistra;
+                if (uid > 0)
+                {
+                    var nombre = await EntidadHistorialHelper.NombreUsuarioAsync(_dbcontext, uid);
+                    var cant = model.OrdenesComprasInsumos?.Count ?? 0;
+                    var provNom = await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "Proveedor", model.IdProveedor);
+                    var estNom = await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "EstadoOrdenCompra", model.IdEstado);
+                    EntidadHistorialHelper.Agregar(
+                        _dbcontext, EntidadHistorialHelper.OrdenCompra, model.Id,
+                        EntidadHistorialHelper.AccionCreacion,
+                        $"Alta de OC #{model.Id}",
+                        $"Proveedor: {provNom}. Total: {EntidadHistorialHelper.S(model.CostoTotal)}. Ítems: {cant}. Estado: {estNom}.",
+                        uid, nombre);
+                    await _dbcontext.SaveChangesAsync();
+                }
+
                 await tx.CommitAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return false;
+                throw new InvalidOperationException(
+                    "No se pudo guardar la orden de compra: " + (ex.InnerException?.Message ?? ex.Message),
+                    ex);
             }
         }
 
@@ -98,6 +127,14 @@ namespace SistemaKyoGroup.DAL.Repository
 
                 if (existente == null)
                     return false;
+
+                var antesSnap = EntidadHistorialHelper.Snapshot(
+                    ("Proveedor", await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "Proveedor", existente.IdProveedor)),
+                    ("Estado", await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "EstadoOrdenCompra", existente.IdEstado)),
+                    ("Local", await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "Local", existente.IdLocal)),
+                    ("UN", await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "UnidadNegocio", existente.IdUnidadNegocio)),
+                    ("Total", existente.CostoTotal),
+                    ("Ítems", existente.OrdenesComprasInsumos?.Count ?? 0));
 
                 bool hayCambios = false;
 
@@ -212,52 +249,123 @@ namespace SistemaKyoGroup.DAL.Repository
                 }
 
                 await _dbcontext.SaveChangesAsync();
+
+                var uid = model.IdUsuarioModifica ?? existente.IdUsuarioRegistra;
+                if (uid > 0)
+                {
+                    var nombre = await EntidadHistorialHelper.NombreUsuarioAsync(_dbcontext, uid);
+                    var despuesSnap = EntidadHistorialHelper.Snapshot(
+                        ("Proveedor", await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "Proveedor", existente.IdProveedor)),
+                        ("Estado", await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "EstadoOrdenCompra", existente.IdEstado)),
+                        ("Local", await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "Local", existente.IdLocal)),
+                        ("UN", await EntidadHistorialHelper.NombreFkAsync(_dbcontext, "UnidadNegocio", existente.IdUnidadNegocio)),
+                        ("Total", existente.CostoTotal),
+                        ("Ítems", await _dbcontext.OrdenesComprasInsumos.CountAsync(d => d.IdOrdenCompra == existente.Id)));
+                    EntidadHistorialHelper.AgregarSiCambio(
+                        _dbcontext, EntidadHistorialHelper.OrdenCompra, existente.Id,
+                        $"OC #{existente.Id}", antesSnap, despuesSnap, uid, nombre);
+                    await _dbcontext.SaveChangesAsync();
+                }
+
                 await tx.CommitAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                return false;
+                throw new InvalidOperationException(
+                    "No se pudo actualizar la orden de compra: " + (ex.InnerException?.Message ?? ex.Message),
+                    ex);
             }
         }
 
-        /* ============================================================
-         * ELIMINAR
-         *  - Bloquea si tiene compras asociadas
-         * ============================================================ */
-        public async Task<(bool eliminado, string mensaje)> Eliminar(int id)
+        public async Task<DeleteResult> Eliminar(int id, bool cascade = false)
         {
-            await using var tx = await _dbcontext.Database.BeginTransactionAsync();
             try
             {
-                var tieneCompras = await _dbcontext.Compras
+                var comprasIds = await _dbcontext.Compras
                     .AsNoTracking()
-                    .AnyAsync(c => c.IdOrdenCompra == id);
-
-                if (tieneCompras)
-                    return (false, "No se puede eliminar: la orden posee compras asociadas.");
-
-                var det = await _dbcontext.OrdenesComprasInsumos
-                    .Where(d => d.IdOrdenCompra == id)
+                    .Where(c => c.IdOrdenCompra == id)
+                    .Select(c => c.Id)
                     .ToListAsync();
 
-                if (det.Count > 0)
-                    _dbcontext.OrdenesComprasInsumos.RemoveRange(det);
+                if (comprasIds.Count > 0 && !cascade)
+                {
+                    var detalle = comprasIds.Count <= 8
+                        ? "Compras #" + string.Join(", #", comprasIds)
+                        : $"Compras #{string.Join(", #", comprasIds.Take(8))}… (+{comprasIds.Count - 8})";
 
-                var cab = await _dbcontext.OrdenesCompras.FirstOrDefaultAsync(o => o.Id == id);
-                if (cab == null) return (false, "Orden de compra no encontrada.");
+                    return DeleteResult.Relacion(
+                        "No se puede eliminar: la orden posee compras asociadas.",
+                        new[]
+                        {
+                            new DeleteDependencia
+                            {
+                                Entidad = "Compras",
+                                Cantidad = comprasIds.Count,
+                                Detalle = detalle,
+                                Cascadeable = true
+                            }
+                        },
+                        cascadeDisponible: true);
+                }
 
-                _dbcontext.OrdenesCompras.Remove(cab);
-                await _dbcontext.SaveChangesAsync();
+                if (comprasIds.Count > 0 && cascade)
+                {
+                    foreach (var idCompra in comprasIds)
+                    {
+                        var (okCompra, msgCompra) = await _compraRepo.Eliminar(idCompra);
+                        if (!okCompra)
+                            return DeleteResult.Error(msgCompra ?? $"No se pudo eliminar la compra #{idCompra}.");
+                    }
+                }
 
-                await tx.CommitAsync();
-                return (true, "Orden de compra eliminada correctamente.");
+                await using var tx = await _dbcontext.Database.BeginTransactionAsync();
+                try
+                {
+                    var det = await _dbcontext.OrdenesComprasInsumos
+                        .Where(d => d.IdOrdenCompra == id)
+                        .ToListAsync();
+
+                    if (det.Count > 0)
+                        _dbcontext.OrdenesComprasInsumos.RemoveRange(det);
+
+                    var cab = await _dbcontext.OrdenesCompras.FirstOrDefaultAsync(o => o.Id == id);
+                    if (cab == null) return DeleteResult.NotFound("la orden de compra");
+
+                    var uid = cab.IdUsuarioModifica ?? cab.IdUsuarioRegistra;
+                    _dbcontext.OrdenesCompras.Remove(cab);
+                    if (uid > 0)
+                    {
+                        var nombre = await EntidadHistorialHelper.NombreUsuarioAsync(_dbcontext, uid);
+                        EntidadHistorialHelper.Agregar(
+                            _dbcontext, EntidadHistorialHelper.OrdenCompra, id,
+                            EntidadHistorialHelper.AccionEliminacion,
+                            cascade
+                                ? $"Eliminación en cascada de OC #{id}"
+                                : $"Eliminación de OC #{id}",
+                            $"Proveedor: {cab.IdProveedor}. Total: {EntidadHistorialHelper.S(cab.CostoTotal)}."
+                                + (comprasIds.Count > 0 ? $" Compras eliminadas: {comprasIds.Count}." : ""),
+                            uid, nombre);
+                    }
+                    await _dbcontext.SaveChangesAsync();
+                    await tx.CommitAsync();
+                    return DeleteResult.Success(
+                        cascade && comprasIds.Count > 0
+                            ? "Orden de compra y compras asociadas eliminadas correctamente."
+                            : "Orden de compra eliminada correctamente.");
+                }
+                catch
+                {
+                    await tx.RollbackAsync();
+                    return DeleteResult.Error("Error inesperado al eliminar la orden de compra.");
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                await tx.RollbackAsync();
-                return (false, "Error inesperado al eliminar la orden de compra.");
+                return DeleteResult.Error(
+                    "Error inesperado al eliminar la orden de compra: "
+                    + (ex.InnerException?.Message ?? ex.Message));
             }
         }
 

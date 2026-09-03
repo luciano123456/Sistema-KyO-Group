@@ -1,3 +1,7 @@
 **/bin/
 **/obj/
 /.vs
+
+# Salidas temporales de dotnet publish / verificacion de build
+/_build_verify*/
+/publish/

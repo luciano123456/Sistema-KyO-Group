@@ -1,4 +1,5 @@
 ﻿using SistemaKyoGroup.Models;
+using SistemaKyoGroup.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace SistemaKyoGroup.DAL.Repository
     {
         Task<bool> Insertar(OrdenesCompra model);
         Task<bool> Actualizar(OrdenesCompra model);
-        Task<(bool eliminado, string mensaje)> Eliminar(int id);
+        Task<DeleteResult> Eliminar(int id, bool cascade = false);
         Task<OrdenesCompra> Obtener(int id);
         Task<IQueryable<OrdenesCompra>> ObtenerTodos();
         Task<IQueryable<OrdenesCompra>> ObtenerPendientes();

@@ -59,6 +59,31 @@ public partial class SistemaKyoGroupContext : DbContext
 
     public virtual DbSet<InsumosCategoria> InsumosCategorias { get; set; }
 
+    public virtual DbSet<InsumosCostoHistorial> InsumosCostoHistoriales { get; set; }
+
+    public virtual DbSet<RecetaSubRecetaHistorial> RecetaSubRecetaHistoriales { get; set; }
+
+    public virtual DbSet<ProveedoresInsumosListaHistorial> ProveedoresInsumosListaHistoriales { get; set; }
+
+    public virtual DbSet<InsumoHistorial> InsumosHistorial { get; set; }
+    public virtual DbSet<ProveedorHistorial> ProveedoresHistorial { get; set; }
+    public virtual DbSet<UsuarioHistorial> UsuariosHistorial { get; set; }
+    public virtual DbSet<CompraHistorial> ComprasHistorial { get; set; }
+    public virtual DbSet<OrdenCompraHistorial> OrdenesComprasHistorial { get; set; }
+    public virtual DbSet<LocalHistorial> LocalesHistorial { get; set; }
+    public virtual DbSet<UnidadNegocioHistorial> UnidadesNegocioHistorial { get; set; }
+    public virtual DbSet<UnidadMedidaHistorial> UnidadesMedidaHistorial { get; set; }
+    public virtual DbSet<CategoriaInsumoHistorial> InsumosCategoriasHistorial { get; set; }
+    public virtual DbSet<CategoriaRecetaHistorial> RecetasCategoriasHistorial { get; set; }
+    public virtual DbSet<CategoriaSubRecetaHistorial> SubRecetasCategoriasHistorial { get; set; }
+    public virtual DbSet<RolHistorial> RolesHistorial { get; set; }
+    public virtual DbSet<EstadoUsuarioHistorial> EstadosUsuariosHistorial { get; set; }
+    public virtual DbSet<EstadoOrdenCompraHistorial> OrdenesComprasEstadosHistorial { get; set; }
+    public virtual DbSet<CuentaHistorial> CuentasHistorial { get; set; }
+    public virtual DbSet<ImportacionHistorial> ImportacionesHistorial { get; set; }
+    public virtual DbSet<RubroHistorial> RubrosHistorial { get; set; }
+    public virtual DbSet<Rubro> Rubros { get; set; }
+
     public virtual DbSet<InsumosProveedor> InsumosProveedores { get; set; }
 
     public virtual DbSet<InsumosUnidadesNegocio> InsumosUnidadesNegocios { get; set; }
@@ -120,6 +145,8 @@ public partial class SistemaKyoGroupContext : DbContext
     public virtual DbSet<UnidadesNegocio> UnidadesNegocios { get; set; }
 
     public virtual DbSet<User> Usuarios { get; set; }
+
+    public virtual DbSet<UsuariosConexion> UsuariosConexiones { get; set; }
 
     public virtual DbSet<UsuariosLocal> UsuariosLocales { get; set; }
 
@@ -340,6 +367,8 @@ public partial class SistemaKyoGroupContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
 
+            entity.HasIndex(e => new { e.IdLocal, e.Fecha }).IsUnique().HasDatabaseName("UX_Importaciones_Local_Fecha");
+
             entity.HasOne(d => d.IdLocalNavigation).WithMany(p => p.Importaciones)
                 .HasForeignKey(d => d.IdLocal)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -401,8 +430,15 @@ public partial class SistemaKyoGroupContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.CostoUnitario).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Descripcion)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.Rubro)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Ignore(e => e.IdInsumo);
+            entity.Ignore(e => e.TipoVinculo);
+            entity.Ignore(e => e.IdRubro);
+            entity.Property(e => e.Cantidad).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.FechaModifica).HasColumnType("datetime");
             entity.Property(e => e.FechaRegistra).HasColumnType("datetime");
             entity.Property(e => e.Ganancia).HasColumnType("decimal(18, 2)");
@@ -500,6 +536,105 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(255)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<InsumosCostoHistorial>(entity =>
+        {
+            entity.ToTable("Insumos_CostoHistorial");
+
+            entity.Property(e => e.CostoAnterior).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CostoNuevo).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Fecha).HasColumnType("datetime");
+            entity.Property(e => e.Origen)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.IdInsumoNavigation).WithMany()
+                .HasForeignKey(d => d.IdInsumo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Insumos_CostoHistorial_Insumos");
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany()
+                .HasForeignKey(d => d.IdUsuario)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Insumos_CostoHistorial_Usuarios");
+        });
+
+        modelBuilder.Entity<RecetaSubRecetaHistorial>(entity =>
+        {
+            entity.ToTable("Recetas_SubRecetas_Historial");
+
+            entity.Property(e => e.TipoEntidad)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Accion)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Resumen)
+                .HasMaxLength(500);
+            entity.Property(e => e.UsuarioNombre)
+                .HasMaxLength(150);
+            entity.Property(e => e.Fecha).HasColumnType("datetime");
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany()
+                .HasForeignKey(d => d.IdUsuario)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        modelBuilder.Entity<ProveedoresInsumosListaHistorial>(entity =>
+        {
+            entity.ToTable("Proveedores_Insumos_Listas_Historial");
+
+            entity.Property(e => e.Accion)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Origen)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Resumen)
+                .HasMaxLength(500);
+            entity.Property(e => e.UsuarioNombre)
+                .HasMaxLength(150);
+            entity.Property(e => e.CostoAnterior).HasColumnType("decimal(18,4)");
+            entity.Property(e => e.CostoNuevo).HasColumnType("decimal(18,4)");
+            entity.Property(e => e.CostoUnitarioAnterior).HasColumnType("decimal(18,4)");
+            entity.Property(e => e.CostoUnitarioNuevo).HasColumnType("decimal(18,4)");
+            entity.Property(e => e.CantidadAnterior).HasColumnType("decimal(18,4)");
+            entity.Property(e => e.CantidadNueva).HasColumnType("decimal(18,4)");
+            entity.Property(e => e.PorcDescAnterior).HasColumnType("decimal(18,4)");
+            entity.Property(e => e.PorcDescNuevo).HasColumnType("decimal(18,4)");
+            entity.Property(e => e.Fecha).HasColumnType("datetime");
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany()
+                .HasForeignKey(d => d.IdUsuario)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        MapEntidadHistorial<InsumoHistorial>(modelBuilder, "Insumos_Historial");
+        MapEntidadHistorial<ProveedorHistorial>(modelBuilder, "Proveedores_Historial");
+        MapEntidadHistorial<UsuarioHistorial>(modelBuilder, "Usuarios_Historial");
+        MapEntidadHistorial<CompraHistorial>(modelBuilder, "Compras_Historial");
+        MapEntidadHistorial<OrdenCompraHistorial>(modelBuilder, "OrdenesCompras_Historial");
+        MapEntidadHistorial<LocalHistorial>(modelBuilder, "Locales_Historial");
+        MapEntidadHistorial<UnidadNegocioHistorial>(modelBuilder, "UnidadesNegocio_Historial");
+        MapEntidadHistorial<UnidadMedidaHistorial>(modelBuilder, "UnidadesMedida_Historial");
+        MapEntidadHistorial<CategoriaInsumoHistorial>(modelBuilder, "InsumosCategorias_Historial");
+        MapEntidadHistorial<CategoriaRecetaHistorial>(modelBuilder, "RecetasCategorias_Historial");
+        MapEntidadHistorial<CategoriaSubRecetaHistorial>(modelBuilder, "SubRecetasCategorias_Historial");
+        MapEntidadHistorial<RolHistorial>(modelBuilder, "Roles_Historial");
+        MapEntidadHistorial<EstadoUsuarioHistorial>(modelBuilder, "EstadosUsuarios_Historial");
+        MapEntidadHistorial<EstadoOrdenCompraHistorial>(modelBuilder, "OrdenesComprasEstados_Historial");
+        MapEntidadHistorial<CuentaHistorial>(modelBuilder, "Cuentas_Historial");
+        MapEntidadHistorial<ImportacionHistorial>(modelBuilder, "Importaciones_Historial");
+        MapEntidadHistorial<RubroHistorial>(modelBuilder, "Rubros_Historial");
+
+        modelBuilder.Entity<Rubro>(entity =>
+        {
+            entity.ToTable("Rubros");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.HasIndex(e => e.Nombre).IsUnique().HasDatabaseName("UQ_Rubros_Nombre");
         });
 
         modelBuilder.Entity<InsumosProveedor>(entity =>
@@ -1254,6 +1389,18 @@ public partial class SistemaKyoGroupContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("Usuario");
+            entity.Property(e => e.AvatarColor)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.AvatarIcono)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.AvatarFoto)
+                .HasMaxLength(250)
+                .IsUnicode(false);
+            entity.Property(e => e.UltimoModulo)
+                .HasMaxLength(40)
+                .IsUnicode(false);
 
             entity.HasOne(d => d.IdEstadoNavigation).WithMany(p => p.Usuarios)
                 .HasForeignKey(d => d.IdEstado)
@@ -1263,6 +1410,23 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.HasOne(d => d.IdRolNavigation).WithMany(p => p.Usuarios)
                 .HasForeignKey(d => d.IdRol)
                 .HasConstraintName("FK_Usuarios_Roles");
+        });
+
+        modelBuilder.Entity<UsuariosConexion>(entity =>
+        {
+            entity.ToTable("UsuariosConexiones");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Fecha).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.Ip).HasMaxLength(64);
+            entity.Property(e => e.UserAgent).HasMaxLength(512);
+            entity.Property(e => e.TokenJti).HasMaxLength(64);
+            entity.Property(e => e.Detalle).HasMaxLength(200);
+
+            entity.HasOne(d => d.IdUsuarioNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.IdUsuario)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UsuariosConexiones_Usuarios");
         });
 
         modelBuilder.Entity<UsuariosLocal>(entity =>
@@ -1292,6 +1456,18 @@ public partial class SistemaKyoGroupContext : DbContext
         });
 
         OnModelCreatingPartial(modelBuilder);
+    }
+
+    private static void MapEntidadHistorial<T>(ModelBuilder modelBuilder, string tableName) where T : EntidadHistorialBase
+    {
+        modelBuilder.Entity<T>(entity =>
+        {
+            entity.ToTable(tableName);
+            entity.Property(e => e.Accion).HasMaxLength(20).IsUnicode(false);
+            entity.Property(e => e.Resumen).HasMaxLength(500);
+            entity.Property(e => e.UsuarioNombre).HasMaxLength(150);
+            entity.Property(e => e.Fecha).HasColumnType("datetime");
+        });
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

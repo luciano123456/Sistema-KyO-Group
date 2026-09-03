@@ -1,0 +1,94 @@
+@{
+    Layout = "_LayoutModulo";
+    ViewData["Title"] = "Detalle venta";
+    var id = ViewBag.Id ?? 0;
+}
+
+@section Estilos {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="~/css/Ventas.css" asp-append-version="true" />
+}
+
+<div class="container page-99 vt-page" data-id="@id">
+    <header class="vt-hero">
+        <div class="vt-hero-glow vt-hero-glow--rose"></div>
+        <div class="vt-hero-glow vt-hero-glow--sage"></div>
+        <div class="vt-hero-inner">
+            <div class="vt-hero-left">
+                <a href="@Url.Action("Index", "Ventas")" class="btn btn-sm btn-outline-secondary vt-back-btn" title="Volver">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+                <span class="vt-hero-icon vt-hero-icon--sage"><i class="fa fa-receipt"></i></span>
+                <div>
+                    <h1 class="vt-hero-title" id="detTitulo">Detalle de venta</h1>
+                    <p class="vt-hero-sub" id="detSub">—</p>
+                </div>
+            </div>
+            <div class="vt-hero-actions">
+                <div class="vt-kpi-row">
+                    <div class="vt-kpi"><div class="label">Venta</div><div class="value" id="detVenta">—</div></div>
+                    <div class="vt-kpi"><div class="label">Costo</div><div class="value" id="detCosto">—</div></div>
+                    <div class="vt-kpi vt-kpi--sage"><div class="label">Ganancia</div><div class="value" id="detGanancia">—</div></div>
+                    <div class="vt-kpi"><div class="label">Ítems</div><div class="value" id="detItems">—</div></div>
+                    <div class="vt-kpi" title="Producto del Excel = SKU de una receta o insumo del sistema">
+                        <div class="label">Vinculados</div><div class="value" id="detMatch">—</div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary vt-back-btn" id="btnHistorialDet" title="Historial">
+                    <i class="fa fa-history"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="card-glass vt-detail-meta mb-3" id="detMeta">
+        <div class="vt-detail-meta-item">
+            <span class="lbl">Archivo</span>
+            <strong id="detArchivo">—</strong>
+        </div>
+        <div class="vt-detail-meta-item">
+            <span class="lbl">Usuario</span>
+            <strong id="detUsuario">—</strong>
+        </div>
+        <div class="vt-detail-meta-item">
+            <span class="lbl">Unidad de negocio</span>
+            <strong id="detUn">—</strong>
+        </div>
+        <div class="vt-detail-meta-item">
+            <span class="lbl">Ítems / vinculados</span>
+            <strong id="detItemsMeta">—</strong>
+        </div>
+    </div>
+
+    <div class="card-glass vt-table-card">
+        <p class="vt-lines-hint mb-2">
+            <i class="fa fa-info-circle"></i>
+            <span class="vt-badge-ok">Receta</span> ·
+            <span class="vt-badge-insumo">Insumo</span> ·
+            <span class="vt-badge-miss">Sin vínculo</span>
+            — Producto del Excel = SKU de una receta o insumo del sistema
+        </p>
+        <div class="dt-dark-wrap">
+            <table class="dt-dark display nowrap compact" id="grd_Detalle" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Descripción</th>
+                        <th>Rubro</th>
+                        <th>Cant.</th>
+                        <th>Precio</th>
+                        <th>Total</th>
+                        <th>Costo</th>
+                        <th>Ganancia</th>
+                        <th title="Producto del Excel = SKU de una receta o insumo del sistema">Vínculo</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="~/Views/Shared/Partials/DataTablesCoreScripts.cshtml" />
+    <script src="~/js/VentasDetalle.js" asp-append-version="true"></script>
+}

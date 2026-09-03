@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SistemaKyoGroup.DAL;
+using SistemaKyoGroup.DAL.Contracts;
 using SistemaKyoGroup.DAL.DataContext;
 using SistemaKyoGroup.Models;
 using System;
@@ -11,10 +13,17 @@ namespace SistemaKyoGroup.DAL.Repository
     public class CompraRepository : ICompraRepository<Compra>
     {
         private readonly SistemaKyoGroupContext _db;
+        private readonly IProveedoresCuentaCorrienteCompraSync _cuentaCorriente;
+        private readonly ICostoPropagacionService _costoPropagacion;
 
-        public CompraRepository(SistemaKyoGroupContext context)
+        public CompraRepository(
+            SistemaKyoGroupContext context,
+            IProveedoresCuentaCorrienteCompraSync cuentaCorriente,
+            ICostoPropagacionService costoPropagacion)
         {
             _db = context;
+            _cuentaCorriente = cuentaCorriente;
+            _costoPropagacion = costoPropagacion;
         }
 
         // ============================================================
@@ -144,8 +153,33 @@ namespace SistemaKyoGroup.DAL.Repository
                 _db.ComprasInsumos.AddRange(detalles);
                 await _db.SaveChangesAsync();
 
+                model.ComprasInsumos = detalles;
+
+                await _cuentaCorriente.RegistrarMovimientoCompra(
+                    model.IdProveedor,
+                    model.Id,
+                    model.SubtotalFinal,
+                    model.Fecha);
+
+                await _costoPropagacion.PropagarDesdeCompra(model, model.IdUsuarioRegistra);
+
                 if (model.IdOrdenCompra > 0)
                     await RecalcularOrdenCompraDesdeCompras(model.IdOrdenCompra);
+
+                var uid = model.IdUsuarioRegistra;
+                if (uid > 0)
+                {
+                    var nombre = await EntidadHistorialHelper.NombreUsuarioAsync(_db, uid);
+                    var cant = model.ComprasInsumos?.Count ?? 0;
+                    var provNom = await EntidadHistorialHelper.NombreFkAsync(_db, "Proveedor", model.IdProveedor);
+                    EntidadHistorialHelper.Agregar(
+                        _db, EntidadHistorialHelper.Compra, model.Id,
+                        EntidadHistorialHelper.AccionCreacion,
+                        $"Alta de compra #{model.Id}",
+                        $"Proveedor: {provNom}. Total: {EntidadHistorialHelper.S(model.SubtotalFinal)}. Ítems: {cant}. OC: {model.IdOrdenCompra}.",
+                        uid, nombre);
+                    await _db.SaveChangesAsync();
+                }
 
                 await tx.CommitAsync();
                 return true;
@@ -175,6 +209,13 @@ namespace SistemaKyoGroup.DAL.Repository
 
                 if (existente == null)
                     return false;
+
+                var idProveedorAnterior = existente.IdProveedor;
+                var idUsuario = model.IdUsuarioModifica ?? existente.IdUsuarioRegistra;
+                var totalAntes = existente.SubtotalFinal;
+                var itemsAntes = existente.ComprasInsumos?.Count ?? 0;
+
+                await _costoPropagacion.RevertirDesdeCompra(existente.Id, idUsuario);
 
                 // ====== CABECERA ======
                 var entry = _db.Entry(existente);
@@ -237,8 +278,51 @@ namespace SistemaKyoGroup.DAL.Repository
 
                 await _db.SaveChangesAsync();
 
+                existente.ComprasInsumos = await _db.ComprasInsumos
+                    .Where(x => x.IdCompra == existente.Id)
+                    .ToListAsync();
+
+                if (idProveedorAnterior != existente.IdProveedor)
+                {
+                    await _cuentaCorriente.EliminarMovimientosCompra(existente.Id);
+                    await _cuentaCorriente.RegistrarMovimientoCompra(
+                        existente.IdProveedor,
+                        existente.Id,
+                        existente.SubtotalFinal,
+                        existente.Fecha);
+                }
+                else
+                {
+                    await _cuentaCorriente.ActualizarMovimientoCompra(
+                        existente.Id,
+                        existente.SubtotalFinal,
+                        existente.Fecha);
+                }
+
+                await _costoPropagacion.PropagarDesdeCompra(existente, idUsuario);
+
                 if (existente.IdOrdenCompra > 0)
                     await RecalcularOrdenCompraDesdeCompras(existente.IdOrdenCompra);
+
+                if (idUsuario > 0)
+                {
+                    var nombre = await EntidadHistorialHelper.NombreUsuarioAsync(_db, idUsuario);
+                    var itemsNuevos = existente.ComprasInsumos?.Count ?? 0;
+                    var provAntes = await EntidadHistorialHelper.NombreFkAsync(_db, "Proveedor", idProveedorAnterior);
+                    var provDespues = await EntidadHistorialHelper.NombreFkAsync(_db, "Proveedor", existente.IdProveedor);
+                    var antes = EntidadHistorialHelper.Snapshot(
+                        ("Proveedor", provAntes),
+                        ("Total", totalAntes),
+                        ("Ítems", itemsAntes));
+                    var despues = EntidadHistorialHelper.Snapshot(
+                        ("Proveedor", provDespues),
+                        ("Total", existente.SubtotalFinal),
+                        ("Ítems", itemsNuevos));
+                    EntidadHistorialHelper.AgregarSiCambio(
+                        _db, EntidadHistorialHelper.Compra, existente.Id,
+                        $"compra #{existente.Id}", antes, despues, idUsuario, nombre);
+                    await _db.SaveChangesAsync();
+                }
 
                 await tx.CommitAsync();
                 return true;
@@ -256,12 +340,18 @@ namespace SistemaKyoGroup.DAL.Repository
         // ============================================================
         public async Task<(bool eliminado, string mensaje)> Eliminar(int id)
         {
+            await using var tx = await _db.Database.BeginTransactionAsync();
+
             try
             {
                 var cab = await _db.Compras.FirstOrDefaultAsync(c => c.Id == id);
                 if (cab == null) return (false, "Compra no encontrada.");
 
                 var idOc = cab.IdOrdenCompra;
+                var idUsuario = cab.IdUsuarioModifica ?? cab.IdUsuarioRegistra;
+
+                await _costoPropagacion.RevertirDesdeCompra(id, idUsuario);
+                await _cuentaCorriente.EliminarMovimientosCompra(id);
 
                 var det = await _db.ComprasInsumos
                     .Where(x => x.IdCompra == id)
@@ -270,15 +360,29 @@ namespace SistemaKyoGroup.DAL.Repository
                 if (det.Any()) _db.ComprasInsumos.RemoveRange(det);
 
                 _db.Compras.Remove(cab);
+
+                if (idUsuario > 0)
+                {
+                    var nombre = await EntidadHistorialHelper.NombreUsuarioAsync(_db, idUsuario);
+                    EntidadHistorialHelper.Agregar(
+                        _db, EntidadHistorialHelper.Compra, id,
+                        EntidadHistorialHelper.AccionEliminacion,
+                        $"Eliminación de compra #{id}",
+                        $"Proveedor: {cab.IdProveedor}. Total: {EntidadHistorialHelper.S(cab.SubtotalFinal)}.",
+                        idUsuario, nombre);
+                }
+
                 await _db.SaveChangesAsync();
 
                 if (idOc > 0)
                     await RecalcularOrdenCompraDesdeCompras(idOc);
 
+                await tx.CommitAsync();
                 return (true, "Compra eliminada correctamente.");
             }
             catch
             {
+                await tx.RollbackAsync();
                 return (false, "Error inesperado al eliminar la compra.");
             }
         }

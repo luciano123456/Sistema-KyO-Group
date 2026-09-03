@@ -1,5 +1,189 @@
 ﻿let listaVacia = false;
+let nombreConfiguracion;
+let controllerConfiguracion;
+let comboNombre;
+let comboController;
+let lblComboNombre;
+let configQuickAddMode = false;
 
+function getCtl() {
+    return String(controllerConfiguracion || window.controllerConfiguracion || '').replace(/^\/+|\/+$/g, '');
+}
+
+function setConfigModalQuickAddMode(isQuickAdd) {
+    const modal = document.getElementById('modalConfiguracion');
+    if (modal) modal.classList.toggle('rp-quick-add', !!isQuickAdd);
+}
+
+function applyConfigQuickAddUi() {
+    setConfigModalQuickAddMode(true);
+    agregarConfiguracion();
+    const lbl = document.getElementById('modalConfiguracionLabel');
+    if (lbl) lbl.innerText = 'Agregar ' + (nombreConfiguracion || 'registro');
+    const sub = document.querySelector('#modalConfiguracion .rp-modal-subtitle');
+    if (sub) sub.textContent = 'Completa los datos y guarda para usar el nuevo valor en el formulario';
+}
+
+function obtenerPrefVistaListados() {
+    if (window.RpGridView) return RpGridView.getPref();
+    const pref = localStorage.getItem('rpGridViewPref') || localStorage.getItem('cgViewPref') || 'auto';
+    return ['auto', 'table', 'cards'].includes(pref) ? pref : 'auto';
+}
+
+function syncPreferenciasVisualizacionUi(pref) {
+    const val = ['auto', 'table', 'cards'].includes(pref) ? pref : 'auto';
+    $('#rpConfigViewOptions .rp-config-view-card').removeClass('is-active');
+    $(`#rpConfigViewOptions .rp-config-view-card[data-rp-view="${val}"]`).addClass('is-active');
+    const sel = document.getElementById('rpConfigViewMode');
+    if (sel) sel.value = val;
+}
+
+function guardarPrefVistaListados(pref) {
+    const val = ['auto', 'table', 'cards'].includes(pref) ? pref : 'auto';
+    localStorage.setItem('rpGridViewPref', val);
+    localStorage.setItem('cgViewPref', val);
+    syncPreferenciasVisualizacionUi(val);
+
+    if (window.RpGridView) {
+        RpGridView.setPref(val);
+    } else {
+        $('.cg-page, .cl-page, .page-99, .ld-index')
+            .removeClass('rp-view-mode-auto rp-view-mode-table rp-view-mode-cards cg-mode-auto cg-mode-table cg-mode-cards')
+            .addClass(`rp-view-mode-${val} cg-mode-${val}`);
+        $(document).trigger('rpGridViewChanged', [val]);
+    }
+}
+
+function initPreferenciasVisualizacion() {
+    syncPreferenciasVisualizacionUi(obtenerPrefVistaListados());
+
+    $('#rpConfigViewOptions')
+        .off('click.rpViewPref')
+        .on('click.rpViewPref', '.rp-config-view-card', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            guardarPrefVistaListados($(this).data('rpView') || 'auto');
+        });
+}
+
+function filtrarSeccionesConfiguraciones() {
+    const input = document.getElementById('txtBuscarSeccionesConfiguracion');
+    const grid = document.getElementById('rpConfigSeccionesGrid');
+    const lblVacio = document.getElementById('lblSeccionesConfiguracionVacio');
+    if (!input || !grid) return;
+
+    const q = (input.value || '').trim().toLowerCase();
+    let visibles = 0;
+
+    grid.querySelectorAll('.rp-config-card').forEach(card => {
+        const buscar = (card.getAttribute('data-buscar') || '').toLowerCase();
+        const texto = (card.textContent || '').toLowerCase();
+        const match = !q || buscar.includes(q) || texto.includes(q);
+        card.style.display = match ? '' : 'none';
+        if (match) visibles++;
+    });
+
+    if (lblVacio) {
+        lblVacio.hidden = visibles !== 0;
+        if (!visibles) lblVacio.textContent = 'No hay secciones que coincidan con la búsqueda.';
+    }
+}
+
+/* ---- Resaltar módulo activo en el navbar ---- */
+function normalizarNavPath(path) {
+    if (!path) return '/';
+    let p = String(path).split('?')[0].split('#')[0];
+    if (!p.startsWith('/')) p = '/' + p;
+    p = p.replace(/\/+$/, '') || '/';
+    return p.toLowerCase();
+}
+
+function navPathFromHref(href) {
+    if (!href || href === '#') return null;
+    try {
+        return normalizarNavPath(new URL(href, window.location.origin).pathname);
+    } catch {
+        return null;
+    }
+}
+
+function navCoincideRuta(href, current) {
+    const link = navPathFromHref(href);
+    if (!link) return false;
+    if (link === current) return true;
+
+    const linkParts = link.split('/').filter(Boolean);
+    const curParts = current.split('/').filter(Boolean);
+    if (linkParts.length >= 2 && curParts.length >= 2) {
+        return linkParts[0] === curParts[0] && linkParts[1] === curParts[1];
+    }
+    return false;
+}
+
+function activarNavModulo(sectionSelector) {
+    const section = document.querySelector(sectionSelector);
+    if (!section) return;
+    section.classList.add('is-module-active');
+    const toggle = section.querySelector(':scope > .nav-link');
+    if (toggle) toggle.classList.add('active');
+}
+
+function initNavbarActiveState() {
+    const current = normalizarNavPath(window.location.pathname);
+    const parts = current.split('/').filter(Boolean);
+    const controller = (parts[0] || '').toLowerCase();
+    const action = (parts[1] || 'index').toLowerCase();
+
+    document.querySelectorAll('.rp-navbar .rp-nav-link.active, .rp-navbar .dropdown-item.active, .rp-navbar .nav-item.is-module-active')
+        .forEach(el => el.classList.remove('active', 'is-module-active'));
+
+    if (controller === 'usuarios' && action === 'configuracion') return;
+
+    let matched = false;
+
+    document.querySelectorAll('.rp-nav-main .dropdown-item[href]').forEach(item => {
+        if (!navCoincideRuta(item.getAttribute('href'), current)) return;
+        item.classList.add('active');
+        matched = true;
+        const dropdown = item.closest('.nav-item.dropdown');
+        if (dropdown) {
+            dropdown.classList.add('is-module-active');
+            dropdown.querySelector('.nav-link.dropdown-toggle')?.classList.add('active');
+        }
+    });
+
+    document.querySelectorAll('.rp-nav-main > .nav-item:not(.dropdown) .nav-link[href]').forEach(link => {
+        if (!navCoincideRuta(link.getAttribute('href'), current)) return;
+        link.classList.add('active');
+        link.closest('.nav-item')?.classList.add('is-module-active');
+        matched = true;
+    });
+
+    if (matched) return;
+
+    const moduleByController = {
+        dashboard: null,
+        proveedores: '#seccionProveedores',
+        proveedorescuentacorriente: '#seccionProveedores',
+        proveedoresinsumos: '#seccionProveedores',
+        compras: '#seccionProveedores',
+        ordenescompras: '#seccionProveedores',
+        recetas: '#seccionRecetas',
+        subrecetas: '#seccionRecetas',
+        insumos: '#seccionInsumos',
+        ventas: '#seccionVentas',
+        analisisdatos: '#seccionAnalisisDatos',
+        usuarios: '#seccionConfiguraciones'
+    };
+
+    if (current === '/') {
+        activarNavModulo('#seccionProveedores');
+        return;
+    }
+
+    const sectionSel = moduleByController[controller];
+    if (sectionSel) activarNavModulo(sectionSel);
+}
 
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -24,74 +208,176 @@ document.addEventListener("DOMContentLoaded", function () {
         //    document.getElementById("seccionGastos").removeAttribute("hidden");
         //}
         // Si el usuario está en el localStorage, actualizar el texto del enlace
-        var userFullName = userSession.Nombre + ' ' + userSession.Apellido;
-        $("#userName").html('<i class="fa fa-user"></i> ' + userFullName); // Cambiar el contenido del enlace
+        var userFullName = (userSession.Nombre + ' ' + userSession.Apellido).trim();
+        var userEl = document.getElementById("userName");
+        if (userEl) userEl.textContent = userFullName || "Usuario";
 
-    }
-    // Busca todos los elementos con la clase "dropdown-toggle"
-    var dropdownToggleList = document.querySelectorAll('.dropdown-toggle');
-
-    // Itera sobre cada elemento y agrega un evento de clic
-    dropdownToggleList.forEach(function (dropdownToggle) {
-        dropdownToggle.addEventListener('click', function (event) {
-            event.preventDefault(); // Evita la acción predeterminada del enlace
-
-            // Obtiene el menú desplegable correspondiente
-            var dropdownMenu = dropdownToggle.nextElementSibling;
-
-            // Cambia el atributo "aria-expanded" para alternar la visibilidad del menú desplegable
-            var isExpanded = dropdownToggle.getAttribute('aria-expanded') === 'true';
-            dropdownToggle.setAttribute('aria-expanded', !isExpanded);
-            dropdownMenu.classList.toggle('show'); // Agrega o quita la clase "show" para mostrar u ocultar el menú desplegable
-        });
-    });
-
-    // Agrega un manejador de eventos de clic al documento para ocultar el menú desplegable cuando se hace clic en cualquier lugar que no sea el menú desplegable
-    document.addEventListener('click', function (event) {
-        var isDropdownToggle = event.target.closest('.dropdown-toggle'); // Verifica si el elemento clicado es un elemento con la clase "dropdown-toggle"
-        var isDropdownMenu = event.target.closest('.dropdown-menu'); // Verifica si el elemento clicado es un menú desplegable
-
-        // Si el elemento clicado no es un menú desplegable ni un elemento con la clase "dropdown-toggle", oculta todos los menús desplegables
-        if (!isDropdownToggle && !isDropdownMenu) {
-            var dropdownMenus = document.querySelectorAll('.dropdown-menu.show');
-            dropdownMenus.forEach(function (dropdownMenu) {
-                dropdownMenu.classList.remove('show');
-                var dropdownToggle = dropdownMenu.previousElementSibling;
-                dropdownToggle.setAttribute('aria-expanded', 'false');
+        if (window.RpAvatar) {
+            RpAvatar.applyToNavbar({
+                color: userSession.AvatarColor,
+                icono: userSession.AvatarIcono,
+                foto: userSession.AvatarFoto
             });
         }
+
+    }
+
+    initNavbarDropdowns();
+    initNavbarHoverDropdowns();
+    initNavbarCollapseAutoClose();
+    initPreferenciasVisualizacion();
+    initNavbarActiveState();
+});
+
+const RP_NAV_EXPAND_MQ = "(min-width: 992px)";
+
+function isNavbarExpanded() {
+    return window.matchMedia(RP_NAV_EXPAND_MQ).matches;
+}
+
+/** Dropdowns del navbar: Popper fixed en desktop, static en menú colapsado. */
+function initNavbarDropdowns() {
+    if (!window.bootstrap?.Dropdown) return;
+
+    const expanded = isNavbarExpanded();
+
+    document.querySelectorAll(".rp-navbar [data-bs-toggle='dropdown']").forEach(toggle => {
+        const existing = bootstrap.Dropdown.getInstance(toggle);
+        if (existing) existing.dispose();
+
+        // dispose() no cierra el menú: sin esto el .show queda pegado en el toggle
+        // (y el ítem sigue resaltado) si se reinicializa con un dropdown abierto.
+        limpiarDropdownNavbar(toggle);
+
+        const options = {
+            offset: [0, 4],
+            autoClose: "outside",
+            display: expanded ? "dynamic" : "static"
+        };
+
+        if (expanded) {
+            options.popperConfig = function (defaultBootstrapConfig) {
+                return Object.assign({}, defaultBootstrapConfig, { strategy: "fixed" });
+            };
+        }
+
+        bootstrap.Dropdown.getOrCreateInstance(toggle, options);
     });
+}
+
+/** Saca el estado "abierto" de un toggle del navbar y de su menú. */
+function limpiarDropdownNavbar(toggle) {
+    if (!toggle) return;
+    toggle.classList.remove("show");
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.closest(".nav-item")?.querySelector(".dropdown-menu")?.classList.remove("show");
+}
+
+/** Un solo menú abierto a la vez: cierra los demás dropdowns del navbar. */
+function cerrarOtrosDropdownsNavbar(exceptoToggle) {
+    document.querySelectorAll(".rp-navbar [data-bs-toggle='dropdown'].show").forEach(toggle => {
+        if (toggle === exceptoToggle) return;
+        bootstrap.Dropdown.getInstance(toggle)?.hide();
+        limpiarDropdownNavbar(toggle);
+    });
+}
+
+function initNavbarHoverDropdowns() {
+    document.querySelectorAll(".rp-navbar .rp-nav-main > .nav-item").forEach(item => {
+        item.addEventListener("mouseenter", function () {
+            if (!isNavbarExpanded() || window.matchMedia("(hover: none)").matches) return;
+            if (!window.bootstrap?.Dropdown) return;
+
+            const toggle = this.querySelector("[data-bs-toggle='dropdown']");
+            // Aunque el ítem no tenga menú, al pasar el mouse cerramos el que estuviera abierto.
+            cerrarOtrosDropdownsNavbar(toggle);
+            if (!toggle) return;
+
+            const enfocadoAntes = document.activeElement;
+            bootstrap.Dropdown.getOrCreateInstance(toggle).show();
+
+            // Bootstrap hace toggle.focus() adentro de show(). Como acá abrimos por hover,
+            // ese foco programático le dispara el :focus-visible a Chrome y te deja el
+            // anillo del navegador pegado en el ítem. Si el foco no era de él, lo soltamos.
+            if (enfocadoAntes !== toggle && document.activeElement === toggle) toggle.blur();
+        });
+
+        item.addEventListener("mouseleave", function () {
+            if (!isNavbarExpanded()) return;
+            const toggle = this.querySelector("[data-bs-toggle='dropdown']");
+            if (!toggle || !window.bootstrap?.Dropdown) return;
+            bootstrap.Dropdown.getInstance(toggle)?.hide();
+        });
+    });
+}
+
+function initNavbarCollapseAutoClose() {
+    const collapseEl = document.getElementById("navbarSupportedContent");
+    if (!collapseEl) return;
+
+    collapseEl.addEventListener("click", function (e) {
+        if (isNavbarExpanded()) return;
+
+        const link = e.target.closest("a");
+        if (!link) return;
+        if (link.classList.contains("dropdown-toggle")) return;
+        if (link.getAttribute("href") === "#" && !link.hasAttribute("onclick")) return;
+
+        const inst = window.bootstrap?.Collapse?.getInstance(collapseEl);
+        if (inst) inst.hide();
+    });
+}
+
+let rpNavResizeTimer = 0;
+window.addEventListener("resize", function () {
+    clearTimeout(rpNavResizeTimer);
+    rpNavResizeTimer = setTimeout(initNavbarDropdowns, 150);
 });
 
 
 
 function cerrarSesion() {
-    localStorage.removeItem('JwtToken'); // Borrar token
-    window.location.href = '/Login/Logout'; // Ir al login
+    const go = () => { window.location.href = '/Login/Logout'; };
+    if (window.SessionManager?.beginVoluntaryLogout) {
+        Promise.resolve(window.SessionManager.beginVoluntaryLogout())
+            .catch(() => { })
+            .finally(go);
+        return;
+    }
+    sessionStorage.removeItem('sesionExpirada');
+    sessionStorage.setItem('logoutVoluntario', '1');
+    localStorage.removeItem('JwtToken');
+    localStorage.removeItem('sessionExpiresAt');
+    go();
 }
-
-function getCtl() {
-    return String(window.controllerConfiguracion || '').replace(/^\/+|\/+$/g, '');
-}
-
 
 async function abrirConfiguraciones() {
-    // Abre SIEMPRE “Configuraciones” en limpio (aunque vengas de otros modales)
     await openFreshModal('#ModalEdicionConfiguraciones');
-    // (Opcional) setear títulos/botones después de mostrado
     try {
-        document.getElementById("ModalEdicionConfiguracionesLabel").textContent = "Configuraciones";
-        const btn = document.getElementById("btnGuardarConfiguracion");
-        if (btn) btn.textContent = "Aceptar";
+        document.getElementById('ModalEdicionConfiguracionesLabel').textContent = 'Configuraciones';
     } catch { }
-}
 
+    initPreferenciasVisualizacion();
+
+    const buscadorSecciones = document.getElementById('txtBuscarSeccionesConfiguracion');
+    if (buscadorSecciones) {
+        buscadorSecciones.value = '';
+        filtrarSeccionesConfiguraciones();
+        $('#txtBuscarSeccionesConfiguracion').off('input').on('input', filtrarSeccionesConfiguraciones);
+        setTimeout(() => buscadorSecciones.focus(), 150);
+    }
+}
 
 async function listaConfiguracion() {
     const ctl = getCtl();
     const url = `/${ctl}/Lista`;
 
-    const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    const response = await fetch(url, {
+        headers: {
+            'Accept': 'application/json',
+            ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+        }
+    });
     const data = await response.json();
     if (!response.ok) throw new Error('Error al cargar configuraciones');
 
@@ -110,6 +396,7 @@ async function abrirConfiguracion(_nombreConfiguracion, _controllerConfiguracion
     try {
         nombreConfiguracion = _nombreConfiguracion;
         controllerConfiguracion = _controllerConfiguracion;
+        window.controllerConfiguracion = _controllerConfiguracion;
         comboNombre = _comboNombre;
         comboController = _comboController;
         lblComboNombre = _lblComboNombre;
@@ -126,19 +413,25 @@ async function abrirConfiguracion(_nombreConfiguracion, _controllerConfiguracion
         $('#ModalEdicionConfiguraciones').modal('hide');
         $('#modalConfiguracion').modal('show');
 
-        cancelarModificarConfiguracion();
+        resetConfigForm();
+
+        if (configQuickAddMode) {
+            applyConfigQuickAddUi();
+        } else {
+            setConfigModalQuickAddMode(false);
+            document.getElementById("modalConfiguracionLabel").innerText = "Configuración de " + nombreConfiguracion;
+        }
 
         $('#txtNombreConfiguracion').on('input', validarCamposConfiguracion);
         $('#cmbConfiguracion').on('change', validarCamposConfiguracion);
         $('#txtExtraField').on('input', validarCamposConfiguracion); // NUEVO
-
-        document.getElementById("modalConfiguracionLabel").innerText = "Configuración de " + nombreConfiguracion;
     } catch (ex) {
         errorModal("Ha ocurrido un error al cargar la lista");
     }
 }
 
 async function editarConfiguracion(id) {
+    if (configQuickAddMode) return;
     const ctl = getCtl();
     const url = `/${ctl}/EditarInfo?id=${encodeURIComponent(id)}`;
 
@@ -161,7 +454,7 @@ async function editarConfiguracion(id) {
 
                 if (comboNombre != null) {
                     document.getElementById("lblConfiguracionCombo").innerText = lblComboNombre;
-                    document.getElementById("cmbConfiguracion").value = dataJson.IdCombo ?? "";
+                    document.getElementById("cmbConfiguracion").value = dataJson.IdCombo ?? dataJson.IdUnidadNegocio ?? "";
                 }
 
                 // NUEVO: setear campo extra si corresponde
@@ -235,17 +528,22 @@ async function llenarConfiguraciones() {
             }
 
             const id = c.Id;
-            $("#configuracion-list").append(`
-                <div class="list-item" data-id="${id}" data-busqueda="${(nombreConfig || '').toLowerCase()}">
-                    <span class="list-item__text">${nombreConfig}</span>
-                    <div class="item-actions">
-                        <button type="button" class="icon-btn edit" title="Editar" onclick="editarConfiguracion(${id})">
-                            <i class="fa fa-pencil-square-o"></i>
+            const actionsHtml = configQuickAddMode ? '' : `
+                    <div class="rp-list-actions item-actions">
+                        <button type="button" class="rp-icon-btn icon-btn edit" title="Editar" onclick="editarConfiguracion(${id})">
+                            <i class="fa fa-pencil"></i>
                         </button>
-                        <button type="button" class="icon-btn delete" title="Eliminar" onclick="eliminarConfiguracion(${id})">
+                        <button type="button" class="rp-icon-btn icon-btn delete danger" title="Eliminar" onclick="eliminarConfiguracion(${id})">
                             <i class="fa fa-trash"></i>
                         </button>
+                    </div>`;
+            $("#configuracion-list").append(`
+                <div class="rp-list-item list-item" data-id="${id}" data-busqueda="${(nombreConfig || '').toLowerCase()}" data-texto="${(nombreConfig || '').toLowerCase()}">
+                    <div class="rp-item-left">
+                        <div class="rp-item-icon"><i class="fa fa-tag"></i></div>
+                        <div class="rp-item-text list-item__text">${nombreConfig}</div>
                     </div>
+                    ${actionsHtml}
                 </div>
             `);
         });
@@ -258,40 +556,23 @@ async function llenarConfiguraciones() {
 }
 
 async function eliminarConfiguracion(id) {
+    if (configQuickAddMode) return;
 
-
-    let resultado = await confirmarModal("¿Desea eliminar el/la" + nombreConfiguracion + "?");
-    if (!resultado) return;
-
-    if (resultado) {
-        try {
-            const ctl = getCtl();
-            const url = `/${ctl}/Eliminar?id=${encodeURIComponent(id)}`;
-
-            const response = await fetch(url, {
-                method: "DELETE",
-                headers: {
-                    "Accept": "application/json",
-                    "Content-Type": "application/json",
-                    'Authorization': 'Bearer ' + token,
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error("Error al eliminar " + nombreConfiguracion);
-            }
-
-            const dataJson = await response.json();
-
-            if (dataJson.valor) {
-                llenarConfiguraciones()
-
-                exitoModal(nombreConfiguracion + " eliminada correctamente")
-            }
-        } catch (error) {
-            console.error("Ha ocurrido un error:", error);
+    const ctl = getCtl();
+    return eliminarConCascada({
+        url: `/${ctl}/Eliminar`,
+        id,
+        confirmMsg: '¿Desea eliminar el/la' + nombreConfiguracion + '?',
+        headers: () => ({
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token,
+        }),
+        onSuccess: async (j) => {
+            llenarConfiguraciones();
+            exitoModal((j.mensaje) || (nombreConfiguracion + ' eliminada correctamente'));
         }
-    }
+    });
 }
 
 async function llenarComboConfiguracion() {
@@ -339,7 +620,7 @@ function validarCamposConfiguracion() {
     }
 
     // Estilos del nombre y combo
-    $("#lblNombreConfiguracion").css("color", camposValidos ? "" : "red");
+    $("#lblNombre, #lblNombreConfiguracion").css("color", camposValidos ? "" : "red");
     $("#txtNombreConfiguracion").css("border-color", camposValidos ? "" : "red");
     $("#cmbConfiguracion").css("border-color", (comboNombre != null) ? (selectValido ? "" : "red") : "");
 
@@ -358,88 +639,99 @@ function guardarCambiosConfiguracion() {
     }
 
     const idConfiguracion = $("#txtIdConfiguracion").val();
+    if (configQuickAddMode && idConfiguracion !== "") {
+        errorModal('Desde aquí solo podés agregar un registro nuevo.');
+        return;
+    }
     const idCombo = $("#cmbConfiguracion").val();
 
-    const nuevoModelo = {
-        "Id": idConfiguracion !== "" ? Number(idConfiguracion) : 0,
-        "IdCombo": comboNombre ? Number(idCombo || 0) : 0,
-        "Nombre": $("#txtNombreConfiguracion").val()
-    };
+    return withBusy("#btnRegistrarModificarConfiguracion", () => {
+        const nuevoModelo = {
+            "Id": idConfiguracion !== "" ? Number(idConfiguracion) : 0,
+            "IdCombo": comboNombre ? Number(idCombo || 0) : 0,
+            "Nombre": $("#txtNombreConfiguracion").val()
+        };
 
-    // --- Campo extra (si aplica) ---
-    if (extraFieldMeta?.key) {
-        nuevoModelo[extraFieldMeta.key] = getExtraFieldValue();
-    }
+        // --- Campo extra (si aplica) ---
+        if (extraFieldMeta?.key) {
+            nuevoModelo[extraFieldMeta.key] = getExtraFieldValue();
+        }
 
-    const ctl = getCtl();                 // ← usa el controller configuracion actual
-    const isInsert = idConfiguracion === "";
-    const accion = isInsert ? "Insertar" : "Actualizar";
-    const url = `/${ctl}/${accion}`;
-    const method = isInsert ? "POST" : "PUT";
+        const ctl = getCtl();                 // ← usa el controller configuracion actual
+        const isInsert = idConfiguracion === "";
+        const accion = isInsert ? "Insertar" : "Actualizar";
+        const url = `/${ctl}/${accion}`;
+        const method = isInsert ? "POST" : "PUT";
 
-    fetch(url, {
-        method: method,
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': 'Bearer ' + token,
-        },
-        body: JSON.stringify(nuevoModelo)
-    })
-        .then(response => {
-            if (!response.ok) throw new Error(response.statusText);
-            return response.json(); // Esperamos {valor:bool, id?:number}
+        return fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token,
+            },
+            body: JSON.stringify(nuevoModelo)
         })
-        .then(async (resp) => {
-            const fueAlta = (idConfiguracion === "");
-            const mensaje = fueAlta
-                ? `${nombreConfiguracion} registrado/a correctamente`
-                : `${nombreConfiguracion} modificado/a correctamente`;
-
-            // Refrescar grilla
-            await llenarConfiguraciones();
-            cancelarModificarConfiguracion();
-            exitoModal(mensaje);
-
-            // === EMITIR EVENTO "config:saved" para que otras pantallas (p.ej. Insumos) reaccionen ===
-            // Intentamos tomar el id del response; si no viene, buscamos el recien creado por nombre.
-            let savedId = resp?.id;
-
-            if (!savedId && fueAlta) {
-                try {
-                    const todos = await listaConfiguracion(); // devuelve [{Id, Nombre, ...}]
-                    const nombre = (nuevoModelo.Nombre || '').trim().toLowerCase();
-                    const match = (todos || []).find(x => String(x.Nombre || '').trim().toLowerCase() === nombre);
-                    if (match) savedId = match.Id;
-                } catch { /* ignore */ }
-            }
-
-            // Emitimos el evento; controller = getCtl() (ej. 'InsumosCategoria')
-            const ev = new CustomEvent('config:saved', {
-                detail: {
-                    controller: getCtl(),
-                    id: savedId || null,
-                    nombre: nuevoModelo.Nombre || ''
+            .then(response => {
+                if (!response.ok) throw new Error(response.statusText);
+                return response.json(); // Esperamos {valor:bool, id?:number}
+            })
+            .then(async (resp) => {
+                if (resp?.tipo === 'duplicado' || resp?.valor === false) {
+                    errorModal(resp?.mensaje || 'Ya existe un registro con ese nombre.');
+                    return;
                 }
-            });
-            window.dispatchEvent(ev);
-        })
-        .catch(() => console.error('Error al guardar'));
+
+                const fueAlta = (idConfiguracion === "");
+                const mensaje = fueAlta
+                    ? `${nombreConfiguracion} registrado/a correctamente`
+                    : `${nombreConfiguracion} modificado/a correctamente`;
+
+                // Refrescar grilla
+                await llenarConfiguraciones();
+
+                // === EMITIR EVENTO "config:saved" antes de cerrar (modo +) ===
+                let savedId = resp?.id;
+
+                if (!savedId && fueAlta) {
+                    try {
+                        const todos = await listaConfiguracion();
+                        const nombre = (nuevoModelo.Nombre || '').trim().toLowerCase();
+                        const match = (todos || []).find(x => String(x.Nombre || '').trim().toLowerCase() === nombre);
+                        if (match) savedId = match.Id;
+                    } catch { /* ignore */ }
+                }
+
+                window.dispatchEvent(new CustomEvent('config:saved', {
+                    detail: {
+                        controller: getCtl(),
+                        id: savedId || null,
+                        nombre: nuevoModelo.Nombre || ''
+                    }
+                }));
+
+                if (configQuickAddMode) {
+                    $('#modalConfiguracion').modal('hide');
+                } else {
+                    resetConfigForm();
+                }
+                exitoModal(mensaje);
+            })
+            .catch(() => console.error('Error al guardar'));
+    });
 }
 
-function cancelarModificarConfiguracion() {
+function resetConfigForm() {
     document.getElementById("txtNombreConfiguracion").value = "";
     document.getElementById("txtIdConfiguracion").value = "";
     document.getElementById("contenedorNombreConfiguracion").setAttribute("hidden", "hidden");
     document.getElementById("agregarConfiguracion").removeAttribute("hidden");
 
-    // NUEVO: limpiar extra
     if (extraFieldMeta) {
         document.getElementById('txtExtraField').value = "";
         $('#lblExtraField').css('color', '');
         $('#txtExtraField').css('border-color', '');
     }
-    // reset de combo, si aplica
     if (comboNombre != null) {
         document.getElementById("cmbConfiguracion").value = "";
         $('#cmbConfiguracion').css('border-color', '');
@@ -452,6 +744,26 @@ function cancelarModificarConfiguracion() {
     }
 }
 
+function cancelarModificarConfiguracion() {
+    if (configQuickAddMode) {
+        $('#modalConfiguracion').modal('hide');
+        return;
+    }
+    resetConfigForm();
+}
+
+function volverConfiguraciones() {
+    if (configQuickAddMode) {
+        $('#modalConfiguracion').modal('hide');
+        return;
+    }
+    resetConfigForm();
+    const buscador = document.getElementById('txtBuscarConfiguracion');
+    if (buscador) buscador.value = '';
+    $('#modalConfiguracion').modal('hide');
+    $('#ModalEdicionConfiguraciones').modal('show');
+}
+
 
 function agregarConfiguracion() {
     document.getElementById("txtNombreConfiguracion").value = "";
@@ -462,7 +774,7 @@ function agregarConfiguracion() {
     document.getElementById("lblListaVacia").setAttribute("hidden", "hidden");
     document.getElementById("btnRegistrarModificarConfiguracion").textContent = "Agregar";
 
-    $('#lblNombreConfiguracion').css('color', 'red');
+    $('#lblNombre, #lblNombreConfiguracion').css('color', 'red');
     $('#txtNombreConfiguracion').css('border-color', 'red');
 
     if (comboNombre != null) {
@@ -546,6 +858,11 @@ function setConfigCompact(isOn) {
 }
 
 // Restaura preferencias cuando se abre el modal
+document.getElementById('modalConfiguracion')?.addEventListener('hidden.bs.modal', () => {
+    configQuickAddMode = false;
+    setConfigModalQuickAddMode(false);
+});
+
 document.getElementById('modalConfiguracion')?.addEventListener('show.bs.modal', () => {
     const savedTheme = localStorage.getItem(CFG_THEME_KEY) || 'theme-indigo';
     applyConfigTheme(savedTheme);
@@ -564,9 +881,9 @@ function filtrarConfiguracionesLocal(texto) {
     if (!list) return;
 
     let visibles = 0;
-    const items = list.querySelectorAll('.config-item, .list-item');
+    const items = list.querySelectorAll('.rp-list-item, .list-item, .config-item');
     items.forEach(it => {
-        const txt = it.textContent ? it.textContent.toLowerCase() : '';
+        const txt = (it.getAttribute('data-texto') || it.getAttribute('data-busqueda') || it.textContent || '').toLowerCase();
         const match = !q || txt.includes(q);
         it.style.display = match ? '' : 'none';
         if (match) visibles++;
@@ -574,18 +891,6 @@ function filtrarConfiguracionesLocal(texto) {
 
     if (vacio) vacio.hidden = visibles !== 0;
 }
-
-document.querySelectorAll('.nav-item.dropdown').forEach(dropdown => {
-    dropdown.addEventListener('mouseenter', function () {
-        const dropdownMenu = this.querySelector('.dropdown-menu');
-        dropdownMenu.classList.add('show'); // Mostrar el dropdown
-    });
-
-    dropdown.addEventListener('mouseleave', function () {
-        const dropdownMenu = this.querySelector('.dropdown-menu');
-        dropdownMenu.classList.remove('show'); // Ocultar el dropdown
-    });
-});
 
 /* =========================================================
 0) Anti beforeunload (mata el popup nativo en todo el sitio)
@@ -628,7 +933,7 @@ document.querySelectorAll('.nav-item.dropdown').forEach(dropdown => {
  * Modal Manager — Bootstrap 5 (robusto y corto)
  * ========================================================= */
 (function modalManager() {
-    const Z_BASE = 1050, STEP = 10;
+    const Z_BASE = 5000, STEP = 20;
 
     // Asegurar que todos los modales cuelguen del <body>
     function moveAllModalsToBody() {
@@ -786,36 +1091,56 @@ function llenarSelect(selectId, data, opts = {}) {
 function openConfigAndWait({ nombre, controller, comboNombre = null, comboController = null, lblComboNombre = null, extraMeta = null }) {
     return new Promise((resolve, reject) => {
         let timeoutId;
+        let saved = false;
+        const modalEl = document.getElementById('modalConfiguracion');
 
-        // Handler que capta el evento de guardado
+        const cleanup = () => {
+            clearTimeout(timeoutId);
+            window.removeEventListener('config:saved', onSaved);
+            modalEl?.removeEventListener('hidden.bs.modal', onHidden);
+        };
+
         const onSaved = (ev) => {
             const d = ev?.detail || {};
             if (d?.controller === controller && d?.id) {
-                clearTimeout(timeoutId);
-                window.removeEventListener('config:saved', onSaved);
+                saved = true;
+                cleanup();
+                configQuickAddMode = false;
+                setConfigModalQuickAddMode(false);
                 resolve(d.id);
             }
         };
 
-        window.addEventListener('config:saved', onSaved);
+        const onHidden = () => {
+            if (!saved) {
+                cleanup();
+                configQuickAddMode = false;
+                setConfigModalQuickAddMode(false);
+                reject(new Error('cancelled'));
+            }
+        };
 
-        // Timeout para evitar promesas colgadas (5 min)
+        window.addEventListener('config:saved', onSaved);
+        modalEl?.addEventListener('hidden.bs.modal', onHidden);
+
         timeoutId = setTimeout(() => {
-            window.removeEventListener('config:saved', onSaved);
+            cleanup();
+            configQuickAddMode = false;
+            setConfigModalQuickAddMode(false);
             reject(new Error('config:saved timeout'));
         }, 5 * 60 * 1000);
 
         try {
-            // Usa las funciones globales ya existentes en NavBarLogin.js
             if (typeof abrirConfiguracion !== 'function') {
-                clearTimeout(timeoutId);
-                window.removeEventListener('config:saved', onSaved);
+                cleanup();
                 return reject(new Error('abrirConfiguracion no está definido'));
             }
+            configQuickAddMode = true;
             abrirConfiguracion(nombre, controller, comboNombre, comboController, lblComboNombre, extraMeta);
         } catch (err) {
-            clearTimeout(timeoutId);
-            window.removeEventListener('config:saved', onSaved);
+            cleanup();
+            configQuickAddMode = false;
+            setConfigModalQuickAddMode(false);
             reject(err);
         }
     });

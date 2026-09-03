@@ -1,16 +1,13 @@
 ﻿using SistemaKyoGroup.Models;
-using System;
-using System.Collections.Generic;
+using SistemaKyoGroup.Models.Common;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SistemaKyoGroup.DAL.Repository
 {
     public interface ILocalesRepository<TEntityModel> where TEntityModel : class
     {
-        Task<bool> Eliminar(int id);
+        Task<DeleteResult> Eliminar(int id, bool cascade = false);
         Task<bool> Actualizar(Local model);
         Task<bool> Insertar(Local model);
         Task<Local> Obtener(int id);

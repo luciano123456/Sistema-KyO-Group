@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewBag.Title = "Nueva / Editar Orden de Compra";
 }
 <title>@ViewBag.Title</title>
@@ -9,177 +9,167 @@
     <link href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
-
-    <!-- SKIN -->
-    <link href="~/css/disenopantallas.css?v=1.0" rel="stylesheet" />
-    <link href="~/css/OrdenesCompraNuevoModif.css" rel="stylesheet" />
+    <link href="~/css/OrdenesCompraNuevoModif.css" rel="stylesheet" asp-append-version="true" />
 }
 
-<header class="cc-kpi cc-card cc-container-xxl">
-    <div class="cc-kpi-icon"><i class="fa fa-shopping-basket"></i></div>
-    <div class="cc-kpi-text">
-        <h1 id="tituloOC" class="cc-kpi-title">Nueva Orden de Compra</h1>
-        <p class="cc-muted m-0">Cabecera + Detalle de Insumos</p>
-    </div>
-
-    <button type="button" class="btn btn-outline-light ms-auto" onclick="window.location.href='/OrdenesCompras'">
-        <i class="fa fa-angle-left me-2"></i> Volver
-    </button>
-</header>
-
-<main class="cc-container-xxl">
-
-    <!-- ========== CABECERA ========== -->
-    <section class="cc-section cc-card">
-        <div class="cc-titlebar">
-            <h3 class="m-0"><i class="fa fa-info-circle me-2"></i>Orden de Compra</h3>
+<div class="oc-page">
+    <header class="cc-kpi cc-card">
+        <div class="cc-kpi-icon"><i class="fa fa-shopping-basket"></i></div>
+        <div class="cc-kpi-text">
+            <h1 id="tituloOC" class="cc-kpi-title">Nueva Orden de Compra</h1>
+            <p class="cc-muted">Cabecera + detalle de insumos</p>
         </div>
+        <button type="button" class="btn btn-outline-light ms-auto" onclick="window.location.href='/OrdenesCompras'">
+            <i class="fa fa-angle-left me-2"></i> Volver
+        </button>
+    </header>
 
-        <input type="hidden" id="IdOC" />
-
-        <div id="frmCabeceraOC" class="cc-grid cc-grid-3xl">
-            <div class="form-group">
-                <label class="form-label">Unidad de Negocio</label>
-                <select id="UnidadesNegocio" class="form-select" data-required="true">
-                    <option value="" disabled selected>Seleccionar...</option>
-                </select>
-                <div class="invalid-feedback d-none">Campo requerido</div>
+    <main>
+        <!-- ========== CABECERA ========== -->
+        <section class="cc-section cc-card">
+            <div class="cc-titlebar">
+                <h3 class="m-0"><i class="fa fa-info-circle"></i> Orden de Compra</h3>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Local</label>
-                <select id="Locales" class="form-select" data-required="true">
-                    <option value="" disabled selected>Seleccione UN...</option>
-                </select>
-                <div class="invalid-feedback d-none">Campo requerido</div>
+            <input type="hidden" id="IdOC" />
+
+            <div id="frmCabeceraOC" class="cc-grid cc-grid-3xl">
+                <div class="form-group">
+                    <label class="form-label" for="UnidadesNegocio">Unidad de Negocio</label>
+                    <select id="UnidadesNegocio" class="form-select" data-required="true">
+                        <option value="" disabled selected>Seleccionar...</option>
+                    </select>
+                    <div class="invalid-feedback d-none">Campo requerido</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="Locales">Local</label>
+                    <select id="Locales" class="form-select" data-required="true">
+                        <option value="" disabled selected>Seleccione UN...</option>
+                    </select>
+                    <div class="invalid-feedback d-none">Campo requerido</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="Proveedores">Proveedor</label>
+                    <select id="Proveedores" class="form-select" data-required="true">
+                        <option value="" disabled selected>Seleccionar...</option>
+                    </select>
+                    <div class="invalid-feedback d-none">Campo requerido</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="FechaEmision">Fecha Emisión</label>
+                    <input type="date" id="FechaEmision" class="form-control" data-required="true" />
+                    <div class="invalid-feedback d-none">Campo requerido</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="FechaEntrega">Fecha Entrega</label>
+                    <input type="date" id="FechaEntrega" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="Estados">Estado</label>
+                    <select id="Estados" class="form-select" data-required="true">
+                        <option value="" disabled selected>Seleccionar...</option>
+                    </select>
+                    <div class="invalid-feedback d-none">Campo requerido</div>
+                </div>
+
+                <div class="form-group oc-span-2">
+                    <label class="form-label" for="NotaInterna">Nota Interna</label>
+                    <input type="text" id="NotaInterna" class="form-control" placeholder="Observaciones internas (opcional)" />
+                </div>
+
+                <div class="form-group oc-costo">
+                    <label class="form-label" for="CostoTotal">Costo Total</label>
+                    <input type="text" id="CostoTotal" class="form-control" readonly tabindex="-1" />
+                </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Proveedor</label>
-                <select id="Proveedores" class="form-select" data-required="true">
-                    <option value="" disabled selected>Seleccionar...</option>
-                </select>
-                <div class="invalid-feedback d-none">Campo requerido</div>
+            <div id="alertRequeridos" class="cc-alert-inline d-none mt-3">
+                <i class="fa fa-exclamation-triangle"></i> Debes completar los campos requeridos.
+            </div>
+        </section>
+
+        <!-- Cartel SIN compras -->
+        <section id="ocAlertSinCompras" class="d-none">
+            <div class="oc-banner oc-banner--yellow">
+                <i class="fa fa-info-circle"></i>
+                <div>
+                    <h4 class="oc-banner-title">Orden de compra sin compras asociadas</h4>
+                    <p class="oc-banner-text">
+                        Esta orden de compra aún no ha sido asociada a ninguna compra.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cartel CON compras -->
+        <section id="ocAlertConCompras" class="d-none">
+            <div class="oc-banner oc-banner--green">
+                <i class="fa fa-link"></i>
+                <div>
+                    <h4 class="oc-banner-title">Orden de compra asociada</h4>
+                    <p class="oc-banner-text" id="ocBannerCompraTexto"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== DETALLE NORMAL (tabla) ========== -->
+        <section id="panelDetalleNormal" class="cc-section cc-card d-none">
+            <div class="cc-titlebar">
+                <h3 class="m-0"><i class="fa fa-cubes"></i> Detalle de Insumos</h3>
+                <div class="d-flex gap-2">
+                    <button type="button" id="btnAddDetalle" class="btn btn-new" onclick="abrirModalDetalle()">
+                        <i class="fa fa-plus"></i> Añadir
+                    </button>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Fecha Emisión</label>
-                <input type="date" id="FechaEmision" class="form-control" data-required="true" />
-                <div class="invalid-feedback d-none">Campo requerido</div>
+            <div class="cc-table">
+                <table id="grd_Detalle" class="display nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>Insumo</th>
+                            <th>Precio Unitario</th>
+                            <th>Cantidad</th>
+                            <th>SubTotal</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Fecha Entrega</label>
-                <input type="date" id="FechaEntrega" class="form-control" />
+            <div id="alertDetalle" class="cc-alert-inline d-none mt-3">
+                <i class="fa fa-exclamation-triangle"></i> Debes agregar al menos un insumo al detalle.
             </div>
+        </section>
 
-            <div class="form-group">
-                <label class="form-label">Estado</label>
-                <select id="Estados" class="form-select" data-required="true">
-                    <option value="" disabled selected>Seleccionar...</option>
-                </select>
-                <div class="invalid-feedback d-none">Campo requerido</div>
-            </div>
-
-            <div class="form-group full">
-                <label class="form-label">Nota Interna</label>
-                <input type="text" id="NotaInterna" class="form-control" />
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Costo Total</label>
-                <input type="text" id="CostoTotal" class="form-control" readonly />
-            </div>
-        </div>
-
-        <div id="alertRequeridos" class="cc-alert-inline d-none mt-3">
-            <i class="fa fa-exclamation-triangle"></i> Debes completar los campos requeridos.
-        </div>
-    </section>
-
-    <!-- Cartel SIN compras -->
-    <section id="ocAlertSinCompras" class="d-none">
-        <div class="oc-banner oc-banner--yellow">
-            <i class="fa fa-info-circle"></i>
-            <div>
-                <h4 class="oc-banner-title">Orden de compra sin compras asociadas</h4>
-                <p class="oc-banner-text">
-                    Esta orden de compra aún no ha sido asociada a ninguna compra.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Cartel CON compras -->
-    <section id="ocAlertConCompras" class="d-none">
-        <div class="oc-banner oc-banner--green">
-            <i class="fa fa-link"></i>
-            <div>
-                <h4 class="oc-banner-title">Orden de compra asociada</h4>
-                <p class="oc-banner-text" id="ocBannerCompraTexto"></p>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- ========== DETALLE NORMAL (tabla) ========== -->
-    <!-- Arranca oculto para evitar pestañeo; JS decide si se muestra o no -->
-    <section id="panelDetalleNormal" class="cc-section cc-card mt-4 d-none">
-        <div class="cc-titlebar">
-            <h3 class="m-0"><i class="fa fa-cubes me-2"></i>Detalle de Insumos</h3>
-            <div class="d-flex gap-2">
-                <button type="button" id="btnAddDetalle" class="btn btn-new" onclick="abrirModalDetalle()">
-                    <i class="fa fa-plus"></i> Añadir
+        <!-- ========== RESUMEN (tarjetas, SOLO SI HAY COMPRAS) ========== -->
+        <section id="panelComprasOcTarjetas" class="cc-section cc-card d-none">
+            <div class="cc-titlebar">
+                <h3 class="m-0"><i class="fa fa-clipboard-check"></i> Resumen de Entregas</h3>
+                <button type="button" id="btnExportarOcPdf" class="btn btn-outline-light d-none">
+                    <i class="fa fa-file-pdf-o me-1"></i> Exportar PDF
                 </button>
             </div>
-        </div>
 
-        <div class="cc-table">
-            <table id="grd_Detalle" class="display nowrap w-100">
-                <thead>
-                    <tr>
-                        <th>Insumo</th>
-                        <th>Precio Unitario</th>
-                        <th>Cantidad</th>
-                        <th>SubTotal</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-
-        <div id="alertDetalle" class="cc-alert-inline d-none mt-3">
-            <i class="fa fa-exclamation-triangle"></i> Debes agregar al menos un insumo al detalle.
-        </div>
-    </section>
-
-    <!-- ========== RESUMEN (tarjetas, SOLO SI HAY COMPRAS) ========== -->
-    <section id="panelComprasOcTarjetas" class="cc-section cc-card mt-4 d-none">
-
-        <div class="cc-titlebar mb-3">
-            <div class="d-flex align-items-center gap-2">
-                <i class="fa fa-clipboard-check fs-4"></i>
-                <h3 class="m-0">Resumen de Entregas</h3>
+            <div id="ocResumenGrid" class="oc-grid-tarjetas">
+                <!-- Tarjetas generadas por JS -->
             </div>
+        </section>
 
-            <button id="btnExportarOcPdf" class="btn btn-outline-light d-none">
-                <i class="fa fa-file-pdf-o me-1"></i> Exportar PDF
+        <!-- ========== BOTÓN GUARDAR ========== -->
+        <div class="oc-actions-bar">
+            <button type="button" id="btnNuevoModificarOC" class="btn btn-new" onclick="guardarOC()">
+                <i class="fa fa-save me-1"></i> Registrar
             </button>
         </div>
-
-        <div id="ocResumenGrid" class="oc-grid-tarjetas">
-            <!-- Tarjetas generadas por JS -->
-        </div>
-    </section>
-
-    <!-- ========== BOTÓN GUARDAR ========== -->
-    <div class="d-flex justify-content-end gap-2 my-3">
-        <button type="button" id="btnNuevoModificarOC" class="btn btn-new" onclick="guardarOC()">
-            <i class="fa fa-save me-1"></i> Registrar
-        </button>
-    </div>
-</main>
+    </main>
+</div>
 
 <!-- ========== MODAL DETALLE ========== -->
 <div class="modal fade" id="detalleModal" tabindex="-1" aria-hidden="true">
@@ -198,7 +188,7 @@
                     <input type="hidden" id="detalleIndex" />
 
                     <div class="cc-field full">
-                        <label class="form-label">Insumo</label>
+                        <label class="form-label" for="InsumoSelect">Insumo</label>
                         <select id="InsumoSelect" class="form-select" data-required="true">
                             <option value="" disabled selected>Seleccionar un Insumo</option>
                         </select>
@@ -206,22 +196,26 @@
                     </div>
 
                     <div class="cc-field">
-                        <label class="form-label">Precio Unitario</label>
+                        <label class="form-label" for="PrecioUnitario">Precio Unitario</label>
                         <input type="text" id="PrecioUnitario" class="form-control" data-required="true" data-min="0.0000001" />
                         <div class="invalid-feedback d-none">Debe ser mayor que 0</div>
                     </div>
 
                     <div class="cc-field">
-                        <label class="form-label">Cantidad</label>
+                        <label class="form-label" for="Cantidad">Cantidad</label>
                         <input type="number" id="Cantidad" class="form-control" data-required="true" data-min="0.0000001" />
                         <div class="invalid-feedback d-none">Debe ser mayor que 0</div>
                     </div>
 
                     <div class="cc-field full">
-                        <label class="form-label">SubTotal</label>
+                        <label class="form-label" for="SubTotal">SubTotal</label>
                         <input type="text" id="SubTotal" class="form-control" readonly />
                     </div>
 
+                    <div id="insumoSinVinculoAlertOC" class="cc-alert-inline cc-alert-inline--warning d-none" style="grid-column:1/-1">
+                        <i class="fa fa-link"></i>
+                        <span data-rp-vinculo-msg>Este insumo no está vinculado al proveedor seleccionado.</span>
+                    </div>
                     <div id="modalAlert" class="cc-alert-inline d-none" style="grid-column:1/-1">
                         <i class="fa fa-exclamation-triangle"></i> Debes completar los campos obligatorios.
                     </div>
@@ -239,17 +233,13 @@
 </div>
 
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+    <partial name="~/Views/Shared/Partials/DataTablesCoreScripts.cshtml" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
     <script src="~/js/cc.validators.js?v=1.0"></script>
-    <script src="~/js/OrdenesCompraNuevoModif.js"></script>
-    <script src="~/js/site.js"></script>
+    <script src="~/js/OrdenesCompraNuevoModif.js" asp-append-version="true"></script>
 
     <script>
         var OrdenCompraData = @Html.Raw(Json.Serialize(ViewBag.Data ?? new { }));
