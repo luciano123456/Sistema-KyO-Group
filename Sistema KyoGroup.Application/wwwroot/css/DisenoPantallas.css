@@ -426,17 +426,12 @@ body {
 
 
 .select2-container .select2-selection--single {
-    height: 48px !important;
     display: flex;
     align-items: center;
     background: var(--dt-row-zebra2);
-    border: 1px solid var(--b1) !important;
-    border-radius: 12px !important;
+    border: 1px solid var(--b1);
+    border-radius: 12px;
 }
-
-    .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 38px !important;
-    }
 
 .select2-dropdown {
     background: #fff !important;
@@ -732,16 +727,8 @@ select.is-valid + .select2 .select2-selection {
     .filter-bar .select2-container .select2-selection__rendered {
         color: black !important;
     }
-/* Select2 dentro del panel: ancho completo */
+/* Select2: el tamaño unificado vive en kyo-theme.css (--ctrl-h) */
 .select2-container{ width:100%!important; }
-
-/* Altura base Select2 (formularios) — un poco más compacta */
-.select2-container--default .select2-selection--single {
-    height: 36px !important;
-    min-height: 36px !important;
-}
-.select2-selection__rendered{ line-height:34px!important; color:#3d3548!important; padding-left:10px!important; }
-.select2-selection__arrow{ height:34px!important; }
 
 /* En filtros de grilla: igual que inputs (34px) — pisa reglas genéricas */
 thead.filters .select2-container--default .select2-selection--single,
@@ -1519,20 +1506,6 @@ table.dataTable.display tbody tr.selected > *:first-child {
 .filter-bar .select2-container .select2-selection--single {
     background: white !important;
 }
-
-    .select2-container .select2-selection--single {
-        height: 44px !important;
-        display: flex;
-        align-items: center;
-        background: var(--dt-row-zebra2) !important;
-        border-radius: 12px !important;
-    }
-
-    .select2-container .select2-selection__arrow {
-        height: 48px !important;
-    }
-
-
 
 .select2-results__option {
     color: #3d3548;

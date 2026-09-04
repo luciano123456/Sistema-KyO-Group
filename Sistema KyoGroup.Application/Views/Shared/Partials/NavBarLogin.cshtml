@@ -317,6 +317,14 @@
 
 
 
+                <li class="nav-item" id="seccionFinanzas">
+                    <a class="nav-link rp-nav-link" href="@Url.Action("Index", "Finanzas")">
+                        <i class="fa fa-line-chart"></i><span>Finanzas</span>
+                    </a>
+                </li>
+
+
+
                 <li class="nav-item" id="seccionAnalisisDatos">
 
                     <a class="nav-link rp-nav-link" href="@Url.Action("Index", "AnalisisDatos")">
@@ -461,6 +469,18 @@
                     <button type="button" class="rp-config-card" data-buscar="estados usuarios" onclick="abrirConfiguracion('Estado de Usuario', 'EstadosUsuarios')">
                         <div class="rp-config-icon blue"><i class="fa fa-user-circle"></i></div>
                         <div><div class="rp-config-title">Estados de usuarios</div><div class="rp-config-sub">Estados del usuario</div></div>
+                    </button>
+                    <button type="button" class="rp-config-card" data-buscar="gastos categorias tesoreria" onclick="abrirConfiguracion('Categorias de Gasto', 'GastosCategorias')">
+                        <div class="rp-config-icon purple"><i class="fa fa-tags"></i></div>
+                        <div><div class="rp-config-title">Categorías de gasto</div><div class="rp-config-sub">Agrupación de gastos</div></div>
+                    </button>
+                    <button type="button" class="rp-config-card" data-buscar="medios pago tesoreria caja" onclick="abrirConfiguracion('Medios de Pago', 'MediosPago')">
+                        <div class="rp-config-icon purple"><i class="fa fa-credit-card"></i></div>
+                        <div><div class="rp-config-title">Medios de pago</div><div class="rp-config-sub">Efectivo, transferencia…</div></div>
+                    </button>
+                    <button type="button" class="rp-config-card" data-buscar="tipos cuenta tesoreria" onclick="abrirConfiguracion('Tipos de Cuenta', 'CuentasTipos')">
+                        <div class="rp-config-icon purple"><i class="fa fa-sitemap"></i></div>
+                        <div><div class="rp-config-title">Tipos de cuenta</div><div class="rp-config-sub">Efectivo, banco, billetera</div></div>
                     </button>
                 </div>
 

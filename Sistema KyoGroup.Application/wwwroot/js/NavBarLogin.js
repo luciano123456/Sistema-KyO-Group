@@ -172,6 +172,14 @@ function initNavbarActiveState() {
         subrecetas: '#seccionRecetas',
         insumos: '#seccionInsumos',
         ventas: '#seccionVentas',
+        tesoreria: '#seccionFinanzas',
+        finanzas: '#seccionFinanzas',
+        cajas: '#seccionFinanzas',
+        gastos: '#seccionFinanzas',
+        gastoscategorias: '#seccionFinanzas',
+        cuentas: '#seccionFinanzas',
+        mediospago: '#seccionFinanzas',
+        cuentastipos: '#seccionFinanzas',
         analisisdatos: '#seccionAnalisisDatos',
         usuarios: '#seccionConfiguraciones'
     };

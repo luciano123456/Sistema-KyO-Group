@@ -1,0 +1,257 @@
+@{
+    Layout = "_LayoutModulo";
+    var idGasto = ViewData["IdGasto"] as int? ?? 0;
+    ViewData["Title"] = idGasto > 0 ? "Editar gasto" : "Nuevo gasto";
+}
+
+@section Estilos {
+    <link rel="stylesheet" href="~/css/Tesoreria.css" asp-append-version="true" />
+}
+
+<div class="container-fluid ts-page" data-id-gasto="@idGasto">
+
+    <!-- ══════════════════════════════ Hero ══════════════════════════════ -->
+    <div class="ts-hero">
+        <span class="ts-hero-glow ts-hero-glow--gold"></span>
+        <span class="ts-hero-glow ts-hero-glow--sage"></span>
+        <span class="ts-hero-pattern"></span>
+
+        <div class="ts-hero-inner">
+            <div class="ts-hero-left">
+                <a href="/Finanzas?tab=gastos" class="ts-back" title="Volver a Gastos"><i class="fa fa-arrow-left"></i></a>
+                <span class="ts-hero-mark"><i class="fa fa-file-text-o"></i></span>
+                <div>
+                    <p class="ts-eyebrow"><span class="ts-dot"></span>Finanzas · Gastos</p>
+                    <h1 class="ts-title" id="gnTitulo">@(idGasto > 0 ? $"Gasto #{idGasto}" : "Nuevo gasto")</h1>
+                    <p class="ts-sub" id="gnSubtitulo">Cargá el comprobante y, si ya lo pagaste, dejalo impactado en la caja de una vez.</p>
+                </div>
+            </div>
+
+            <div class="ts-hero-right">
+                <span class="ts-pill" id="gnPillEstado" style="display:none"><i class="fa fa-info-circle"></i>—</span>
+                <a href="/Finanzas?tab=gastos" class="ts-btn ts-btn--ghost"><i class="fa fa-times"></i>Cancelar</a>
+                <button type="button" class="ts-btn ts-btn--primary" id="gnBtnGuardar">
+                    <i class="fa fa-check"></i>Guardar gasto
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- ═══════════════════════ Datos del gasto ═══════════════════════ -->
+        <div class="col-xl-8">
+            <div class="ts-panel">
+                <div class="ts-panel-head">
+                    <div>
+                        <h2><i class="fa fa-info-circle"></i>Datos del comprobante</h2>
+                        <p>Lo mínimo es categoría, concepto e importe</p>
+                    </div>
+                </div>
+                <div class="ts-panel-body">
+                    <div class="ts-form-grid">
+                        <div>
+                            <label class="ts-form-label" for="gnFecha">Fecha del gasto <span class="ts-req">*</span></label>
+                            <input type="date" id="gnFecha" class="form-control" />
+                            <div class="invalid-feedback">Campo obligatorio</div>
+                        </div>
+                        <div>
+                            <label class="ts-form-label" for="gnVencimiento">Vencimiento</label>
+                            <input type="date" id="gnVencimiento" class="form-control" />
+                            <div class="invalid-feedback">Campo obligatorio</div>
+                            <span class="ts-hint">Si lo cargás, aparece en los avisos del tablero.</span>
+                        </div>
+                        <div>
+                            <label class="ts-form-label" for="gnCategoria">Categoría <span class="ts-req">*</span></label>
+                            <select id="gnCategoria" class="form-select"
+                                    data-s2-config-nombre="Categorías de gasto"
+                                    data-s2-config-controller="GastosCategorias"
+                                    data-s2-config-reload="/GastosCategorias/Lista"
+                                    data-s2-config-title="Nueva categoría"></select>
+                            <div class="invalid-feedback">Campo obligatorio</div>
+                        </div>
+                        <div>
+                            <label class="ts-form-label" for="gnImporte">Importe total <span class="ts-req">*</span></label>
+                            <input type="number" id="gnImporte" class="form-control" step="0.01" min="0" placeholder="0,00" />
+                            <div class="invalid-feedback">Campo obligatorio</div>
+                        </div>
+                        <div class="ts-col-full">
+                            <label class="ts-form-label" for="gnConcepto">Concepto <span class="ts-req">*</span></label>
+                            <input type="text" id="gnConcepto" class="form-control" maxlength="200" placeholder="Ej.: Luz local Palermo · período agosto" />
+                            <div class="invalid-feedback">Campo obligatorio</div>
+                        </div>
+                        <div>
+                            <label class="ts-form-label" for="gnComprobanteTipo">Tipo de comprobante</label>
+                            <select id="gnComprobanteTipo" class="form-select">
+                                <option value="">Sin comprobante</option>
+                                <option value="Factura A">Factura A</option>
+                                <option value="Factura B">Factura B</option>
+                                <option value="Factura C">Factura C</option>
+                                <option value="Ticket">Ticket</option>
+                                <option value="Recibo">Recibo</option>
+                                <option value="Nota de débito">Nota de débito</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="ts-form-label" for="gnComprobanteNumero">Número</label>
+                            <input type="text" id="gnComprobanteNumero" class="form-control" maxlength="50" placeholder="0001-00001234" />
+                        </div>
+                        <div class="ts-col-full">
+                            <label class="ts-form-label" for="gnDetalle">Detalle</label>
+                            <textarea id="gnDetalle" class="form-control" rows="2" maxlength="1000" placeholder="Descripción ampliada del gasto"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══════════════════ Proveedor y asignación ══════════════════ -->
+            <div class="ts-panel">
+                <div class="ts-panel-head">
+                    <div>
+                        <h2><i class="fa fa-truck"></i>Proveedor y asignación</h2>
+                        <p>Opcional: sirve para imputar el gasto y para la cuenta corriente</p>
+                    </div>
+                </div>
+                <div class="ts-panel-body">
+                    <div class="ts-form-grid">
+                        <div>
+                            <label class="ts-form-label" for="gnProveedor">Proveedor</label>
+                            <select id="gnProveedor" class="form-select"
+                                    data-s2-config-nombre="Proveedores"
+                                    data-s2-config-controller="Proveedores"
+                                    data-s2-config-reload="/Proveedores/Lista"
+                                    data-s2-config-title="Nuevo proveedor"></select>
+                        </div>
+                        <div>
+                            <label class="ts-form-label" for="gnUnidad">Unidad de negocio</label>
+                            <select id="gnUnidad" class="form-select"
+                                    data-s2-config-nombre="Unidades de negocio"
+                                    data-s2-config-controller="UnidadesNegocio"
+                                    data-s2-config-reload="/UnidadesNegocio/Lista"
+                                    data-s2-config-title="Nueva unidad de negocio"></select>
+                        </div>
+                        <div>
+                            <label class="ts-form-label" for="gnLocal">Local</label>
+                            <select id="gnLocal" class="form-select"
+                                    data-s2-config-nombre="Locales"
+                                    data-s2-config-controller="Locales"
+                                    data-s2-config-reload="/Locales/Lista"
+                                    data-s2-config-title="Nuevo local"
+                                    data-s2-config-combo-nombre="Unidades de negocio"
+                                    data-s2-config-combo-controller="UnidadesNegocio"
+                                    data-s2-config-combo-label="Unidad de negocio"></select>
+                        </div>
+                        <div class="d-flex align-items-end">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="gnImpactaCc" disabled />
+                                <label class="form-check-label" for="gnImpactaCc">Cargar a la cuenta corriente</label>
+                            </div>
+                        </div>
+                        <div class="ts-col-full">
+                            <div class="ts-note ts-note--sky" id="gnNotaCc">
+                                <i class="fa fa-info-circle"></i>
+                                <span>Elegí un proveedor para poder cargar el gasto a su cuenta corriente.</span>
+                            </div>
+                        </div>
+                        <div class="ts-col-full">
+                            <label class="ts-form-label" for="gnNota">Nota interna</label>
+                            <textarea id="gnNota" class="form-control" rows="2" maxlength="500" placeholder="Observaciones para el equipo"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════ Panel lateral ══════════════════════════ -->
+        <div class="col-xl-4">
+            <!-- Pago inmediato -->
+            <div class="ts-panel" id="gnPanelPago">
+                <div class="ts-panel-head">
+                    <div>
+                        <h2><i class="fa fa-money"></i>Pago</h2>
+                        <p>Si ya lo pagaste, se asienta en el libro de caja</p>
+                    </div>
+                </div>
+                <div class="ts-panel-body">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="gnPagarAhora" />
+                        <label class="form-check-label" for="gnPagarAhora">Registrar el pago ahora</label>
+                    </div>
+
+                    <div id="gnCamposPago" style="display:none">
+                        <div class="ts-form-grid">
+                            <div class="ts-col-full">
+                                <label class="ts-form-label" for="gnCuentaPago">Cuenta de pago <span class="ts-req">*</span></label>
+                                <select id="gnCuentaPago" class="form-select"
+                                        data-s2-config-nombre="Cuentas"
+                                        data-s2-config-controller="Cuentas"
+                                        data-s2-config-reload="/Cuentas/Lista"
+                                        data-s2-config-title="Nueva cuenta"
+                                        data-s2-config-combo-nombre="Tipos de cuenta"
+                                        data-s2-config-combo-controller="CuentasTipos"
+                                        data-s2-config-combo-label="Tipo"></select>
+                                <div class="invalid-feedback">Campo obligatorio</div>
+                                <span class="ts-hint" id="gnSaldoHint"></span>
+                            </div>
+                            <div class="ts-col-full">
+                                <label class="ts-form-label" for="gnMedioPago">Medio de pago</label>
+                                <select id="gnMedioPago" class="form-select"
+                                        data-s2-config-nombre="Medios de pago"
+                                        data-s2-config-controller="MediosPago"
+                                        data-s2-config-reload="/MediosPago/Lista"
+                                        data-s2-config-title="Nuevo medio de pago"></select>
+                            </div>
+                            <div>
+                                <label class="ts-form-label" for="gnImportePago">Importe pagado</label>
+                                <input type="number" id="gnImportePago" class="form-control" step="0.01" min="0" placeholder="0,00" />
+                                <div class="invalid-feedback">Campo obligatorio</div>
+                                <span class="ts-hint">Vacío = pago total.</span>
+                            </div>
+                            <div>
+                                <label class="ts-form-label" for="gnFechaPago">Fecha del pago</label>
+                                <input type="date" id="gnFechaPago" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen -->
+            <div class="ts-panel">
+                <div class="ts-panel-head">
+                    <div>
+                        <h2><i class="fa fa-calculator"></i>Resumen</h2>
+                        <p>Cómo va a quedar registrado</p>
+                    </div>
+                </div>
+                <div class="ts-panel-body">
+                    <div class="ts-pagos" id="gnResumen"></div>
+                    <div class="ts-note mt-3" id="gnNotaImpacto">
+                        <i class="fa fa-random"></i>
+                        <span>Completá el importe para ver el impacto.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagos ya registrados (sólo en edición) -->
+            <div class="ts-panel" id="gnPanelPagosPrevios" style="display:none">
+                <div class="ts-panel-head">
+                    <div>
+                        <h2><i class="fa fa-history"></i>Pagos registrados</h2>
+                        <p>Se administran desde el listado de gastos</p>
+                    </div>
+                </div>
+                <div class="ts-panel-body">
+                    <div class="ts-pagos" id="gnPagosPrevios"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="~/Views/Utils/Modals.cshtml" />
+
+@section Scripts {
+    <script src="~/js/tesoreria-core.js" asp-append-version="true"></script>
+    <script src="~/js/GastosNuevoModif.js" asp-append-version="true"></script>
+}

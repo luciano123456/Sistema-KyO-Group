@@ -97,32 +97,41 @@ namespace SistemaKyoGroup.DAL.Repository
                 var model = await _dbcontext.Usuarios.FirstOrDefaultAsync(c => c.Id == id);
                 if (model == null) return DeleteResult.NotFound("el usuario");
 
-                var nUn = await _dbcontext.UsuariosUnidadesNegocios.CountAsync(x => x.IdUsuario == id);
-                var nLoc = await _dbcontext.UsuariosLocales.CountAsync(x => x.IdUsuario == id);
+                if (!await _dbcontext.Usuarios.AnyAsync(u => u.Id != id))
+                    return DeleteResult.Error("No se puede eliminar el único usuario del sistema.");
 
-                var deps = new List<DeleteDependencia>();
-                if (nUn > 0)
-                    deps.Add(new DeleteDependencia { Entidad = "Unidades de negocio", Cantidad = nUn, Detalle = "Asignaciones de UN del usuario", Cascadeable = true });
-                if (nLoc > 0)
-                    deps.Add(new DeleteDependencia { Entidad = "Locales", Cantidad = nLoc, Detalle = "Asignaciones de locales del usuario", Cascadeable = true });
+                var tablas = await UsuarioDeleteHelper.ListarDependenciasAsync(_dbcontext, id);
+                var deps = UsuarioDeleteHelper.ToDeleteDeps(tablas);
 
                 if (!cascade && deps.Count > 0)
                 {
                     return DeleteResult.Relacion(
-                        "No se puede eliminar el usuario porque tiene asignaciones asociadas.",
+                        "Este usuario tiene registros asociados. Se eliminarán asignaciones y sesiones, y se desvinculará de la auditoría (insumos, recetas, etc.). Los datos de negocio no se borran.",
                         deps,
                         cascadeDisponible: true);
                 }
 
-                if (cascade || nUn > 0 || nLoc > 0)
+                int? idReasignar = null;
+                if (tablas.Any(t => t.RequiereReasignar))
                 {
-                    if (nLoc > 0)
-                        _dbcontext.UsuariosLocales.RemoveRange(
-                            await _dbcontext.UsuariosLocales.Where(x => x.IdUsuario == id).ToListAsync());
-                    if (nUn > 0)
-                        _dbcontext.UsuariosUnidadesNegocios.RemoveRange(
-                            await _dbcontext.UsuariosUnidadesNegocios.Where(x => x.IdUsuario == id).ToListAsync());
+                    var actor = EntidadHistorialHelper.ResolveUserId(model.IdUsuarioAccion);
+                    idReasignar = actor > 0 && actor != id
+                        ? actor
+                        : await _dbcontext.Usuarios
+                            .Where(u => u.Id != id)
+                            .OrderBy(u => u.Id)
+                            .Select(u => (int?)u.Id)
+                            .FirstOrDefaultAsync();
+
+                    if (idReasignar is not > 0)
+                        return DeleteResult.Error(
+                            "No se puede eliminar el usuario: hay referencias que requieren reasignarse a otro usuario.");
                 }
+
+                await using var tx = await _dbcontext.Database.BeginTransactionAsync();
+
+                if (tablas.Count > 0)
+                    await UsuarioDeleteHelper.DesvincularAsync(_dbcontext, tablas, id, idReasignar);
 
                 var uid = EntidadHistorialHelper.ResolveUserId(model.IdUsuarioAccion);
                 var userName = model.Usuario;
@@ -131,17 +140,24 @@ namespace SistemaKyoGroup.DAL.Repository
                 EntidadHistorialHelper.Agregar(
                     _dbcontext, EntidadHistorialHelper.Usuario, id,
                     EntidadHistorialHelper.AccionEliminacion,
-                    cascade
-                        ? $"Eliminación en cascada de usuario \"{userName}\""
+                    tablas.Count > 0
+                        ? $"Eliminación de usuario \"{userName}\" (referencias desvinculadas)"
                         : $"Eliminación de usuario \"{userName}\"",
                     null, uid > 0 ? uid : id, nombre ?? userName);
                 await _dbcontext.SaveChangesAsync();
+                await tx.CommitAsync();
                 return DeleteResult.Success("Usuario eliminado correctamente.");
             }
             catch (Exception ex)
             {
-                return DeleteResult.Error(
-                    "No se pudo eliminar el usuario: " + (ex.InnerException?.Message ?? ex.Message));
+                var raw = ex.InnerException?.Message ?? ex.Message;
+                if (raw.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase)
+                    || raw.Contains("DELETE statement", StringComparison.OrdinalIgnoreCase))
+                {
+                    return DeleteResult.Error(
+                        "No se pudo eliminar el usuario porque todavía tiene registros asociados en el sistema.");
+                }
+                return DeleteResult.Error("No se pudo eliminar el usuario: " + raw);
             }
         }
 

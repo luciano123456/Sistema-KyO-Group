@@ -625,7 +625,11 @@ async function eliminarConCascada(opts = {}) {
                 titulo: opts.cascadeTitulo || 'No se puede eliminar directamente',
                 mensaje: j.mensaje || j.Mensaje
                     || 'Tiene registros asociados. ¿Deseás eliminar todo en cascada?',
-                dependencias: deps
+                dependencias: deps,
+                labelSi: opts.cascadeLabelSi,
+                subSi: opts.cascadeSubSi,
+                labelNo: opts.cascadeLabelNo,
+                subNo: opts.cascadeSubNo
             });
             if (!aceptar) return false;
 

@@ -1,0 +1,190 @@
+    <div class="ts-toolbar">
+        <div class="ts-chips" id="tsChipsRango">
+            <button type="button" class="ts-chip" data-valor="hoy">Hoy</button>
+            <button type="button" class="ts-chip" data-valor="semana">7 días</button>
+            <button type="button" class="ts-chip active" data-valor="mes">Este mes</button>
+            <button type="button" class="ts-chip" data-valor="mesAnterior">Mes anterior</button>
+            <button type="button" class="ts-chip" data-valor="anio">Año</button>
+        </div>
+
+        <div class="ts-filters">
+            <div class="ts-field">
+                <label for="tsDesde">Desde</label>
+                <input type="date" id="tsDesde" class="form-control" />
+            </div>
+            <div class="ts-field">
+                <label for="tsHasta">Hasta</label>
+                <input type="date" id="tsHasta" class="form-control" />
+            </div>
+            <div class="ts-field">
+                <label for="tsCuenta">Cuenta</label>
+                <select id="tsCuenta" class="form-select"
+                        data-s2-config-nombre="Cuentas"
+                        data-s2-config-controller="Cuentas"
+                        data-s2-config-reload="/Cuentas/Lista"
+                        data-s2-config-title="Nueva cuenta"
+                        data-s2-config-combo-nombre="Tipos de cuenta"
+                        data-s2-config-combo-controller="CuentasTipos"
+                        data-s2-config-combo-label="Tipo"></select>
+            </div>
+            <div class="ts-field">
+                <label for="tsLocal">Local</label>
+                <select id="tsLocal" class="form-select"
+                        data-s2-config-nombre="Locales"
+                        data-s2-config-controller="Locales"
+                        data-s2-config-reload="/Locales/Lista"
+                        data-s2-config-title="Nuevo local"
+                        data-s2-config-combo-nombre="Unidades de negocio"
+                        data-s2-config-combo-controller="UnidadesNegocio"
+                        data-s2-config-combo-label="Unidad de negocio"></select>
+            </div>
+            <div class="ts-field">
+                <label>&nbsp;</label>
+                <button type="button" class="ts-btn ts-btn--primary" id="tsBtnBuscar">
+                    <i class="fa fa-refresh"></i>Actualizar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ts-loading" id="tsLoading" style="display:none">
+        <span class="ts-spinner"></span> Consolidando movimientos…
+    </div>
+
+    <div class="ts-kpi-grid">
+        <div class="ts-kpi ts-kpi--gold">
+            <span class="ts-kpi-icon"><i class="fa fa-balance-scale"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Saldo total</span>
+                <span class="ts-kpi-value" id="tsKpiSaldoTotal">—</span>
+                <span class="ts-kpi-hint" id="tsKpiSaldoHint">todas las cuentas</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--sage">
+            <span class="ts-kpi-icon"><i class="fa fa-money"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Efectivo</span>
+                <span class="ts-kpi-value" id="tsKpiEfectivo">—</span>
+                <span class="ts-kpi-hint" id="tsKpiSesiones">saldo en caja</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--sky">
+            <span class="ts-kpi-icon"><i class="fa fa-bank"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Bancos y billeteras</span>
+                <span class="ts-kpi-value" id="tsKpiBancario">—</span>
+                <span class="ts-kpi-hint">saldo disponible</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--sage">
+            <span class="ts-kpi-icon"><i class="fa fa-arrow-down"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Ingresos del período</span>
+                <span class="ts-kpi-value" id="tsKpiIngresos">—</span>
+                <span class="ts-kpi-hint" id="tsKpiNeto">—</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--rose">
+            <span class="ts-kpi-icon"><i class="fa fa-arrow-up"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Egresos del período</span>
+                <span class="ts-kpi-value" id="tsKpiEgresos">—</span>
+                <span class="ts-kpi-hint" id="tsKpiPagos">—</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--amber">
+            <span class="ts-kpi-icon"><i class="fa fa-file-text-o"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Gastos del período</span>
+                <span class="ts-kpi-value" id="tsKpiGastos">—</span>
+                <span class="ts-kpi-hint" id="tsKpiGastosPendientes">—</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--rose">
+            <span class="ts-kpi-icon"><i class="fa fa-exclamation-triangle"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Gastos vencidos</span>
+                <span class="ts-kpi-value" id="tsKpiVencidos">—</span>
+                <span class="ts-kpi-hint" id="tsKpiVencidosCant">—</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--violet">
+            <span class="ts-kpi-icon"><i class="fa fa-truck"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Deuda a proveedores</span>
+                <span class="ts-kpi-value" id="tsKpiDeuda">—</span>
+                <span class="ts-kpi-hint">cuentas corrientes</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="ts-panel">
+        <div class="ts-panel-head">
+            <div>
+                <h2><i class="fa fa-briefcase"></i>Cuentas de fondos</h2>
+                <p>Saldo real calculado desde los movimientos de caja</p>
+            </div>
+            <a href="/Cuentas" class="ts-btn ts-btn--ghost ts-btn--sm"><i class="fa fa-cog"></i>Administrar</a>
+        </div>
+        <div class="ts-panel-body">
+            <div class="ts-cuentas-grid" id="tsCuentas"></div>
+        </div>
+    </div>
+
+    <div class="ts-panel">
+        <div class="ts-panel-head">
+            <div>
+                <h2><i class="fa fa-area-chart"></i>Flujo de caja diario</h2>
+                <p>Ingresos contra egresos, día por día</p>
+            </div>
+            <div class="ts-legend">
+                <span><i class="is-in"></i>Ingresos</span>
+                <span><i class="is-out"></i>Egresos</span>
+            </div>
+        </div>
+        <div class="ts-panel-body">
+            <div class="ts-flow" id="tsFlujo"></div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="ts-panel h-100">
+                <div class="ts-panel-head">
+                    <div>
+                        <h2><i class="fa fa-tags"></i>Gastos por categoría</h2>
+                        <p>Del período seleccionado</p>
+                    </div>
+                </div>
+                <div class="ts-panel-body">
+                    <div class="ts-rank" id="tsPorCategoria"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="ts-panel h-100">
+                <div class="ts-panel-head">
+                    <div>
+                        <h2><i class="fa fa-sign-out"></i>Egresos por origen</h2>
+                        <p>De dónde sale la plata</p>
+                    </div>
+                </div>
+                <div class="ts-panel-body">
+                    <div class="ts-rank" id="tsPorTipo"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="ts-panel h-100">
+                <div class="ts-panel-head">
+                    <div>
+                        <h2><i class="fa fa-calendar-check-o"></i>Próximos vencimientos</h2>
+                        <p>Gastos a pagar en 30 días</p>
+                    </div>
+                </div>
+                <div class="ts-panel-body">
+                    <div class="ts-venc-list" id="tsVencimientos"></div>
+                </div>
+            </div>
+        </div>
+    </div>

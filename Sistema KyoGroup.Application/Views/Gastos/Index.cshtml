@@ -1,0 +1,306 @@
+@{
+    Layout = "_LayoutModulo";
+    ViewData["Title"] = "Gastos";
+}
+
+@section Estilos {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="~/css/Tesoreria.css" asp-append-version="true" />
+}
+
+<div class="container-fluid ts-page">
+
+    <!-- ══════════════════════════════ Hero ══════════════════════════════ -->
+    <div class="ts-hero">
+        <span class="ts-hero-glow ts-hero-glow--gold"></span>
+        <span class="ts-hero-glow ts-hero-glow--sage"></span>
+        <span class="ts-hero-pattern"></span>
+
+        <div class="ts-hero-inner">
+            <div class="ts-hero-left">
+                <a href="/Tesoreria" class="ts-back" title="Volver a Tesorería"><i class="fa fa-arrow-left"></i></a>
+                <span class="ts-hero-mark"><i class="fa fa-file-text-o"></i></span>
+                <div>
+                    <p class="ts-eyebrow"><span class="ts-dot"></span>Tesorería</p>
+                    <h1 class="ts-title">Gastos</h1>
+                    <p class="ts-sub">Servicios, alquileres, impuestos y todo lo que no es mercadería. Con pagos parciales y vencimientos.</p>
+                </div>
+            </div>
+
+            <div class="ts-hero-right">
+                <span class="ts-pill" id="gsPillPendiente"><i class="fa fa-hourglass-half"></i>Pendiente <strong>—</strong></span>
+                <a href="/Cajas" class="ts-btn ts-btn--ghost"><i class="fa fa-book"></i>Libro de caja</a>
+                <a href="/Gastos/NuevoModif" class="ts-btn ts-btn--primary"><i class="fa fa-plus"></i>Nuevo gasto</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════ Filtros ════════════════════════════ -->
+    <div class="ts-toolbar">
+        <div class="ts-chips" id="gsChipsRango">
+            <button type="button" class="ts-chip" data-valor="hoy">Hoy</button>
+            <button type="button" class="ts-chip" data-valor="semana">7 días</button>
+            <button type="button" class="ts-chip active" data-valor="mes">Este mes</button>
+            <button type="button" class="ts-chip" data-valor="mesAnterior">Mes anterior</button>
+            <button type="button" class="ts-chip" data-valor="anio">Año</button>
+            <button type="button" class="ts-chip" data-valor="">Todo</button>
+        </div>
+
+        <div class="ts-filters">
+            <div class="ts-field">
+                <label for="gsDesde">Desde</label>
+                <input type="date" id="gsDesde" class="form-control form-control-sm" />
+            </div>
+            <div class="ts-field">
+                <label for="gsHasta">Hasta</label>
+                <input type="date" id="gsHasta" class="form-control form-control-sm" />
+            </div>
+            <div class="ts-field">
+                <label for="gsCategoria">Categoría</label>
+                <select id="gsCategoria" class="form-select form-select-sm"
+                        data-s2-config-nombre="Categorías de gasto"
+                        data-s2-config-controller="GastosCategorias"
+                        data-s2-config-reload="/GastosCategorias/Lista"
+                        data-s2-config-title="Nueva categoría"></select>
+            </div>
+            <div class="ts-field">
+                <label for="gsProveedor">Proveedor</label>
+                <select id="gsProveedor" class="form-select form-select-sm"
+                        data-s2-config-nombre="Proveedores"
+                        data-s2-config-controller="Proveedores"
+                        data-s2-config-reload="/Proveedores/Lista"
+                        data-s2-config-title="Nuevo proveedor"></select>
+            </div>
+            <div class="ts-field">
+                <label for="gsEstado">Estado</label>
+                <select id="gsEstado" class="form-select form-select-sm"></select>
+            </div>
+            <div class="ts-field">
+                <label for="gsLocal">Local</label>
+                <select id="gsLocal" class="form-select form-select-sm"
+                        data-s2-config-nombre="Locales"
+                        data-s2-config-controller="Locales"
+                        data-s2-config-reload="/Locales/Lista"
+                        data-s2-config-title="Nuevo local"
+                        data-s2-config-combo-nombre="Unidades de negocio"
+                        data-s2-config-combo-controller="UnidadesNegocio"
+                        data-s2-config-combo-label="Unidad de negocio"></select>
+            </div>
+            <div class="ts-field ts-field--wide">
+                <label for="gsTexto">Buscar</label>
+                <input type="text" id="gsTexto" class="form-control form-control-sm" placeholder="Concepto, comprobante…" autocomplete="off" />
+            </div>
+        </div>
+    </div>
+
+    <div class="ts-toolbar">
+        <div class="ts-chips">
+            <label class="ts-check"><input type="checkbox" id="gsSoloPendientes" /> Sólo con saldo pendiente</label>
+            <label class="ts-check"><input type="checkbox" id="gsSoloVencidos" /> Sólo vencidos</label>
+            <label class="ts-check"><input type="checkbox" id="gsIncluirAnulados" /> Ver anulados</label>
+        </div>
+        <button type="button" class="ts-btn ts-btn--primary" id="gsBtnBuscar"><i class="fa fa-search"></i>Aplicar filtros</button>
+    </div>
+
+    <div class="ts-loading" id="gsLoading" style="display:none">
+        <span class="ts-spinner"></span> Cargando gastos…
+    </div>
+
+    <!-- ══════════════════════════════ KPIs ══════════════════════════════ -->
+    <div class="ts-kpi-grid">
+        <div class="ts-kpi ts-kpi--gold">
+            <span class="ts-kpi-icon"><i class="fa fa-calculator"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Total del período</span>
+                <span class="ts-kpi-value" id="gsKpiTotal">—</span>
+                <span class="ts-kpi-hint" id="gsKpiCantidad">—</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--sage">
+            <span class="ts-kpi-icon"><i class="fa fa-check"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Pagado</span>
+                <span class="ts-kpi-value" id="gsKpiPagado">—</span>
+                <span class="ts-kpi-hint" id="gsKpiPagadoPct">—</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--amber">
+            <span class="ts-kpi-icon"><i class="fa fa-hourglass-half"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Pendiente</span>
+                <span class="ts-kpi-value" id="gsKpiPendiente">—</span>
+                <span class="ts-kpi-hint" id="gsKpiCantPendientes">—</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--rose">
+            <span class="ts-kpi-icon"><i class="fa fa-exclamation-triangle"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Vencido</span>
+                <span class="ts-kpi-value" id="gsKpiVencido">—</span>
+                <span class="ts-kpi-hint" id="gsKpiCantVencidos">—</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- ══════════════════════════ Grilla ══════════════════════════ -->
+        <div class="col-xl-9">
+            <div class="ts-panel">
+                <div class="ts-panel-head">
+                    <div>
+                        <h2><i class="fa fa-list-alt"></i>Comprobantes</h2>
+                        <p id="gsSubtitulo">—</p>
+                    </div>
+                </div>
+                <div class="ts-panel-body ts-panel-body--flush">
+                    <div class="dt-dark-wrap">
+                        <table class="dt-dark display nowrap compact" id="grd_Gastos" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Fecha</th>
+                                    <th>Vence</th>
+                                    <th>Categoría</th>
+                                    <th>Proveedor</th>
+                                    <th>Concepto</th>
+                                    <th>Comprobante</th>
+                                    <th>Importe</th>
+                                    <th>Pagado</th>
+                                    <th>Pendiente</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════ Por categoría ══════════════════════ -->
+        <div class="col-xl-3">
+            <div class="ts-panel h-100">
+                <div class="ts-panel-head">
+                    <div>
+                        <h2><i class="fa fa-tags"></i>Por categoría</h2>
+                        <p>Del filtro aplicado</p>
+                    </div>
+                </div>
+                <div class="ts-panel-body">
+                    <div class="ts-rank" id="gsPorCategoria"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════ Modal: registrar pago ═══════════════════════ -->
+<div class="modal fade ts-modal" id="mdlPagoGasto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="ts-modal-mark" style="background:linear-gradient(140deg,#8bc34a,#5f8f4a)"><i class="fa fa-money"></i></span>
+                <div class="flex-grow-1">
+                    <h5 class="ts-modal-title" id="pgTitulo">Registrar pago</h5>
+                    <p class="ts-modal-sub">Sale de la cuenta elegida y queda asentado en el libro de caja</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="ts-note ts-note--sky mb-3" id="pgResumenGasto">
+                    <i class="fa fa-file-text-o"></i><span></span>
+                </div>
+
+                <div class="ts-form-grid">
+                    <div>
+                        <label class="ts-form-label" for="pgImporte">Importe a pagar <span class="ts-req">*</span></label>
+                        <input type="number" id="pgImporte" class="form-control" step="0.01" min="0" placeholder="0,00" />
+                        <span class="ts-hint" id="pgPendienteHint"></span>
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="pgFecha">Fecha <span class="ts-req">*</span></label>
+                        <input type="date" id="pgFecha" class="form-control" />
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="pgCuenta">Cuenta de pago <span class="ts-req">*</span></label>
+                        <select id="pgCuenta" class="form-select"
+                                data-s2-config-nombre="Cuentas"
+                                data-s2-config-controller="Cuentas"
+                                data-s2-config-reload="/Cuentas/Lista"
+                                data-s2-config-title="Nueva cuenta"
+                                data-s2-config-combo-nombre="Tipos de cuenta"
+                                data-s2-config-combo-controller="CuentasTipos"
+                                data-s2-config-combo-label="Tipo"></select>
+                        <span class="ts-hint" id="pgSaldoHint"></span>
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="pgMedioPago">Medio de pago</label>
+                        <select id="pgMedioPago" class="form-select"
+                                data-s2-config-nombre="Medios de pago"
+                                data-s2-config-controller="MediosPago"
+                                data-s2-config-reload="/MediosPago/Lista"
+                                data-s2-config-title="Nuevo medio de pago"></select>
+                    </div>
+                    <div class="ts-col-full">
+                        <label class="ts-form-label" for="pgNota">Nota</label>
+                        <input type="text" id="pgNota" class="form-control" maxlength="300" placeholder="Nº de transferencia, cheque, observación…" />
+                    </div>
+                </div>
+
+                <div class="ts-panel mt-3 mb-0">
+                    <div class="ts-panel-head">
+                        <div><h3><i class="fa fa-history"></i>Pagos registrados</h3></div>
+                    </div>
+                    <div class="ts-panel-body">
+                        <div class="ts-pagos" id="pgListaPagos"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="ts-btn ts-btn--ghost" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="ts-btn ts-btn--in" id="pgBtnPagarTodo"><i class="fa fa-check-circle"></i>Pagar el total</button>
+                <button type="button" class="ts-btn ts-btn--primary" id="pgBtnGuardar"><i class="fa fa-check"></i>Registrar pago</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═════════════════════════ Modal: anular gasto ═════════════════════════ -->
+<div class="modal fade ts-modal" id="mdlAnularGasto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="ts-modal-mark" style="background:linear-gradient(140deg,#e0685f,#b02020)"><i class="fa fa-ban"></i></span>
+                <div class="flex-grow-1">
+                    <h5 class="ts-modal-title" id="anlGastoTitulo">Anular gasto</h5>
+                    <p class="ts-modal-sub">Se revierten sus pagos, los asientos de caja y la cuenta corriente</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="ts-note ts-note--rose mb-3" id="anlGastoDetalle">
+                    <i class="fa fa-exclamation-triangle"></i><span></span>
+                </div>
+                <label class="ts-form-label" for="anlGastoMotivo">Motivo <span class="ts-req">*</span></label>
+                <textarea id="anlGastoMotivo" class="form-control" rows="3" maxlength="300" placeholder="¿Por qué se anula este gasto?"></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="ts-btn ts-btn--ghost" data-bs-dismiss="modal">Volver</button>
+                <button type="button" class="ts-btn ts-btn--out" id="anlGastoBtnConfirmar"><i class="fa fa-ban"></i>Anular gasto</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="~/Views/Utils/Modals.cshtml" />
+
+@section Scripts {
+    <partial name="~/Views/Shared/Partials/DataTablesCoreScripts.cshtml" />
+    <script src="~/js/tesoreria-core.js" asp-append-version="true"></script>
+    <script src="~/js/Gastos.js" asp-append-version="true"></script>
+}

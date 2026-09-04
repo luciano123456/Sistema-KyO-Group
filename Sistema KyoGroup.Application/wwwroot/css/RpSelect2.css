@@ -10,7 +10,7 @@
  * `!important` de kyo-modals.css / DisenoPantallas.css sin depender del orden.
  * ---------------------------------------------------------------------- */
 .input-plus {
-    --plus-h: 38px;
+    --plus-h: var(--ctrl-h, 42px);
     --plus-radius: 12px;
     --plus-border: rgba(90, 70, 90, 0.18);
     --plus-border-focus: #f4a4b8;

@@ -69,9 +69,11 @@ namespace SistemaKyoGroup.BLL.Service
             pago.FechaRegistra = DateTime.Now;
             pago.IdUsuarioRegistra = idUsuario;
             pago.NotaInterna ??= "";
+            if (pago.Fecha == default) pago.Fecha = DateTime.Today;
 
             await _repo.RegistrarPago(pago);
-            return ServiceResult.Success("Pago registrado correctamente.");
+            return ServiceResult.Success(
+                "Pago registrado. Se descontó de la cuenta corriente y se registró el egreso en caja.");
         }
 
         public async Task<ServiceResult> EliminarPago(int idPago)
@@ -81,7 +83,7 @@ namespace SistemaKyoGroup.BLL.Service
 
             var ok = await _repo.EliminarPago(idPago);
             return ok
-                ? ServiceResult.Success("Pago eliminado. Se revirtió el movimiento en cuenta corriente.")
+                ? ServiceResult.Success("Pago eliminado. Se revirtieron la cuenta corriente y el egreso de caja.")
                 : ServiceResult.Error("No se encontró el pago.");
         }
 

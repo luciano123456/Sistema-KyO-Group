@@ -1,0 +1,286 @@
+@{
+    Layout = "_LayoutModulo";
+    ViewData["Title"] = "Turnos de caja";
+}
+
+@section Estilos {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="~/css/Tesoreria.css" asp-append-version="true" />
+}
+
+<div class="container-fluid ts-page">
+
+    <!-- ══════════════════════════════ Hero ══════════════════════════════ -->
+    <div class="ts-hero">
+        <span class="ts-hero-glow ts-hero-glow--gold"></span>
+        <span class="ts-hero-glow ts-hero-glow--sage"></span>
+        <span class="ts-hero-pattern"></span>
+
+        <div class="ts-hero-inner">
+            <div class="ts-hero-left">
+                <a href="/Cajas" class="ts-back" title="Volver al libro de caja"><i class="fa fa-arrow-left"></i></a>
+                <span class="ts-hero-mark"><i class="fa fa-clock-o"></i></span>
+                <div>
+                    <p class="ts-eyebrow"><span class="ts-dot"></span>Tesorería</p>
+                    <h1 class="ts-title">Turnos y arqueo</h1>
+                    <p class="ts-sub">Apertura, cierre y control de diferencias entre lo contado y lo que dice el sistema.</p>
+                </div>
+            </div>
+
+            <div class="ts-hero-right">
+                <span class="ts-pill" id="seKpiAbiertos"><i class="fa fa-unlock"></i>—</span>
+                <button type="button" class="ts-btn ts-btn--primary" id="seBtnAbrir">
+                    <i class="fa fa-play"></i>Abrir turno
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════ Cajas con arqueo ════════════════════════ -->
+    <div class="ts-panel">
+        <div class="ts-panel-head">
+            <div>
+                <h2><i class="fa fa-money"></i>Cajas con arqueo</h2>
+                <p>Abrí o cerrá el turno directamente desde cada caja</p>
+            </div>
+        </div>
+        <div class="ts-panel-body ts-panel-body--flush">
+            <div class="ts-cuentas-grid" id="seCuentas"></div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════ Filtros ════════════════════════════ -->
+    <div class="ts-toolbar">
+        <div class="ts-chips" id="seChipsEstado">
+            <button type="button" class="ts-chip active" data-valor="">Todos</button>
+            <button type="button" class="ts-chip" data-valor="1">Abiertos</button>
+            <button type="button" class="ts-chip" data-valor="2">Cerrados</button>
+        </div>
+
+        <div class="ts-filters">
+            <div class="ts-field">
+                <label for="seCuenta">Caja</label>
+                <select id="seCuenta" class="form-select form-select-sm"
+                        data-s2-config-nombre="Cuentas"
+                        data-s2-config-controller="Cuentas"
+                        data-s2-config-reload="/Cuentas/Lista"
+                        data-s2-config-title="Nueva cuenta"
+                        data-s2-config-combo-nombre="Tipos de cuenta"
+                        data-s2-config-combo-controller="CuentasTipos"
+                        data-s2-config-combo-label="Tipo"></select>
+            </div>
+            <div class="ts-field">
+                <label for="seDesde">Desde</label>
+                <input type="date" id="seDesde" class="form-control form-control-sm" />
+            </div>
+            <div class="ts-field">
+                <label for="seHasta">Hasta</label>
+                <input type="date" id="seHasta" class="form-control form-control-sm" />
+            </div>
+            <div class="ts-field">
+                <label>&nbsp;</label>
+                <button type="button" class="ts-btn ts-btn--primary" id="seBtnBuscar"><i class="fa fa-search"></i>Buscar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ts-loading" id="seLoading" style="display:none">
+        <span class="ts-spinner"></span> Cargando turnos…
+    </div>
+
+    <!-- ═══════════════════════════ Historial ═══════════════════════════ -->
+    <div class="ts-panel">
+        <div class="ts-panel-head">
+            <div>
+                <h2><i class="fa fa-history"></i>Historial de turnos</h2>
+                <p>Cada cierre con su diferencia de arqueo</p>
+            </div>
+        </div>
+        <div class="ts-panel-body ts-panel-body--flush">
+            <div class="dt-dark-wrap">
+                <table class="dt-dark display nowrap compact" id="grd_CajaSesiones" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Caja</th>
+                            <th>Estado</th>
+                            <th>Apertura</th>
+                            <th>Cierre</th>
+                            <th>Inicial</th>
+                            <th>Teórico</th>
+                            <th>Contado</th>
+                            <th>Diferencia</th>
+                            <th>Abrió</th>
+                            <th>Cerró</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════ Modal: abrir turno ═══════════════════════ -->
+<div class="modal fade ts-modal" id="mdlAbrirTurno" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="ts-modal-mark" style="background:linear-gradient(140deg,#8bc34a,#5f8f4a)"><i class="fa fa-play"></i></span>
+                <div class="flex-grow-1">
+                    <h5 class="ts-modal-title">Abrir turno de caja</h5>
+                    <p class="ts-modal-sub">El saldo inicial queda asentado como apertura en el libro</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="ts-form-grid">
+                    <div class="ts-col-full">
+                        <label class="ts-form-label" for="abrCuenta">Caja <span class="ts-req">*</span></label>
+                        <select id="abrCuenta" class="form-select"
+                                data-s2-config-nombre="Cuentas"
+                                data-s2-config-controller="Cuentas"
+                                data-s2-config-reload="/Cuentas/Lista"
+                                data-s2-config-title="Nueva cuenta"
+                                data-s2-config-combo-nombre="Tipos de cuenta"
+                                data-s2-config-combo-controller="CuentasTipos"
+                                data-s2-config-combo-label="Tipo"></select>
+                        <div class="ts-hint" id="abrSaldoHint"></div>
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="abrSaldoInicial">Saldo inicial contado <span class="ts-req">*</span></label>
+                        <input type="number" id="abrSaldoInicial" class="form-control" step="0.01" min="0" placeholder="0,00" />
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="abrLocal">Local</label>
+                        <select id="abrLocal" class="form-select"
+                                data-s2-config-nombre="Locales"
+                                data-s2-config-controller="Locales"
+                                data-s2-config-reload="/Locales/Lista"
+                                data-s2-config-title="Nuevo local"
+                                data-s2-config-combo-nombre="Unidades de negocio"
+                                data-s2-config-combo-controller="UnidadesNegocio"
+                                data-s2-config-combo-label="Unidad de negocio"></select>
+                    </div>
+                    <div class="ts-col-full">
+                        <label class="ts-form-label" for="abrNota">Nota de apertura</label>
+                        <textarea id="abrNota" class="form-control" rows="2" maxlength="500" placeholder="Quién recibe la caja, novedades del turno anterior…"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="ts-btn ts-btn--ghost" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="ts-btn ts-btn--in" id="abrBtnConfirmar"><i class="fa fa-play"></i>Abrir turno</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════ Modal: cerrar turno ═══════════════════════ -->
+<div class="modal fade ts-modal" id="mdlCerrarTurno" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="ts-modal-mark" style="background:linear-gradient(140deg,#c9a24a,#a8842e)"><i class="fa fa-lock"></i></span>
+                <div class="flex-grow-1">
+                    <h5 class="ts-modal-title" id="cerTitulo">Cerrar turno</h5>
+                    <p class="ts-modal-sub">Contá la caja y el sistema calcula la diferencia</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="ts-kpi-grid mb-3">
+                    <div class="ts-kpi ts-kpi--violet">
+                        <span class="ts-kpi-icon"><i class="fa fa-play"></i></span>
+                        <div class="ts-kpi-body">
+                            <span class="ts-kpi-label">Saldo inicial</span>
+                            <span class="ts-kpi-value" id="cerInicial">—</span>
+                        </div>
+                    </div>
+                    <div class="ts-kpi ts-kpi--sage">
+                        <span class="ts-kpi-icon"><i class="fa fa-arrow-down"></i></span>
+                        <div class="ts-kpi-body">
+                            <span class="ts-kpi-label">Ingresos del turno</span>
+                            <span class="ts-kpi-value" id="cerIngresos">—</span>
+                        </div>
+                    </div>
+                    <div class="ts-kpi ts-kpi--rose">
+                        <span class="ts-kpi-icon"><i class="fa fa-arrow-up"></i></span>
+                        <div class="ts-kpi-body">
+                            <span class="ts-kpi-label">Egresos del turno</span>
+                            <span class="ts-kpi-value" id="cerEgresos">—</span>
+                        </div>
+                    </div>
+                    <div class="ts-kpi ts-kpi--gold">
+                        <span class="ts-kpi-icon"><i class="fa fa-calculator"></i></span>
+                        <div class="ts-kpi-body">
+                            <span class="ts-kpi-label">Debería haber</span>
+                            <span class="ts-kpi-value" id="cerTeorico">—</span>
+                            <span class="ts-kpi-hint" id="cerMovimientos">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ts-form-grid">
+                    <div>
+                        <label class="ts-form-label" for="cerDeclarado">Saldo contado <span class="ts-req">*</span></label>
+                        <input type="number" id="cerDeclarado" class="form-control" step="0.01" min="0" placeholder="0,00" />
+                    </div>
+                    <div class="d-flex align-items-end">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="cerGenerarAjuste" checked />
+                            <label class="form-check-label" for="cerGenerarAjuste">Registrar el ajuste en caja</label>
+                        </div>
+                    </div>
+                    <div class="ts-col-full">
+                        <div class="ts-note" id="cerDiferencia">
+                            <i class="fa fa-info-circle"></i><span>Ingresá el saldo contado para ver la diferencia.</span>
+                        </div>
+                    </div>
+                    <div class="ts-col-full">
+                        <label class="ts-form-label" for="cerNota">Nota de cierre</label>
+                        <textarea id="cerNota" class="form-control" rows="2" maxlength="500" placeholder="Explicación de la diferencia, novedades…"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="ts-btn ts-btn--ghost" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="ts-btn ts-btn--primary" id="cerBtnConfirmar"><i class="fa fa-lock"></i>Cerrar turno</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════ Modal: detalle turno ═══════════════════════ -->
+<div class="modal fade ts-modal" id="mdlDetalleTurno" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="ts-modal-mark"><i class="fa fa-file-text-o"></i></span>
+                <div class="flex-grow-1">
+                    <h5 class="ts-modal-title" id="detTitulo">Detalle del turno</h5>
+                    <p class="ts-modal-sub" id="detSub">—</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" id="detCuerpo"></div>
+            <div class="modal-footer">
+                <a href="#" class="ts-btn ts-btn--ghost" id="detLinkMovimientos"><i class="fa fa-list"></i>Ver movimientos</a>
+                <button type="button" class="ts-btn ts-btn--primary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="~/Views/Utils/Modals.cshtml" />
+
+@section Scripts {
+    <partial name="~/Views/Shared/Partials/DataTablesCoreScripts.cshtml" />
+    <script src="~/js/tesoreria-core.js" asp-append-version="true"></script>
+    <script src="~/js/CajasSesiones.js" asp-append-version="true"></script>
+}

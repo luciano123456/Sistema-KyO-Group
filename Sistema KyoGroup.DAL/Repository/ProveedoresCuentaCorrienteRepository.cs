@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SistemaKyoGroup.DAL.DataContext;
 using SistemaKyoGroup.Models;
+using SistemaKyoGroup.Models.Common;
 
 namespace SistemaKyoGroup.DAL.Repository
 {
@@ -10,6 +11,7 @@ namespace SistemaKyoGroup.DAL.Repository
         Task<List<ProveedoresCuentaCorriente>> Movimientos(int idProveedor, DateTime? fechaDesde, DateTime? fechaHasta, string? tipoMov, string? texto);
         Task<decimal> Saldo(int idProveedor);
         Task<decimal> SaldoAnterior(int idProveedor, DateTime fechaDesde);
+        Task<decimal> DeudaTotal();
         Task<(decimal debe, decimal haber, int cantidad)> Resumen(int idProveedor, DateTime? fechaDesde, DateTime? fechaHasta, string? tipoMov, string? texto);
         Task<int> RegistrarMovimientoCompra(int idProveedor, int idCompra, decimal importe, DateTime fecha, string concepto);
         Task<int> RegistrarPago(ProveedoresPago pago);
@@ -22,14 +24,16 @@ namespace SistemaKyoGroup.DAL.Repository
 
     public class ProveedoresCuentaCorrienteRepository : IProveedoresCuentaCorrienteRepository
     {
-        public const string TipoCompra = "COMPRA";
-        public const string TipoPago = "PAGO";
+        public const string TipoCompra = CuentaCorrienteTipoMov.Compra;
+        public const string TipoPago = CuentaCorrienteTipoMov.Pago;
 
         private readonly SistemaKyoGroupContext _db;
+        private readonly ICajasRepository _cajas;
 
-        public ProveedoresCuentaCorrienteRepository(SistemaKyoGroupContext db)
+        public ProveedoresCuentaCorrienteRepository(SistemaKyoGroupContext db, ICajasRepository cajas)
         {
             _db = db;
+            _cajas = cajas;
         }
 
         public async Task<List<(Proveedor proveedor, decimal saldo)>> ListarProveedoresConSaldo(string? buscar, bool soloConSaldo)
@@ -90,6 +94,16 @@ namespace SistemaKyoGroup.DAL.Repository
                 .Where(x => x.Fecha < fechaDesde.Date)
                 .SumAsync(x => x.Debe - x.Haber);
 
+        /// <summary>Deuda consolidada: sólo los proveedores con saldo a favor suman.</summary>
+        public async Task<decimal> DeudaTotal()
+        {
+            var saldos = await _db.ProveedoresCuentaCorrientes.AsNoTracking()
+                .GroupBy(x => x.IdProveedor)
+                .Select(g => g.Sum(m => m.Debe - m.Haber))
+                .ToListAsync();
+            return saldos.Where(s => s > 0).Sum();
+        }
+
         public async Task<(decimal debe, decimal haber, int cantidad)> Resumen(int idProveedor, DateTime? fechaDesde, DateTime? fechaHasta, string? tipoMov, string? texto)
         {
             var query = QueryMovimientos(idProveedor);
@@ -129,15 +143,26 @@ namespace SistemaKyoGroup.DAL.Repository
             return mov.Id;
         }
 
+        /// <summary>
+        /// Un pago escribe en tres lugares a la vez: el pago en sí, el Haber de la
+        /// cuenta corriente y el egreso en el libro de caja. Va en una transacción
+        /// para que no pueda quedar un saldo de proveedor sin su contrapartida de caja.
+        /// </summary>
         public async Task<int> RegistrarPago(ProveedoresPago pago)
         {
+            await using var tx = await _db.Database.BeginTransactionAsync();
+
+            pago.Fecha = pago.Fecha.Date;
+            pago.Anulado = false;
+            if (pago.IdMedioPago is <= 0) pago.IdMedioPago = null;
+
             _db.ProveedoresPagos.Add(pago);
             await _db.SaveChangesAsync();
 
             var mov = new ProveedoresCuentaCorriente
             {
                 IdProveedor = pago.IdProveedor,
-                Fecha = pago.Fecha.Date,
+                Fecha = pago.Fecha,
                 TipoMov = TipoPago,
                 IdMov = pago.Id,
                 Concepto = pago.Concepto,
@@ -146,6 +171,30 @@ namespace SistemaKyoGroup.DAL.Repository
             };
             _db.ProveedoresCuentaCorrientes.Add(mov);
             await _db.SaveChangesAsync();
+
+            var proveedor = await _db.Proveedores.AsNoTracking()
+                .Where(p => p.Id == pago.IdProveedor)
+                .Select(p => p.Nombre)
+                .FirstOrDefaultAsync();
+
+            var asiento = await _cajas.Registrar(new CajaAsiento
+            {
+                IdCuenta = pago.IdCuenta,
+                Fecha = pago.Fecha,
+                TipoMov = CajaTipoMov.PagoProveedor,
+                IdMov = pago.Id,
+                Concepto = $"Pago a {proveedor ?? "proveedor"} — {pago.Concepto}",
+                Egreso = pago.Importe,
+                IdMedioPago = pago.IdMedioPago,
+                NotaInterna = pago.NotaInterna,
+                IdUsuario = pago.IdUsuarioRegistra
+            });
+
+            pago.IdCaja = asiento.Id;
+            pago.IdCuentaCorriente = mov.Id;
+            await _db.SaveChangesAsync();
+
+            await tx.CommitAsync();
             return mov.Id;
         }
 
@@ -153,8 +202,9 @@ namespace SistemaKyoGroup.DAL.Repository
         {
             var query = _db.ProveedoresPagos.AsNoTracking()
                 .Include(x => x.IdCuentaNavigation)
+                .Include(x => x.IdMedioPagoNavigation)
                 .Include(x => x.IdUsuarioRegistraNavigation)
-                .Where(x => x.IdProveedor == idProveedor);
+                .Where(x => x.IdProveedor == idProveedor && !x.Anulado);
 
             if (fechaDesde.HasValue)
                 query = query.Where(x => x.Fecha >= fechaDesde.Value.Date);
@@ -174,8 +224,14 @@ namespace SistemaKyoGroup.DAL.Repository
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Da de baja el pago: quita el Haber de la cuenta corriente y anula el asiento
+        /// de caja (el asiento no se borra, queda como anulado para poder auditarlo).
+        /// </summary>
         public async Task<bool> EliminarPago(int idPago)
         {
+            await using var tx = await _db.Database.BeginTransactionAsync();
+
             var pago = await _db.ProveedoresPagos.FindAsync(idPago);
             if (pago == null) return false;
 
@@ -185,8 +241,15 @@ namespace SistemaKyoGroup.DAL.Repository
             if (movs.Count > 0)
                 _db.ProveedoresCuentaCorrientes.RemoveRange(movs);
 
+            await _cajas.AnularPorOrigen(
+                CajaTipoMov.PagoProveedor, idPago,
+                pago.IdUsuarioModifica ?? pago.IdUsuarioRegistra,
+                "Pago a proveedor eliminado");
+
             _db.ProveedoresPagos.Remove(pago);
             await _db.SaveChangesAsync();
+
+            await tx.CommitAsync();
             return true;
         }
 

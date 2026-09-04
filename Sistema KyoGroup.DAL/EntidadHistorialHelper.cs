@@ -34,6 +34,10 @@ public static class EntidadHistorialHelper
     public const string Cuenta = "Cuenta";
     public const string Importacion = "Importacion";
     public const string Rubro = "Rubro";
+    public const string Gasto = "Gasto";
+    public const string CategoriaGasto = "CategoriaGasto";
+    public const string MedioPago = "MedioPago";
+    public const string CuentaTipo = "CuentaTipo";
 
     public const string AccionCreacion = "Creacion";
     public const string AccionModificacion = "Modificacion";
@@ -58,6 +62,10 @@ public static class EntidadHistorialHelper
         (Cuenta, "Cuentas_Historial"),
         (Importacion, "Importaciones_Historial"),
         (Rubro, "Rubros_Historial"),
+        (Gasto, "Gastos_Historial"),
+        (CategoriaGasto, "GastosCategorias_Historial"),
+        (MedioPago, "MediosPago_Historial"),
+        (CuentaTipo, "CuentasTipos_Historial"),
     };
 
     /// <summary>Resuelve el actor: explícito, o el de la request (AsyncLocal).</summary>
@@ -166,6 +174,10 @@ END");
             case Cuenta: db.CuentasHistorial.Add((CuentaHistorial)row); break;
             case Importacion: db.ImportacionesHistorial.Add((ImportacionHistorial)row); break;
             case Rubro: db.RubrosHistorial.Add((RubroHistorial)row); break;
+            case Gasto: db.GastosHistorial.Add((GastoHistorial)row); break;
+            case CategoriaGasto: db.GastosCategoriasHistorial.Add((CategoriaGastoHistorial)row); break;
+            case MedioPago: db.MediosPagoHistorial.Add((MedioPagoHistorial)row); break;
+            case CuentaTipo: db.CuentasTiposHistorial.Add((CuentaTipoHistorial)row); break;
         }
     }
 
@@ -214,6 +226,10 @@ END");
             Cuenta => (await Query(db.CuentasHistorial, idEntidad, take)).Cast<EntidadHistorialBase>().ToList(),
             Importacion => (await Query(db.ImportacionesHistorial, idEntidad, take)).Cast<EntidadHistorialBase>().ToList(),
             Rubro => (await Query(db.RubrosHistorial, idEntidad, take)).Cast<EntidadHistorialBase>().ToList(),
+            Gasto => (await Query(db.GastosHistorial, idEntidad, take)).Cast<EntidadHistorialBase>().ToList(),
+            CategoriaGasto => (await Query(db.GastosCategoriasHistorial, idEntidad, take)).Cast<EntidadHistorialBase>().ToList(),
+            MedioPago => (await Query(db.MediosPagoHistorial, idEntidad, take)).Cast<EntidadHistorialBase>().ToList(),
+            CuentaTipo => (await Query(db.CuentasTiposHistorial, idEntidad, take)).Cast<EntidadHistorialBase>().ToList(),
             _ => new List<EntidadHistorialBase>()
         };
         return items;
@@ -265,6 +281,9 @@ END");
             "EstadoOrdenCompra" => await db.OrdenesComprasEstados.AsNoTracking().Where(x => x.Id == idv).Select(x => x.Nombre).FirstOrDefaultAsync(),
             "Insumo" => await db.Insumos.AsNoTracking().Where(x => x.Id == idv).Select(x => x.Descripcion).FirstOrDefaultAsync(),
             "SubReceta" => await db.SubRecetas.AsNoTracking().Where(x => x.Id == idv).Select(x => x.Descripcion).FirstOrDefaultAsync(),
+            "CategoriaGasto" => await db.GastosCategorias.AsNoTracking().Where(x => x.Id == idv).Select(x => x.Nombre).FirstOrDefaultAsync(),
+            "Cuenta" => await db.Cuentas.AsNoTracking().Where(x => x.Id == idv).Select(x => x.Nombre).FirstOrDefaultAsync(),
+            "MedioPago" => await db.MediosPagos.AsNoTracking().Where(x => x.Id == idv).Select(x => x.Nombre).FirstOrDefaultAsync(),
             _ => null
         };
         return string.IsNullOrWhiteSpace(nom) ? $"#{idv}" : nom!;
@@ -368,6 +387,10 @@ END");
         Cuenta => new CuentaHistorial(),
         Importacion => new ImportacionHistorial(),
         Rubro => new RubroHistorial(),
+        Gasto => new GastoHistorial(),
+        CategoriaGasto => new CategoriaGastoHistorial(),
+        MedioPago => new MedioPagoHistorial(),
+        CuentaTipo => new CuentaTipoHistorial(),
         _ => null
     };
 }
