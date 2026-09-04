@@ -1,0 +1,88 @@
+@{
+    Layout = "_LayoutModulo";
+    ViewData["Title"] = "Finanzas";
+}
+
+@section Estilos {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="~/css/Tesoreria.css" asp-append-version="true" />
+}
+
+<div class="container-fluid ts-page" id="fgHub">
+
+    <div class="ts-hero">
+        <span class="ts-hero-glow ts-hero-glow--gold"></span>
+        <span class="ts-hero-glow ts-hero-glow--sage"></span>
+        <span class="ts-hero-pattern"></span>
+
+        <div class="ts-hero-inner">
+            <div class="ts-hero-left">
+                <span class="ts-hero-mark"><i class="fa fa-line-chart"></i></span>
+                <div>
+                    <p class="ts-eyebrow"><span class="ts-dot"></span>Finanzas</p>
+                    <h1 class="ts-title" id="fgTitulo">Resumen</h1>
+                    <p class="ts-sub" id="fgSub">Cajas, gastos y el pulso de cada mes, en un solo lugar.</p>
+                </div>
+            </div>
+
+            <div class="ts-hero-right">
+                <span class="ts-pill" id="tsPillPeriodo"><i class="fa fa-calendar"></i>—</span>
+                <span class="ts-pill" id="cjPillSaldo" hidden><i class="fa fa-balance-scale"></i>Saldo <strong>—</strong></span>
+                <span class="ts-pill" id="gsPillPendiente" hidden><i class="fa fa-hourglass-half"></i>Pendiente <strong>—</strong></span>
+
+                <div class="fg-hero-actions" id="fgAccionesResumen">
+                    <a href="/Gastos/NuevoModif" class="ts-btn ts-btn--primary"><i class="fa fa-plus"></i>Nuevo gasto</a>
+                </div>
+                <div class="fg-hero-actions" id="fgAccionesCajas" hidden>
+                    <a href="/Cuentas" class="ts-btn ts-btn--ghost"><i class="fa fa-cog"></i>Cuentas</a>
+                    <button type="button" class="ts-btn ts-btn--ghost" id="cjBtnTransferir">
+                        <i class="fa fa-exchange"></i>Transferir
+                    </button>
+                    <button type="button" class="ts-btn ts-btn--in" id="cjBtnIngreso">
+                        <i class="fa fa-arrow-down"></i>Ingreso
+                    </button>
+                    <button type="button" class="ts-btn ts-btn--out" id="cjBtnEgreso">
+                        <i class="fa fa-arrow-up"></i>Egreso
+                    </button>
+                </div>
+                <div class="fg-hero-actions" id="fgAccionesGastos" hidden>
+                    <a href="/Gastos/NuevoModif" class="ts-btn ts-btn--primary"><i class="fa fa-plus"></i>Nuevo gasto</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="fg-tabs" id="fgTabs" role="tablist">
+        <button type="button" class="fg-tab active" data-fg-tab="resumen"><i class="fa fa-dashboard"></i>Resumen</button>
+        <button type="button" class="fg-tab" data-fg-tab="cajas"><i class="fa fa-money"></i>Cajas</button>
+        <button type="button" class="fg-tab" data-fg-tab="gastos"><i class="fa fa-file-text-o"></i>Gastos</button>
+        <button type="button" class="fg-tab" data-fg-tab="control"><i class="fa fa-calendar"></i>Control mensual</button>
+    </nav>
+
+    <section class="fg-section active" id="fgSectionResumen">
+        <partial name="~/Views/Finanzas/_Resumen.cshtml" />
+    </section>
+    <section class="fg-section" id="fgSectionCajas" hidden>
+        <partial name="~/Views/Finanzas/_Cajas.cshtml" />
+    </section>
+    <section class="fg-section" id="fgSectionGastos" hidden>
+        <partial name="~/Views/Finanzas/_Gastos.cshtml" />
+    </section>
+    <section class="fg-section" id="fgSectionControl" hidden>
+        <partial name="~/Views/Finanzas/_ControlMensual.cshtml" />
+    </section>
+</div>
+
+<partial name="~/Views/Finanzas/_CajasModales.cshtml" />
+<partial name="~/Views/Finanzas/_GastosModales.cshtml" />
+<partial name="~/Views/Utils/Modals.cshtml" />
+
+@section Scripts {
+    <partial name="~/Views/Shared/Partials/DataTablesCoreScripts.cshtml" />
+    <script src="~/js/tesoreria-core.js" asp-append-version="true"></script>
+    <script src="~/js/Tesoreria.js" asp-append-version="true"></script>
+    <script src="~/js/Cajas.js" asp-append-version="true"></script>
+    <script src="~/js/Gastos.js" asp-append-version="true"></script>
+    <script src="~/js/FinanzasControlMensual.js" asp-append-version="true"></script>
+    <script src="~/js/Finanzas.js" asp-append-version="true"></script>
+}

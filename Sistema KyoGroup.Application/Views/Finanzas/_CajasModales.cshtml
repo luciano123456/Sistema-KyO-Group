@@ -1,0 +1,186 @@
+<div class="modal fade ts-modal" id="mdlMovimiento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="ts-modal-mark"><i class="fa fa-pencil"></i></span>
+                <div class="flex-grow-1">
+                    <h5 class="ts-modal-title" id="mdlMovimientoTitulo">Nuevo movimiento</h5>
+                    <p class="ts-modal-sub">Se registra en caja y actualiza el saldo al instante</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="movId" value="0" />
+                <div class="ts-switch mb-3" id="movSwitchTipo">
+                    <button type="button" data-tipo="INGRESO" class="active"><i class="fa fa-arrow-down me-1"></i>Ingreso</button>
+                    <button type="button" data-tipo="EGRESO"><i class="fa fa-arrow-up me-1"></i>Egreso</button>
+                </div>
+                <div class="ts-form-grid">
+                    <div>
+                        <label class="ts-form-label" for="movCuenta">Cuenta <span class="ts-req">*</span></label>
+                        <select id="movCuenta" class="form-select"
+                                data-s2-config-nombre="Cuentas"
+                                data-s2-config-controller="Cuentas"
+                                data-s2-config-reload="/Cuentas/Lista"
+                                data-s2-config-title="Nueva cuenta"
+                                data-s2-config-combo-nombre="Tipos de cuenta"
+                                data-s2-config-combo-controller="CuentasTipos"
+                                data-s2-config-combo-label="Tipo"></select>
+                        <div class="ts-hint" id="movSaldoHint"></div>
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="movFecha">Fecha <span class="ts-req">*</span></label>
+                        <input type="date" id="movFecha" class="form-control" />
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="movImporte">Importe <span class="ts-req">*</span></label>
+                        <input type="number" id="movImporte" class="form-control" step="0.01" min="0" placeholder="0,00" />
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="movMedioPago">Medio de pago</label>
+                        <select id="movMedioPago" class="form-select"
+                                data-s2-config-nombre="Medios de pago"
+                                data-s2-config-controller="MediosPago"
+                                data-s2-config-reload="/MediosPago/Lista"
+                                data-s2-config-title="Nuevo medio de pago"></select>
+                    </div>
+                    <div class="ts-col-full">
+                        <label class="ts-form-label" for="movConcepto">Concepto <span class="ts-req">*</span></label>
+                        <input type="text" id="movConcepto" class="form-control" maxlength="200" placeholder="Ej.: Aporte de socio, retiro de caja…" />
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="movLocal">Local</label>
+                        <select id="movLocal" class="form-select"
+                                data-s2-config-nombre="Locales"
+                                data-s2-config-controller="Locales"
+                                data-s2-config-reload="/Locales/Lista"
+                                data-s2-config-title="Nuevo local"
+                                data-s2-config-combo-nombre="Unidades de negocio"
+                                data-s2-config-combo-controller="UnidadesNegocio"
+                                data-s2-config-combo-label="Unidad de negocio"></select>
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="movUnidad">Unidad de negocio</label>
+                        <select id="movUnidad" class="form-select"
+                                data-s2-config-nombre="Unidades de negocio"
+                                data-s2-config-controller="UnidadesNegocio"
+                                data-s2-config-reload="/UnidadesNegocio/Lista"
+                                data-s2-config-title="Nueva unidad de negocio"></select>
+                    </div>
+                    <div class="ts-col-full">
+                        <label class="ts-form-label" for="movNota">Nota interna</label>
+                        <textarea id="movNota" class="form-control" rows="2" maxlength="500" placeholder="Detalle opcional para auditoría"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="ts-btn ts-btn--ghost" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="ts-btn ts-btn--primary" id="movBtnGuardar">
+                    <i class="fa fa-check"></i>Guardar movimiento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade ts-modal" id="mdlTransferencia" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="ts-modal-mark"><i class="fa fa-exchange"></i></span>
+                <div class="flex-grow-1">
+                    <h5 class="ts-modal-title">Transferencia entre cuentas</h5>
+                    <p class="ts-modal-sub">Genera el egreso en el origen y el ingreso en el destino</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="ts-form-grid">
+                    <div>
+                        <label class="ts-form-label" for="trfOrigen">Cuenta origen <span class="ts-req">*</span></label>
+                        <select id="trfOrigen" class="form-select"
+                                data-s2-config-nombre="Cuentas"
+                                data-s2-config-controller="Cuentas"
+                                data-s2-config-reload="/Cuentas/Lista"
+                                data-s2-config-title="Nueva cuenta"
+                                data-s2-config-combo-nombre="Tipos de cuenta"
+                                data-s2-config-combo-controller="CuentasTipos"
+                                data-s2-config-combo-label="Tipo"></select>
+                        <div class="ts-hint" id="trfSaldoOrigen"></div>
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="trfDestino">Cuenta destino <span class="ts-req">*</span></label>
+                        <select id="trfDestino" class="form-select"
+                                data-s2-config-nombre="Cuentas"
+                                data-s2-config-controller="Cuentas"
+                                data-s2-config-reload="/Cuentas/Lista"
+                                data-s2-config-title="Nueva cuenta"
+                                data-s2-config-combo-nombre="Tipos de cuenta"
+                                data-s2-config-combo-controller="CuentasTipos"
+                                data-s2-config-combo-label="Tipo"></select>
+                        <div class="ts-hint" id="trfSaldoDestino"></div>
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="trfFecha">Fecha <span class="ts-req">*</span></label>
+                        <input type="date" id="trfFecha" class="form-control" />
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="trfImporte">Importe a enviar <span class="ts-req">*</span></label>
+                        <input type="number" id="trfImporte" class="form-control" step="0.01" min="0" placeholder="0,00" />
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="trfImporteDestino">Importe acreditado</label>
+                        <input type="number" id="trfImporteDestino" class="form-control" step="0.01" min="0" placeholder="0,00" />
+                        <span class="ts-hint">Dejalo igual salvo que haya comisión o retención.</span>
+                    </div>
+                    <div class="ts-col-full">
+                        <label class="ts-form-label" for="trfConcepto">Concepto <span class="ts-req">*</span></label>
+                        <input type="text" id="trfConcepto" class="form-control" maxlength="100" placeholder="Ej.: Depósito de recaudación" />
+                    </div>
+                    <div class="ts-col-full">
+                        <div class="ts-note ts-note--sky" id="trfResumen">
+                            <i class="fa fa-info-circle"></i>
+                            <span>Elegí las cuentas y el importe para ver el impacto.</span>
+                        </div>
+                    </div>
+                    <div class="ts-col-full">
+                        <label class="ts-form-label" for="trfNota">Nota interna</label>
+                        <textarea id="trfNota" class="form-control" rows="2" maxlength="500"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="ts-btn ts-btn--ghost" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="ts-btn ts-btn--primary" id="trfBtnGuardar">
+                    <i class="fa fa-check"></i>Transferir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade ts-modal" id="mdlAnular" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="ts-modal-mark" style="background:linear-gradient(140deg,#e0685f,#b02020)"><i class="fa fa-ban"></i></span>
+                <div class="flex-grow-1">
+                    <h5 class="ts-modal-title" id="anlTitulo">Anular movimiento</h5>
+                    <p class="ts-modal-sub">El asiento queda en el historial, pero deja de sumar al saldo</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="ts-note ts-note--rose mb-3" id="anlDetalle">
+                    <i class="fa fa-exclamation-triangle"></i><span></span>
+                </div>
+                <label class="ts-form-label" for="anlMotivo">Motivo <span class="ts-req">*</span></label>
+                <textarea id="anlMotivo" class="form-control" rows="3" maxlength="300" placeholder="¿Por qué se anula?"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="ts-btn ts-btn--ghost" data-bs-dismiss="modal">Volver</button>
+                <button type="button" class="ts-btn ts-btn--out" id="anlBtnConfirmar"><i class="fa fa-ban"></i>Anular</button>
+            </div>
+        </div>
+    </div>
+</div>

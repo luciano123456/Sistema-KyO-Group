@@ -1,0 +1,153 @@
+    <div class="ts-toolbar">
+        <div class="ts-chips" id="gsChipsRango">
+            <button type="button" class="ts-chip" data-valor="hoy">Hoy</button>
+            <button type="button" class="ts-chip" data-valor="semana">7 días</button>
+            <button type="button" class="ts-chip active" data-valor="mes">Este mes</button>
+            <button type="button" class="ts-chip" data-valor="mesAnterior">Mes anterior</button>
+            <button type="button" class="ts-chip" data-valor="anio">Año</button>
+            <button type="button" class="ts-chip" data-valor="">Todo</button>
+        </div>
+
+        <div class="ts-filters">
+            <div class="ts-field">
+                <label for="gsDesde">Desde</label>
+                <input type="date" id="gsDesde" class="form-control" />
+            </div>
+            <div class="ts-field">
+                <label for="gsHasta">Hasta</label>
+                <input type="date" id="gsHasta" class="form-control" />
+            </div>
+            <div class="ts-field">
+                <label for="gsCategoria">Categoría</label>
+                <select id="gsCategoria" class="form-select"
+                        data-s2-config-nombre="Categorías de gasto"
+                        data-s2-config-controller="GastosCategorias"
+                        data-s2-config-reload="/GastosCategorias/Lista"
+                        data-s2-config-title="Nueva categoría"></select>
+            </div>
+            <div class="ts-field">
+                <label for="gsProveedor">Proveedor</label>
+                <select id="gsProveedor" class="form-select"
+                        data-s2-config-nombre="Proveedores"
+                        data-s2-config-controller="Proveedores"
+                        data-s2-config-reload="/Proveedores/Lista"
+                        data-s2-config-title="Nuevo proveedor"></select>
+            </div>
+            <div class="ts-field">
+                <label for="gsEstado">Estado</label>
+                <select id="gsEstado" class="form-select"></select>
+            </div>
+            <div class="ts-field">
+                <label for="gsLocal">Local</label>
+                <select id="gsLocal" class="form-select"
+                        data-s2-config-nombre="Locales"
+                        data-s2-config-controller="Locales"
+                        data-s2-config-reload="/Locales/Lista"
+                        data-s2-config-title="Nuevo local"
+                        data-s2-config-combo-nombre="Unidades de negocio"
+                        data-s2-config-combo-controller="UnidadesNegocio"
+                        data-s2-config-combo-label="Unidad de negocio"></select>
+            </div>
+            <div class="ts-field ts-field--wide">
+                <label for="gsTexto">Buscar</label>
+                <input type="text" id="gsTexto" class="form-control" placeholder="Concepto, comprobante…" autocomplete="off" />
+            </div>
+        </div>
+    </div>
+
+    <div class="ts-toolbar">
+        <div class="ts-chips">
+            <label class="ts-check"><input type="checkbox" id="gsSoloPendientes" /> Sólo con saldo pendiente</label>
+            <label class="ts-check"><input type="checkbox" id="gsSoloVencidos" /> Sólo vencidos</label>
+            <label class="ts-check"><input type="checkbox" id="gsIncluirAnulados" /> Ver anulados</label>
+        </div>
+        <button type="button" class="ts-btn ts-btn--primary" id="gsBtnBuscar"><i class="fa fa-search"></i>Aplicar filtros</button>
+    </div>
+
+    <div class="ts-loading" id="gsLoading" style="display:none">
+        <span class="ts-spinner"></span> Cargando gastos…
+    </div>
+
+    <div class="ts-kpi-grid">
+        <div class="ts-kpi ts-kpi--gold">
+            <span class="ts-kpi-icon"><i class="fa fa-calculator"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Total del período</span>
+                <span class="ts-kpi-value" id="gsKpiTotal">—</span>
+                <span class="ts-kpi-hint" id="gsKpiCantidad">—</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--sage">
+            <span class="ts-kpi-icon"><i class="fa fa-check"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Pagado</span>
+                <span class="ts-kpi-value" id="gsKpiPagado">—</span>
+                <span class="ts-kpi-hint" id="gsKpiPagadoPct">—</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--amber">
+            <span class="ts-kpi-icon"><i class="fa fa-hourglass-half"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Pendiente</span>
+                <span class="ts-kpi-value" id="gsKpiPendiente">—</span>
+                <span class="ts-kpi-hint" id="gsKpiCantPendientes">—</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--rose">
+            <span class="ts-kpi-icon"><i class="fa fa-exclamation-triangle"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Vencido</span>
+                <span class="ts-kpi-value" id="gsKpiVencido">—</span>
+                <span class="ts-kpi-hint" id="gsKpiCantVencidos">—</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-xl-9">
+            <div class="ts-panel">
+                <div class="ts-panel-head">
+                    <div>
+                        <h2><i class="fa fa-list-alt"></i>Comprobantes</h2>
+                        <p id="gsSubtitulo">—</p>
+                    </div>
+                </div>
+                <div class="ts-panel-body ts-panel-body--flush">
+                    <div class="dt-dark-wrap">
+                        <table class="dt-dark display nowrap compact" id="grd_Gastos" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Fecha</th>
+                                    <th>Vence</th>
+                                    <th>Categoría</th>
+                                    <th>Proveedor</th>
+                                    <th>Concepto</th>
+                                    <th>Comprobante</th>
+                                    <th>Importe</th>
+                                    <th>Pagado</th>
+                                    <th>Pendiente</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3">
+            <div class="ts-panel h-100">
+                <div class="ts-panel-head">
+                    <div>
+                        <h2><i class="fa fa-tags"></i>Por categoría</h2>
+                        <p>Del filtro aplicado</p>
+                    </div>
+                </div>
+                <div class="ts-panel-body">
+                    <div class="ts-rank" id="gsPorCategoria"></div>
+                </div>
+            </div>
+        </div>
+    </div>

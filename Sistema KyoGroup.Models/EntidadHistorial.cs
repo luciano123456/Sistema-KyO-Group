@@ -32,3 +32,8 @@ public class EstadoOrdenCompraHistorial : EntidadHistorialBase { }
 public class CuentaHistorial : EntidadHistorialBase { }
 public class ImportacionHistorial : EntidadHistorialBase { }
 public class RubroHistorial : EntidadHistorialBase { }
+public class GastoHistorial : EntidadHistorialBase { }
+public class CategoriaGastoHistorial : EntidadHistorialBase { }
+public class MedioPagoHistorial : EntidadHistorialBase { }
+public class CuentaTipoHistorial : EntidadHistorialBase { }
+public class CajaSesionHistorial : EntidadHistorialBase { }

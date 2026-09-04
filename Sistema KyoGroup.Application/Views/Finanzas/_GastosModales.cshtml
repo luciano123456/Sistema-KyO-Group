@@ -1,0 +1,93 @@
+<div class="modal fade ts-modal" id="mdlPagoGasto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="ts-modal-mark" style="background:linear-gradient(140deg,#8bc34a,#5f8f4a)"><i class="fa fa-money"></i></span>
+                <div class="flex-grow-1">
+                    <h5 class="ts-modal-title" id="pgTitulo">Registrar pago</h5>
+                    <p class="ts-modal-sub">Sale de la cuenta elegida y queda asentado en caja</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="ts-note ts-note--sky mb-3" id="pgResumenGasto">
+                    <i class="fa fa-file-text-o"></i><span></span>
+                </div>
+                <div class="ts-form-grid">
+                    <div>
+                        <label class="ts-form-label" for="pgImporte">Importe a pagar <span class="ts-req">*</span></label>
+                        <input type="number" id="pgImporte" class="form-control" step="0.01" min="0" placeholder="0,00" />
+                        <span class="ts-hint" id="pgPendienteHint"></span>
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="pgFecha">Fecha <span class="ts-req">*</span></label>
+                        <input type="date" id="pgFecha" class="form-control" />
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="pgCuenta">Cuenta de pago <span class="ts-req">*</span></label>
+                        <select id="pgCuenta" class="form-select"
+                                data-s2-config-nombre="Cuentas"
+                                data-s2-config-controller="Cuentas"
+                                data-s2-config-reload="/Cuentas/Lista"
+                                data-s2-config-title="Nueva cuenta"
+                                data-s2-config-combo-nombre="Tipos de cuenta"
+                                data-s2-config-combo-controller="CuentasTipos"
+                                data-s2-config-combo-label="Tipo"></select>
+                        <span class="ts-hint" id="pgSaldoHint"></span>
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="pgMedioPago">Medio de pago</label>
+                        <select id="pgMedioPago" class="form-select"
+                                data-s2-config-nombre="Medios de pago"
+                                data-s2-config-controller="MediosPago"
+                                data-s2-config-reload="/MediosPago/Lista"
+                                data-s2-config-title="Nuevo medio de pago"></select>
+                    </div>
+                    <div class="ts-col-full">
+                        <label class="ts-form-label" for="pgNota">Nota</label>
+                        <input type="text" id="pgNota" class="form-control" maxlength="300" placeholder="Nº de transferencia, cheque, observación…" />
+                    </div>
+                </div>
+                <div class="ts-panel mt-3 mb-0">
+                    <div class="ts-panel-head">
+                        <div><h3><i class="fa fa-history"></i>Pagos registrados</h3></div>
+                    </div>
+                    <div class="ts-panel-body">
+                        <div class="ts-pagos" id="pgListaPagos"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="ts-btn ts-btn--ghost" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="ts-btn ts-btn--in" id="pgBtnPagarTodo"><i class="fa fa-check-circle"></i>Pagar el total</button>
+                <button type="button" class="ts-btn ts-btn--primary" id="pgBtnGuardar"><i class="fa fa-check"></i>Registrar pago</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade ts-modal" id="mdlAnularGasto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="ts-modal-mark" style="background:linear-gradient(140deg,#e0685f,#b02020)"><i class="fa fa-ban"></i></span>
+                <div class="flex-grow-1">
+                    <h5 class="ts-modal-title" id="anlGastoTitulo">Anular gasto</h5>
+                    <p class="ts-modal-sub">Se revierten sus pagos, los asientos de caja y la cuenta corriente</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="ts-note ts-note--rose mb-3" id="anlGastoDetalle">
+                    <i class="fa fa-exclamation-triangle"></i><span></span>
+                </div>
+                <label class="ts-form-label" for="anlGastoMotivo">Motivo <span class="ts-req">*</span></label>
+                <textarea id="anlGastoMotivo" class="form-control" rows="3" maxlength="300" placeholder="¿Por qué se anula este gasto?"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="ts-btn ts-btn--ghost" data-bs-dismiss="modal">Volver</button>
+                <button type="button" class="ts-btn ts-btn--out" id="anlGastoBtnConfirmar"><i class="fa fa-ban"></i>Anular gasto</button>
+            </div>
+        </div>
+    </div>
+</div>

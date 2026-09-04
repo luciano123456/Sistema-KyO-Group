@@ -1,0 +1,261 @@
+@{
+    Layout = "_LayoutModulo";
+    ViewData["Title"] = "Cuentas de fondos";
+}
+
+@section Estilos {
+    <link rel="stylesheet" href="~/css/Tesoreria.css" asp-append-version="true" />
+}
+
+<div class="container-fluid ts-page">
+
+    <!-- ══════════════════════════════ Hero ══════════════════════════════ -->
+    <div class="ts-hero">
+        <span class="ts-hero-glow ts-hero-glow--gold"></span>
+        <span class="ts-hero-glow ts-hero-glow--sage"></span>
+        <span class="ts-hero-pattern"></span>
+
+        <div class="ts-hero-inner">
+            <div class="ts-hero-left">
+                <a href="/Finanzas" class="ts-back" title="Volver a Finanzas"><i class="fa fa-arrow-left"></i></a>
+                <span class="ts-hero-mark"><i class="fa fa-briefcase"></i></span>
+                <div>
+                    <p class="ts-eyebrow"><span class="ts-dot"></span>Finanzas</p>
+                    <h1 class="ts-title">Cuentas de fondos</h1>
+                    <p class="ts-sub">Cajas físicas, bancos y billeteras. Todo movimiento del sistema cae en una de estas.</p>
+                </div>
+            </div>
+
+            <div class="ts-hero-right">
+                <span class="ts-pill" id="cuPillTotal"><i class="fa fa-balance-scale"></i>Total <strong>—</strong></span>
+                <label class="ts-check"><input type="checkbox" id="cuVerInactivas" /> Ver inactivas</label>
+                <button type="button" class="ts-btn ts-btn--primary" id="cuBtnNueva">
+                    <i class="fa fa-plus"></i>Nueva cuenta
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ts-loading" id="cuLoading" style="display:none">
+        <span class="ts-spinner"></span> Cargando cuentas…
+    </div>
+
+    <!-- ════════════════════════════ Cuentas ════════════════════════════ -->
+    <div class="ts-panel">
+        <div class="ts-panel-head">
+            <div>
+                <h2><i class="fa fa-briefcase"></i>Cuentas</h2>
+                <p>El saldo se calcula desde el libro de caja, no se edita a mano</p>
+            </div>
+        </div>
+        <div class="ts-panel-body ts-panel-body--flush">
+            <div class="ts-cuentas-grid" id="cuGrid"></div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════ Catálogos ════════════════════════════ -->
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="ts-panel h-100" data-catalogo="categorias">
+                <div class="ts-panel-head">
+                    <div>
+                        <h2><i class="fa fa-tags"></i>Categorías de gasto</h2>
+                        <p>Agrupan los gastos en el tablero</p>
+                    </div>
+                    <button type="button" class="ts-btn ts-btn--ghost ts-btn--sm" data-nuevo="categorias">
+                        <i class="fa fa-plus"></i>Agregar
+                    </button>
+                </div>
+                <div class="ts-panel-body">
+                    <div class="ts-pagos" id="cuCatCategorias"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="ts-panel h-100" data-catalogo="mediosPago">
+                <div class="ts-panel-head">
+                    <div>
+                        <h2><i class="fa fa-credit-card"></i>Medios de pago</h2>
+                        <p>Efectivo, transferencia, cheque…</p>
+                    </div>
+                    <button type="button" class="ts-btn ts-btn--ghost ts-btn--sm" data-nuevo="mediosPago">
+                        <i class="fa fa-plus"></i>Agregar
+                    </button>
+                </div>
+                <div class="ts-panel-body">
+                    <div class="ts-pagos" id="cuCatMediosPago"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="ts-panel h-100" data-catalogo="tiposCuenta">
+                <div class="ts-panel-head">
+                    <div>
+                        <h2><i class="fa fa-sitemap"></i>Tipos de cuenta</h2>
+                        <p>Efectivo, banco, billetera…</p>
+                    </div>
+                    <button type="button" class="ts-btn ts-btn--ghost ts-btn--sm" data-nuevo="tiposCuenta">
+                        <i class="fa fa-plus"></i>Agregar
+                    </button>
+                </div>
+                <div class="ts-panel-body">
+                    <div class="ts-pagos" id="cuCatTiposCuenta"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════ Modal: cuenta ═══════════════════════ -->
+<div class="modal fade ts-modal" id="mdlCuenta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="ts-modal-mark"><i class="fa fa-briefcase"></i></span>
+                <div class="flex-grow-1">
+                    <h5 class="ts-modal-title" id="cuModalTitulo">Nueva cuenta</h5>
+                    <p class="ts-modal-sub">El saldo inicial es el punto de partida del libro de caja</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="cuId" value="0" />
+
+                <div class="ts-form-grid">
+                    <div class="ts-col-full">
+                        <label class="ts-form-label" for="cuNombre">Nombre <span class="ts-req">*</span></label>
+                        <input type="text" id="cuNombre" class="form-control" maxlength="100" placeholder="Ej.: Caja Palermo, Banco Galicia CC" />
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="cuTipo">Tipo <span class="ts-req">*</span></label>
+                        <select id="cuTipo" class="form-select"
+                                data-s2-config-nombre="Tipos de cuenta"
+                                data-s2-config-controller="CuentasTipos"
+                                data-s2-config-reload="/CuentasTipos/Lista"
+                                data-s2-config-title="Nuevo tipo de cuenta"></select>
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="cuLocal">Local</label>
+                        <select id="cuLocal" class="form-select"
+                                data-s2-config-nombre="Locales"
+                                data-s2-config-controller="Locales"
+                                data-s2-config-reload="/Locales/Lista"
+                                data-s2-config-title="Nuevo local"
+                                data-s2-config-combo-nombre="Unidades de negocio"
+                                data-s2-config-combo-controller="UnidadesNegocio"
+                                data-s2-config-combo-label="Unidad de negocio"></select>
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="cuMoneda">Moneda</label>
+                        <select id="cuMoneda" class="form-select">
+                            <option value="ARS">Peso argentino (ARS)</option>
+                            <option value="USD">Dólar (USD)</option>
+                            <option value="EUR">Euro (EUR)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="cuSaldoInicial">Saldo inicial</label>
+                        <input type="number" id="cuSaldoInicial" class="form-control" step="0.01" placeholder="0,00" />
+                        <span class="ts-hint" id="cuSaldoInicialHint">Sólo se puede fijar al crear la cuenta.</span>
+                    </div>
+
+                    <div class="ts-col-full" id="cuBloqueBanco">
+                        <div class="ts-form-grid">
+                            <div>
+                                <label class="ts-form-label" for="cuBanco">Banco</label>
+                                <input type="text" id="cuBanco" class="form-control" maxlength="100" />
+                            </div>
+                            <div>
+                                <label class="ts-form-label" for="cuTitular">Titular</label>
+                                <input type="text" id="cuTitular" class="form-control" maxlength="100" />
+                            </div>
+                            <div>
+                                <label class="ts-form-label" for="cuCbu">CBU</label>
+                                <input type="text" id="cuCbu" class="form-control" maxlength="30" />
+                            </div>
+                            <div>
+                                <label class="ts-form-label" for="cuAlias">Alias</label>
+                                <input type="text" id="cuAlias" class="form-control" maxlength="50" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="ts-form-label" for="cuIcono">Icono</label>
+                        <select id="cuIcono" class="form-select">
+                            <option value="">Automático</option>
+                            <option value="money">Efectivo</option>
+                            <option value="bank">Banco</option>
+                            <option value="mobile">Billetera virtual</option>
+                            <option value="credit-card">Tarjeta</option>
+                            <option value="lock">Caja fuerte</option>
+                            <option value="briefcase">Genérico</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="cuColor">Color</label>
+                        <input type="color" id="cuColor" class="form-control form-control-color" value="#c9a24a" />
+                    </div>
+                    <div>
+                        <label class="ts-form-label" for="cuOrden">Orden</label>
+                        <input type="number" id="cuOrden" class="form-control" min="0" step="1" value="50" />
+                    </div>
+
+                    <div class="ts-col-full">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="cuPermiteNegativo" />
+                            <label class="form-check-label" for="cuPermiteNegativo">
+                                Admite saldo negativo — permite girar en descubierto
+                            </label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="cuActiva" checked />
+                            <label class="form-check-label" for="cuActiva">
+                                Activa — aparece en los combos de pago y cobro
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="ts-btn ts-btn--ghost" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="ts-btn ts-btn--primary" id="cuBtnGuardar"><i class="fa fa-check"></i>Guardar cuenta</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════ Modal: catálogo simple ═══════════════════════ -->
+<div class="modal fade ts-modal" id="mdlCatalogo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="ts-modal-mark" id="catMark"><i class="fa fa-tags"></i></span>
+                <div class="flex-grow-1">
+                    <h5 class="ts-modal-title" id="catTitulo">Nuevo registro</h5>
+                    <p class="ts-modal-sub" id="catSub">—</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="catId" value="0" />
+                <div class="ts-form-grid" id="catCampos"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="ts-btn ts-btn--ghost" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="ts-btn ts-btn--primary" id="catBtnGuardar"><i class="fa fa-check"></i>Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="~/Views/Utils/Modals.cshtml" />
+
+@section Scripts {
+    <script src="~/js/tesoreria-core.js" asp-append-version="true"></script>
+    <script src="~/js/Cuentas.js" asp-append-version="true"></script>
+}

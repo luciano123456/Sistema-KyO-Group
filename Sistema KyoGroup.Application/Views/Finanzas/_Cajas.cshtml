@@ -1,0 +1,164 @@
+    <div class="ts-panel">
+        <div class="ts-panel-head">
+            <div>
+                <h2><i class="fa fa-briefcase"></i>Cuentas</h2>
+                <p>Tocá una cuenta para ver sólo sus movimientos</p>
+            </div>
+            <button type="button" class="ts-btn ts-btn--ghost ts-btn--sm" id="cjBtnTodasCuentas">
+                <i class="fa fa-th"></i>Ver todas
+            </button>
+        </div>
+        <div class="ts-panel-body ts-panel-body--flush">
+            <div class="ts-cuentas-grid" id="cjCuentas"></div>
+        </div>
+    </div>
+
+    <div class="ts-toolbar">
+        <div class="ts-chips" id="cjChipsRango">
+            <button type="button" class="ts-chip" data-valor="hoy">Hoy</button>
+            <button type="button" class="ts-chip" data-valor="semana">7 días</button>
+            <button type="button" class="ts-chip active" data-valor="mes">Este mes</button>
+            <button type="button" class="ts-chip" data-valor="mesAnterior">Mes anterior</button>
+            <button type="button" class="ts-chip" data-valor="">Todo</button>
+        </div>
+
+        <div class="ts-filters">
+            <div class="ts-field">
+                <label for="cjDesde">Desde</label>
+                <input type="date" id="cjDesde" class="form-control" />
+            </div>
+            <div class="ts-field">
+                <label for="cjHasta">Hasta</label>
+                <input type="date" id="cjHasta" class="form-control" />
+            </div>
+            <div class="ts-field">
+                <label for="cjTipoMov">Tipo</label>
+                <select id="cjTipoMov" class="form-select"></select>
+            </div>
+            <div class="ts-field">
+                <label for="cjLocal">Local</label>
+                <select id="cjLocal" class="form-select"
+                        data-s2-config-nombre="Locales"
+                        data-s2-config-controller="Locales"
+                        data-s2-config-reload="/Locales/Lista"
+                        data-s2-config-title="Nuevo local"
+                        data-s2-config-combo-nombre="Unidades de negocio"
+                        data-s2-config-combo-controller="UnidadesNegocio"
+                        data-s2-config-combo-label="Unidad de negocio"></select>
+            </div>
+            <div class="ts-field ts-field--wide">
+                <label for="cjTexto">Buscar</label>
+                <input type="text" id="cjTexto" class="form-control" placeholder="Concepto, nota…" autocomplete="off" />
+            </div>
+            <label class="ts-check">
+                <input type="checkbox" id="cjIncluirAnulados" /> Ver anulados
+            </label>
+            <div class="ts-field">
+                <label>&nbsp;</label>
+                <button type="button" class="ts-btn ts-btn--primary" id="cjBtnBuscar"><i class="fa fa-search"></i>Buscar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ts-loading" id="cjLoading" style="display:none">
+        <span class="ts-spinner"></span> Cargando movimientos…
+    </div>
+
+    <div class="ts-kpi-grid">
+        <div class="ts-kpi ts-kpi--violet">
+            <span class="ts-kpi-icon"><i class="fa fa-history"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Saldo anterior</span>
+                <span class="ts-kpi-value" id="cjKpiSaldoAnterior">—</span>
+                <span class="ts-kpi-hint">al inicio del período</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--sage">
+            <span class="ts-kpi-icon"><i class="fa fa-arrow-down"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Ingresos</span>
+                <span class="ts-kpi-value" id="cjKpiIngresos">—</span>
+                <span class="ts-kpi-hint" id="cjKpiCantidad">—</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--rose">
+            <span class="ts-kpi-icon"><i class="fa fa-arrow-up"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Egresos</span>
+                <span class="ts-kpi-value" id="cjKpiEgresos">—</span>
+                <span class="ts-kpi-hint" id="cjKpiNeto">—</span>
+            </div>
+        </div>
+        <div class="ts-kpi ts-kpi--gold">
+            <span class="ts-kpi-icon"><i class="fa fa-balance-scale"></i></span>
+            <div class="ts-kpi-body">
+                <span class="ts-kpi-label">Saldo final</span>
+                <span class="ts-kpi-value" id="cjKpiSaldoFinal">—</span>
+                <span class="ts-kpi-hint" id="cjKpiAlcance">—</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="ts-panel">
+        <div class="ts-panel-head">
+            <div>
+                <h2><i class="fa fa-list-alt"></i>Movimientos</h2>
+                <p id="cjSubtituloGrilla">Todas las cuentas</p>
+            </div>
+            <div class="ts-legend">
+                <span><i class="is-in"></i>Entradas</span>
+                <span><i class="is-out"></i>Salidas</span>
+            </div>
+        </div>
+        <div class="ts-panel-body ts-panel-body--flush">
+            <div class="dt-dark-wrap">
+                <table class="dt-dark display nowrap compact" id="grd_CajaMovimientos" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Fecha</th>
+                            <th>Cuenta</th>
+                            <th>Tipo</th>
+                            <th>Concepto</th>
+                            <th>Medio</th>
+                            <th>Ingreso</th>
+                            <th>Egreso</th>
+                            <th>Saldo</th>
+                            <th>Usuario</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="ts-panel">
+        <div class="ts-panel-head">
+            <div>
+                <h2><i class="fa fa-exchange"></i>Transferencias entre cuentas</h2>
+                <p>Cada transferencia genera el egreso y el ingreso espejo</p>
+            </div>
+        </div>
+        <div class="ts-panel-body ts-panel-body--flush">
+            <div class="dt-dark-wrap">
+                <table class="dt-dark display nowrap compact" id="grd_CajaTransferencias" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Fecha</th>
+                            <th>Origen</th>
+                            <th>Destino</th>
+                            <th>Concepto</th>
+                            <th>Importe</th>
+                            <th>Comisión</th>
+                            <th>Usuario</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>

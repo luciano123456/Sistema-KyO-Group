@@ -35,6 +35,12 @@
             prefixes: ["/ventas"]
         },
         {
+            key: "Finanzas",
+            label: "Finanzas",
+            url: "/Finanzas",
+            prefixes: ["/finanzas", "/tesoreria", "/cajas", "/gastos", "/cuentas", "/mediospago", "/cuentastipos", "/gastoscategorias"]
+        },
+        {
             key: "AnalisisDatos",
             label: "Análisis de datos",
             url: "/AnalisisDatos",

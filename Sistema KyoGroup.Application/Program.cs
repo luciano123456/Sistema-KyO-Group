@@ -125,6 +125,19 @@ builder.Services.AddScoped<IVentasRepository, VentasRepository>();
 builder.Services.AddScoped<IVentasService, VentasService>();
 builder.Services.AddScoped<ICuentasRepository, CuentasRepository>();
 builder.Services.AddScoped<ICuentasService, CuentasService>();
+
+// Tesorería: libro de caja, gastos y sus catálogos
+builder.Services.AddScoped<ICajasRepository, CajasRepository>();
+builder.Services.AddScoped<ICajasService, CajasService>();
+builder.Services.AddScoped<IGastosRepository, GastosRepository>();
+builder.Services.AddScoped<IGastosService, GastosService>();
+builder.Services.AddScoped<ITesoreriaService, TesoreriaService>();
+builder.Services.AddScoped<IGastosCategoriasRepository, GastosCategoriasRepository>();
+builder.Services.AddScoped<IGastosCategoriasService, GastosCategoriasService>();
+builder.Services.AddScoped<IMediosPagoRepository, MediosPagoRepository>();
+builder.Services.AddScoped<IMediosPagoService, MediosPagoService>();
+builder.Services.AddScoped<ICuentasTiposRepository, CuentasTiposRepository>();
+builder.Services.AddScoped<ICuentasTiposService, CuentasTiposService>();
 builder.Services.AddScoped<IUsuariosConexionesRepository, UsuariosConexionesRepository>();
 builder.Services.AddScoped<IUsuariosConexionesService, UsuariosConexionesService>();
 
@@ -234,6 +247,8 @@ app.UseAuthorization();
     catch (Exception ex) { Console.WriteLine("VentasSchemaHelper: " + ex.Message); }
     try { await UsuariosPresenciaSchemaHelper.EnsureSchemaAsync(db); }
     catch (Exception ex) { Console.WriteLine("UsuariosPresenciaSchemaHelper: " + ex.Message); }
+    try { await TesoreriaSchemaHelper.EnsureSchemaAsync(db); }
+    catch (Exception ex) { Console.WriteLine("TesoreriaSchemaHelper: " + ex.Message); }
 }
 
 app.MapControllerRoute(

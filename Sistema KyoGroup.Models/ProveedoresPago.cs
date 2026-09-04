@@ -13,15 +13,22 @@ public partial class ProveedoresPago
 
     public int? IdCuentaCorriente { get; set; }
 
+    /// <summary>Asiento generado en el libro de caja.</summary>
     public int? IdCaja { get; set; }
 
     public DateTime Fecha { get; set; }
 
     public int IdCuenta { get; set; }
 
+    public int? IdMedioPago { get; set; }
+
     public string Concepto { get; set; } = null!;
 
     public decimal Importe { get; set; }
+
+    public string? ComprobanteNumero { get; set; }
+
+    public bool Anulado { get; set; }
 
     public string NotaInterna { get; set; } = null!;
 
@@ -34,6 +41,10 @@ public partial class ProveedoresPago
     public DateTime? FechaModifica { get; set; }
 
     public virtual Cuenta IdCuentaNavigation { get; set; } = null!;
+
+    public virtual MediosPago? IdMedioPagoNavigation { get; set; }
+
+    public virtual Proveedor IdProveedorNavigation { get; set; } = null!;
 
     public virtual User? IdUsuarioModificaNavigation { get; set; }
 

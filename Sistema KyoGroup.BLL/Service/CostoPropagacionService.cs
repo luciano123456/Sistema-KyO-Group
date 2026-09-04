@@ -30,7 +30,8 @@ public class CostoPropagacionService : ICostoPropagacionService
             .Where(x => listaIds.Contains(x.Id))
             .ToDictionaryAsync(x => x.Id);
 
-        var usuarioNombre = await ProveedoresInsumosHistorialHelper.NombreUsuarioAsync(_db, idUsuario);
+        var usuarioNombre = await EntidadHistorialHelper.NombreUsuarioAsync(_db, idUsuario);
+        var proveedorNombre = await EntidadHistorialHelper.NombreFkAsync(_db, "Proveedor", compra.IdProveedor);
 
         foreach (var linea in compra.ComprasInsumos)
         {
@@ -67,13 +68,18 @@ public class CostoPropagacionService : ICostoPropagacionService
                 _db, antes, lista, idUsuario, usuarioNombre,
                 ProveedoresInsumosHistorialHelper.OrigenCompra);
 
+            RegistrarHistorialInsumoPorCompra(
+                linea.IdInsumo, lista.Descripcion, proveedorNombre,
+                costoAnterior, costoNuevo, compra.Id, esReversion: false,
+                idUsuario, usuarioNombre);
+
             costosPorInsumo[linea.IdInsumo] = costoNuevo;
         }
 
         if (costosPorInsumo.Count == 0)
             return;
 
-        await RecalcularCadenaCostosAsync(costosPorInsumo, idUsuario);
+        await RecalcularCadenaCostosAsync(costosPorInsumo, idUsuario, compra.Id, esReversion: false);
         await _db.SaveChangesAsync();
     }
 
@@ -97,7 +103,11 @@ public class CostoPropagacionService : ICostoPropagacionService
 
         var costosRestaurados = new Dictionary<int, decimal>();
         var ahora = DateTime.Now;
-        var usuarioNombre = await ProveedoresInsumosHistorialHelper.NombreUsuarioAsync(_db, idUsuario);
+        var usuarioNombre = await EntidadHistorialHelper.NombreUsuarioAsync(_db, idUsuario);
+        var idProveedor = listasDict.Values.Select(x => x.IdProveedor).FirstOrDefault();
+        var proveedorNombre = idProveedor > 0
+            ? await EntidadHistorialHelper.NombreFkAsync(_db, "Proveedor", idProveedor)
+            : "—";
 
         if (historial.Any())
         {
@@ -123,6 +133,11 @@ public class CostoPropagacionService : ICostoPropagacionService
                 ProveedoresInsumosHistorialHelper.AgregarCambioSiCorresponde(
                     _db, antes, lista, idUsuario, usuarioNombre,
                     ProveedoresInsumosHistorialHelper.OrigenCompra);
+
+                RegistrarHistorialInsumoPorCompra(
+                    h.IdInsumo, lista.Descripcion, proveedorNombre,
+                    h.CostoNuevo, h.CostoAnterior, idCompra, esReversion: true,
+                    idUsuario, usuarioNombre);
 
                 costosRestaurados[h.IdInsumo] = h.CostoAnterior;
             }
@@ -153,12 +168,17 @@ public class CostoPropagacionService : ICostoPropagacionService
                     _db, antes, lista, idUsuario, usuarioNombre,
                     ProveedoresInsumosHistorialHelper.OrigenCompra);
 
+                RegistrarHistorialInsumoPorCompra(
+                    linea.IdInsumo, lista.Descripcion, proveedorNombre,
+                    linea.PrecioFinal, linea.PrecioLista, idCompra, esReversion: true,
+                    idUsuario, usuarioNombre);
+
                 costosRestaurados[linea.IdInsumo] = linea.PrecioLista;
             }
         }
 
         if (costosRestaurados.Count > 0)
-            await RecalcularCadenaCostosAsync(costosRestaurados, idUsuario);
+            await RecalcularCadenaCostosAsync(costosRestaurados, idUsuario, idCompra, esReversion: true);
 
         await _db.SaveChangesAsync();
     }
@@ -312,10 +332,16 @@ public class CostoPropagacionService : ICostoPropagacionService
         PorcDesc = src.PorcDesc
     };
 
-    private async Task RecalcularCadenaCostosAsync(Dictionary<int, decimal> costosPorInsumo, int idUsuario)
+    private async Task RecalcularCadenaCostosAsync(
+        Dictionary<int, decimal> costosPorInsumo,
+        int idUsuario,
+        int idCompra,
+        bool esReversion)
     {
         var insumosAfectados = costosPorInsumo.Keys.ToHashSet();
         var subRecetasOrden = await ObtenerSubRecetasOrdenBottomUpAsync(insumosAfectados);
+        var usuarioNombre = await EntidadHistorialHelper.NombreUsuarioAsync(_db, idUsuario);
+        var ctx = new ContextoHistorialCosto(idUsuario, usuarioNombre, idCompra, esReversion);
 
         var costosSubRecetas = new Dictionary<int, decimal>();
         if (subRecetasOrden.Count > 0)
@@ -330,13 +356,13 @@ public class CostoPropagacionService : ICostoPropagacionService
         }
 
         foreach (var idSubReceta in subRecetasOrden)
-            await RecalcularSubRecetaAsync(idSubReceta, costosPorInsumo, costosSubRecetas, idUsuario);
+            await RecalcularSubRecetaAsync(idSubReceta, costosPorInsumo, costosSubRecetas, ctx);
 
         var subRecetasAfectadas = subRecetasOrden.ToHashSet();
         var recetasAfectadas = await ObtenerRecetasAfectadasAsync(insumosAfectados, subRecetasAfectadas);
 
         foreach (var idReceta in recetasAfectadas)
-            await RecalcularRecetaAsync(idReceta, costosPorInsumo, costosSubRecetas, idUsuario);
+            await RecalcularRecetaAsync(idReceta, costosPorInsumo, costosSubRecetas, ctx);
     }
 
     private async Task<List<int>> ObtenerSubRecetasOrdenBottomUpAsync(HashSet<int> insumosAfectados)
@@ -430,108 +456,239 @@ public class CostoPropagacionService : ICostoPropagacionService
         int idSubReceta,
         Dictionary<int, decimal> costosPorInsumo,
         Dictionary<int, decimal> costosSubRecetas,
-        int idUsuario)
+        ContextoHistorialCosto ctx)
     {
         var subReceta = await _db.SubRecetas
             .Include(x => x.SubRecetasInsumos)
+                .ThenInclude(i => i.IdInsumoNavigation)
             .Include(x => x.SubRecetasSubRecetaIdSubRecetaPadreNavigations)
+                .ThenInclude(h => h.IdSubRecetaHijaNavigation)
             .FirstOrDefaultAsync(x => x.Id == idSubReceta);
 
         if (subReceta == null)
             return;
 
         var ahora = DateTime.Now;
+        var cambios = new List<string>();
+        var costoUnitAntes = subReceta.CostoUnitario;
+        var costoPorcionAntes = subReceta.CostoPorcion;
+        var costoInsumosAntes = subReceta.CostoInsumos;
+        var costoSubsAntes = subReceta.CostoSubRecetas;
 
         foreach (var insumo in subReceta.SubRecetasInsumos)
         {
             if (!costosPorInsumo.TryGetValue(insumo.IdInsumo, out var nuevoCosto))
                 continue;
 
-            if (insumo.CostoUnitario == nuevoCosto && insumo.SubTotal == insumo.Cantidad * nuevoCosto)
+            var subTotalNuevo = insumo.Cantidad * nuevoCosto;
+            if (RecetaHistorialHelper.ValoresIguales(insumo.CostoUnitario, nuevoCosto)
+                && RecetaHistorialHelper.ValoresIguales(insumo.SubTotal, subTotalNuevo))
                 continue;
 
+            AgregarDiff(cambios, NombreLinea("Insumo", insumo.IdInsumoNavigation?.Descripcion, insumo.IdInsumo),
+                insumo.CostoUnitario, nuevoCosto);
             insumo.CostoUnitario = nuevoCosto;
-            insumo.SubTotal = insumo.Cantidad * nuevoCosto;
-            insumo.IdUsuarioModifica = idUsuario;
+            insumo.SubTotal = subTotalNuevo;
+            insumo.IdUsuarioModifica = ctx.IdUsuario;
             insumo.FechaModifica = ahora;
         }
 
         foreach (var hijo in subReceta.SubRecetasSubRecetaIdSubRecetaPadreNavigations)
         {
-            var costoHija = costosSubRecetas.TryGetValue(hijo.IdSubRecetaHija, out var c) ? c : 0m;
+            if (!costosSubRecetas.TryGetValue(hijo.IdSubRecetaHija, out var costoHija))
+                continue;
 
+            var subTotalNuevo = hijo.Cantidad * costoHija;
+            if (RecetaHistorialHelper.ValoresIguales(hijo.CostoUnitario, costoHija)
+                && RecetaHistorialHelper.ValoresIguales(hijo.Subtotal, subTotalNuevo))
+                continue;
+
+            AgregarDiff(cambios, NombreLinea("Subreceta", hijo.IdSubRecetaHijaNavigation?.Descripcion, hijo.IdSubRecetaHija),
+                hijo.CostoUnitario, costoHija);
             hijo.CostoUnitario = costoHija;
-            hijo.Subtotal = hijo.Cantidad * costoHija;
-            hijo.IdUsuarioModifica = idUsuario;
+            hijo.Subtotal = subTotalNuevo;
+            hijo.IdUsuarioModifica = ctx.IdUsuario;
             hijo.FechaModifica = ahora;
         }
 
         var costoInsumos = subReceta.SubRecetasInsumos.Sum(x => x.SubTotal);
-        var costoSubRecetas = subReceta.SubRecetasSubRecetaIdSubRecetaPadreNavigations.Sum(x => x.Subtotal);
-        var costoPorcion = costoInsumos + costoSubRecetas;
+        var costoHijas = subReceta.SubRecetasSubRecetaIdSubRecetaPadreNavigations.Sum(x => x.Subtotal);
+        var costoPorcion = costoInsumos + costoHijas;
         var rendimiento = subReceta.Rendimiento.GetValueOrDefault(1m);
         if (rendimiento == 0) rendimiento = 1m;
+        var costoUnitario = Math.Round(costoPorcion / rendimiento, 2);
+
+        AgregarDiff(cambios, "Costo insumos", costoInsumosAntes, costoInsumos);
+        AgregarDiff(cambios, "Costo subrecetas", costoSubsAntes, costoHijas);
+        AgregarDiff(cambios, "Costo porción", costoPorcionAntes, costoPorcion);
+        AgregarDiff(cambios, "Costo unitario", costoUnitAntes, costoUnitario);
+
+        costosSubRecetas[idSubReceta] = costoUnitario;
+
+        if (cambios.Count == 0)
+            return;
 
         subReceta.CostoInsumos = costoInsumos;
-        subReceta.CostoSubRecetas = costoSubRecetas;
+        subReceta.CostoSubRecetas = costoHijas;
         subReceta.CostoPorcion = costoPorcion;
-        subReceta.CostoUnitario = Math.Round(costoPorcion / rendimiento, 2);
+        subReceta.CostoUnitario = costoUnitario;
         subReceta.FechaActualizacion = ahora;
-        subReceta.IdUsuarioModifica = idUsuario;
+        subReceta.IdUsuarioModifica = ctx.IdUsuario;
         subReceta.FechaModifica = ahora;
 
-        costosSubRecetas[idSubReceta] = subReceta.CostoUnitario ?? 0m;
+        RecetaHistorialHelper.Agregar(
+            _db,
+            RecetaHistorialHelper.TipoSubReceta,
+            idSubReceta,
+            EntidadHistorialHelper.AccionModificacion,
+            ResumenCostosPorCompra("subreceta", subReceta.Descripcion, ctx),
+            string.Join(" | ", cambios),
+            ctx.IdUsuario,
+            ctx.UsuarioNombre);
     }
 
     private async Task RecalcularRecetaAsync(
         int idReceta,
         Dictionary<int, decimal> costosPorInsumo,
         Dictionary<int, decimal> costosSubRecetas,
-        int idUsuario)
+        ContextoHistorialCosto ctx)
     {
         var receta = await _db.Recetas
             .Include(x => x.RecetasInsumos)
+                .ThenInclude(i => i.IdInsumoNavigation)
             .Include(x => x.RecetasSubReceta)
+                .ThenInclude(s => s.IdSubRecetaNavigation)
             .FirstOrDefaultAsync(x => x.Id == idReceta);
 
         if (receta == null)
             return;
 
         var ahora = DateTime.Now;
+        var cambios = new List<string>();
+        var costoUnitAntes = receta.CostoUnitario;
+        var costoPorcionAntes = receta.CostoPorcion;
+        var costoInsumosAntes = receta.CostoInsumos;
+        var costoSubsAntes = receta.CostoSubRecetas;
 
         foreach (var insumo in receta.RecetasInsumos)
         {
             if (!costosPorInsumo.TryGetValue(insumo.IdInsumo, out var nuevoCosto))
                 continue;
 
+            var subTotalNuevo = insumo.Cantidad * nuevoCosto;
+            if (RecetaHistorialHelper.ValoresIguales(insumo.CostoUnitario, nuevoCosto)
+                && RecetaHistorialHelper.ValoresIguales(insumo.SubTotal, subTotalNuevo))
+                continue;
+
+            AgregarDiff(cambios, NombreLinea("Insumo", insumo.IdInsumoNavigation?.Descripcion, insumo.IdInsumo),
+                insumo.CostoUnitario, nuevoCosto);
             insumo.CostoUnitario = nuevoCosto;
-            insumo.SubTotal = insumo.Cantidad * nuevoCosto;
-            insumo.IdUsuarioModifica = idUsuario;
+            insumo.SubTotal = subTotalNuevo;
+            insumo.IdUsuarioModifica = ctx.IdUsuario;
             insumo.FechaModifica = ahora;
         }
 
         foreach (var sub in receta.RecetasSubReceta)
         {
-            var costoSub = costosSubRecetas.TryGetValue(sub.IdSubReceta, out var c) ? c : 0m;
+            if (!costosSubRecetas.TryGetValue(sub.IdSubReceta, out var costoSub))
+                continue;
 
+            var subTotalNuevo = sub.Cantidad * costoSub;
+            if (RecetaHistorialHelper.ValoresIguales(sub.CostoUnitario, costoSub)
+                && RecetaHistorialHelper.ValoresIguales(sub.SubTotal ?? 0m, subTotalNuevo))
+                continue;
+
+            AgregarDiff(cambios, NombreLinea("Subreceta", sub.IdSubRecetaNavigation?.Descripcion, sub.IdSubReceta),
+                sub.CostoUnitario, costoSub);
             sub.CostoUnitario = costoSub;
-            sub.SubTotal = sub.Cantidad * costoSub;
-            sub.IdUsuarioModifica = idUsuario;
+            sub.SubTotal = subTotalNuevo;
+            sub.IdUsuarioModifica = ctx.IdUsuario;
             sub.FechaModifica = ahora;
         }
 
         var costoInsumos = receta.RecetasInsumos.Sum(x => x.SubTotal);
-        var costoSubRecetas = receta.RecetasSubReceta.Sum(x => x.SubTotal ?? 0m);
-        var costoPorcion = costoInsumos + costoSubRecetas;
+        var costoHijas = receta.RecetasSubReceta.Sum(x => x.SubTotal ?? 0m);
+        var costoPorcion = costoInsumos + costoHijas;
         var rendimiento = receta.Rendimiento.GetValueOrDefault(1m);
         if (rendimiento == 0) rendimiento = 1m;
+        var costoUnitario = Math.Round(costoPorcion / rendimiento, 2);
+
+        AgregarDiff(cambios, "Costo insumos", costoInsumosAntes, costoInsumos);
+        AgregarDiff(cambios, "Costo subrecetas", costoSubsAntes, costoHijas);
+        AgregarDiff(cambios, "Costo porción", costoPorcionAntes, costoPorcion);
+        AgregarDiff(cambios, "Costo unitario", costoUnitAntes, costoUnitario);
+
+        if (cambios.Count == 0)
+            return;
 
         receta.CostoInsumos = costoInsumos;
-        receta.CostoSubRecetas = costoSubRecetas;
+        receta.CostoSubRecetas = costoHijas;
         receta.CostoPorcion = costoPorcion;
-        receta.CostoUnitario = Math.Round(costoPorcion / rendimiento, 2);
+        receta.CostoUnitario = costoUnitario;
         receta.FechaActualizacion = ahora;
-        receta.IdUsuarioModifica = idUsuario;
+        receta.IdUsuarioModifica = ctx.IdUsuario;
         receta.FechaModifica = ahora;
+
+        RecetaHistorialHelper.Agregar(
+            _db,
+            RecetaHistorialHelper.TipoReceta,
+            idReceta,
+            EntidadHistorialHelper.AccionModificacion,
+            ResumenCostosPorCompra("receta", receta.Descripcion, ctx),
+            string.Join(" | ", cambios),
+            ctx.IdUsuario,
+            ctx.UsuarioNombre);
     }
+
+    private void RegistrarHistorialInsumoPorCompra(
+        int idInsumo,
+        string? descripcionLista,
+        string proveedorNombre,
+        decimal costoAnterior,
+        decimal costoNuevo,
+        int idCompra,
+        bool esReversion,
+        int idUsuario,
+        string? usuarioNombre)
+    {
+        var lista = string.IsNullOrWhiteSpace(descripcionLista) ? $"#{idInsumo}" : descripcionLista.Trim();
+        var resumen = esReversion
+            ? $"Precio de lista revertido por eliminación de compra #{idCompra}"
+            : $"Precio de lista actualizado por compra #{idCompra}";
+        var detalle =
+            $"Proveedor: {proveedorNombre}. Lista: {lista}. Costo unitario: {RecetaHistorialHelper.FormatearValor(costoAnterior)} → {RecetaHistorialHelper.FormatearValor(costoNuevo)}.";
+
+        EntidadHistorialHelper.Agregar(
+            _db,
+            EntidadHistorialHelper.Insumo,
+            idInsumo,
+            EntidadHistorialHelper.AccionModificacion,
+            resumen,
+            detalle,
+            idUsuario,
+            usuarioNombre);
+    }
+
+    private static void AgregarDiff(List<string> cambios, string campo, object? antes, object? despues)
+    {
+        if (RecetaHistorialHelper.ValoresIguales(antes, despues)) return;
+        cambios.Add($"{campo}: {RecetaHistorialHelper.FormatearValor(antes)} → {RecetaHistorialHelper.FormatearValor(despues)}");
+    }
+
+    private static string NombreLinea(string tipo, string? nombre, int id)
+        => string.IsNullOrWhiteSpace(nombre) ? $"{tipo} #{id}" : $"{tipo} \"{nombre.Trim()}\"";
+
+    private static string ResumenCostosPorCompra(string tipo, string? descripcion, ContextoHistorialCosto ctx)
+    {
+        var nombre = string.IsNullOrWhiteSpace(descripcion) ? tipo : $"{tipo} \"{descripcion.Trim()}\"";
+        return ctx.EsReversion
+            ? $"Costos de {nombre} revertidos por eliminación de compra #{ctx.IdCompra}"
+            : $"Costos de {nombre} actualizados por compra #{ctx.IdCompra}";
+    }
+
+    private sealed record ContextoHistorialCosto(
+        int IdUsuario,
+        string? UsuarioNombre,
+        int IdCompra,
+        bool EsReversion);
 }

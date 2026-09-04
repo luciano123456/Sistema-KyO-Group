@@ -206,6 +206,9 @@ async function eliminarUsuario(id) {
         url: '/Usuarios/Eliminar',
         id,
         confirmMsg: '¿Desea eliminar este usuario?',
+        cascadeTitulo: 'El usuario tiene registros asociados',
+        cascadeLabelSi: 'Sí, eliminar usuario',
+        cascadeSubSi: 'Se desvincula la auditoría; no se borran insumos ni movimientos',
         headers: () => ({
             'Authorization': 'Bearer ' + token,
             'Content-Type': 'application/json'

@@ -28,7 +28,7 @@ namespace SistemaKyoGroup.BLL.Service
         /// <summary>Debe coincidir con el catálogo de RpModulos.js.</summary>
         private static readonly HashSet<string> ModulosPermitidos = new(StringComparer.OrdinalIgnoreCase)
         {
-            "Proveedores", "Recetas", "Insumos", "Ventas", "AnalisisDatos", "Usuarios"
+            "Proveedores", "Recetas", "Insumos", "Ventas", "AnalisisDatos", "Usuarios", "Finanzas"
         };
 
         private readonly IUsuariosConexionesRepository _repo;

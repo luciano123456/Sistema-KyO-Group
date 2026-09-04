@@ -26,7 +26,7 @@
     }
 
     function isFilterSelect(el) {
-        if (el.closest('.filter-bar')) return true;
+        if (el.closest('.filter-bar, .ts-filters, .ts-toolbar, .fg-cm-shell')) return true;
         if (el.closest('thead.filters, tr.filters')) return true;
         const id = (el.id || '').toLowerCase();
         return id.includes('filtro') || id.startsWith('filter');
@@ -56,6 +56,7 @@
             width: inPlusGroup ? 'resolve' : '100%',
             placeholder: placeholder,
             allowClear: filter,
+            minimumResultsForSearch: filter ? 8 : 6,
             dropdownParent: getDropdownParent(el),
             language: {
                 noResults: () => 'Sin resultados',
@@ -106,7 +107,8 @@
 
     function normalizeListItem(x) {
         const id = x.id ?? x.Id ?? x.ID;
-        const nombre = x.nombre ?? x.Nombre ?? x.descripcion ?? x.Descripcion ?? x.text ?? x.Text ?? '';
+        const nombre = x.nombreCompleto ?? x.NombreCompleto
+            ?? x.nombre ?? x.Nombre ?? x.descripcion ?? x.Descripcion ?? x.text ?? x.Text ?? '';
         const abrev = x.abreviatura ?? x.Abreviatura ?? x.sigla ?? x.Sigla ?? '';
         const texto = abrev ? `${nombre} (${abrev})` : String(nombre);
         return { id, texto };
@@ -129,10 +131,11 @@
         const hadS2 = !!$el.data('select2');
 
         sel.innerHTML = '';
+        const filter = isFilterSelect(sel);
         const ph = document.createElement('option');
         ph.value = '';
-        ph.textContent = 'Seleccionar';
-        ph.disabled = true;
+        ph.textContent = filter ? (getPlaceholder(sel) || 'Todos') : 'Seleccionar';
+        ph.disabled = !filter;
         ph.selected = true;
         sel.appendChild(ph);
 
@@ -144,7 +147,7 @@
 
         let valueToSelect = null;
         if (idSeleccionar != null) valueToSelect = String(idSeleccionar);
-        else if (sel.options.length > 1) valueToSelect = sel.options[sel.options.length - 1].value;
+        else if (!filter && sel.options.length > 1) valueToSelect = sel.options[sel.options.length - 1].value;
         else if (prev && [...sel.options].some(o => o.value === prev)) valueToSelect = prev;
 
         if (valueToSelect && [...sel.options].some(o => o.value === valueToSelect)) {
@@ -199,14 +202,17 @@
             if (!controller || typeof w.openConfigAndWait !== 'function') return;
 
             try {
-                const nuevoId = await w.openConfigAndWait({ nombre, controller });
+                const nuevoId = await w.openConfigAndWait({
+                    nombre,
+                    controller,
+                    comboNombre: sel.dataset.s2ConfigComboNombre || null,
+                    comboController: sel.dataset.s2ConfigComboController || null,
+                    lblComboNombre: sel.dataset.s2ConfigComboLabel || null
+                });
+                if (typeof w.TS?.catalogos === 'function') w.TS.catalogos(true);
                 if (reloadUrl) await reloadSelectOptions(sel, reloadUrl, nuevoId);
             } catch (_) {
                 // cancelado o timeout
-            } finally {
-                if (reloadUrl && !sel.dataset.s2ConfigKeepId) {
-                    try { await reloadSelectOptions(sel, reloadUrl); } catch { /* noop */ }
-                }
             }
         });
     }

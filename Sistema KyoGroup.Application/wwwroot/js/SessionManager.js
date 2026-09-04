@@ -114,6 +114,7 @@
             [["/recetas", "/subrecetas"], "Recetas"],
             [["/insumos"], "Insumos"],
             [["/ventas"], "Ventas"],
+            [["/finanzas", "/tesoreria", "/cajas", "/gastos", "/cuentas"], "Finanzas"],
             [["/analisisdatos"], "AnalisisDatos"],
             [["/usuarios"], "Usuarios"]
         ];

@@ -31,6 +31,8 @@ public partial class SistemaKyoGroupContext : DbContext
     }
     public virtual DbSet<Caja> Cajas { get; set; }
 
+    public virtual DbSet<CajasSesion> CajasSesiones { get; set; }
+
     public virtual DbSet<CajasTransferenciasCuenta> CajasTransferenciasCuentas { get; set; }
 
     public virtual DbSet<ChequesEmitido> ChequesEmitidos { get; set; }
@@ -43,7 +45,17 @@ public partial class SistemaKyoGroupContext : DbContext
 
     public virtual DbSet<Cuenta> Cuentas { get; set; }
 
+    public virtual DbSet<CuentasTipo> CuentasTipos { get; set; }
+
     public virtual DbSet<EstadosUsuario> EstadosUsuarios { get; set; }
+
+    public virtual DbSet<Gasto> Gastos { get; set; }
+
+    public virtual DbSet<GastosCategoria> GastosCategorias { get; set; }
+
+    public virtual DbSet<GastosPago> GastosPagos { get; set; }
+
+    public virtual DbSet<MediosPago> MediosPagos { get; set; }
 
     public virtual DbSet<Importacion> Importaciones { get; set; }
 
@@ -82,6 +94,10 @@ public partial class SistemaKyoGroupContext : DbContext
     public virtual DbSet<CuentaHistorial> CuentasHistorial { get; set; }
     public virtual DbSet<ImportacionHistorial> ImportacionesHistorial { get; set; }
     public virtual DbSet<RubroHistorial> RubrosHistorial { get; set; }
+    public virtual DbSet<GastoHistorial> GastosHistorial { get; set; }
+    public virtual DbSet<CategoriaGastoHistorial> GastosCategoriasHistorial { get; set; }
+    public virtual DbSet<MedioPagoHistorial> MediosPagoHistorial { get; set; }
+    public virtual DbSet<CuentaTipoHistorial> CuentasTiposHistorial { get; set; }
     public virtual DbSet<Rubro> Rubros { get; set; }
 
     public virtual DbSet<InsumosProveedor> InsumosProveedores { get; set; }
@@ -157,21 +173,47 @@ public partial class SistemaKyoGroupContext : DbContext
         modelBuilder.Entity<Caja>(entity =>
         {
             entity.Property(e => e.Concepto)
-                .HasMaxLength(200)
+                .HasMaxLength(300)
                 .IsUnicode(false);
             entity.Property(e => e.Egreso).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Fecha).HasColumnType("date");
             entity.Property(e => e.FechaModifica).HasColumnType("datetime");
             entity.Property(e => e.FechaRegistra).HasColumnType("datetime");
+            entity.Property(e => e.FechaAnula).HasColumnType("datetime");
             entity.Property(e => e.Ingreso).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.TipoMov)
                 .HasMaxLength(70)
                 .IsUnicode(false);
+            entity.Property(e => e.NotaInterna)
+                .HasMaxLength(300)
+                .IsUnicode(false);
+            entity.Property(e => e.MotivoAnula)
+                .HasMaxLength(200)
+                .IsUnicode(false);
+
+            entity.HasIndex(e => new { e.IdCuenta, e.Fecha }).HasDatabaseName("IX_Cajas_Cuenta_Fecha");
+            entity.HasIndex(e => new { e.TipoMov, e.IdMov }).HasDatabaseName("IX_Cajas_Origen");
 
             entity.HasOne(d => d.IdCuentaNavigation).WithMany(p => p.Cajas)
                 .HasForeignKey(d => d.IdCuenta)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Cajas_Cuentas");
+
+            entity.HasOne(d => d.IdSesionNavigation).WithMany(p => p.Cajas)
+                .HasForeignKey(d => d.IdSesion)
+                .HasConstraintName("FK_Cajas_CajasSesiones");
+
+            entity.HasOne(d => d.IdLocalNavigation).WithMany()
+                .HasForeignKey(d => d.IdLocal)
+                .HasConstraintName("FK_Cajas_Locales");
+
+            entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany()
+                .HasForeignKey(d => d.IdUnidadNegocio)
+                .HasConstraintName("FK_Cajas_UnidadesNegocio");
+
+            entity.HasOne(d => d.IdMedioPagoNavigation).WithMany(p => p.Cajas)
+                .HasForeignKey(d => d.IdMedioPago)
+                .HasConstraintName("FK_Cajas_MediosPago");
 
             entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.CajaIdUsuarioModificaNavigations)
                 .HasForeignKey(d => d.IdUsuarioModifica)
@@ -181,6 +223,43 @@ public partial class SistemaKyoGroupContext : DbContext
                 .HasForeignKey(d => d.IdUsuarioRegistra)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Cajas_UsuarioRegistra");
+        });
+
+        modelBuilder.Entity<CajasSesion>(entity =>
+        {
+            entity.ToTable("CajasSesiones");
+            entity.Property(e => e.FechaApertura).HasColumnType("datetime");
+            entity.Property(e => e.FechaCierre).HasColumnType("datetime");
+            entity.Property(e => e.SaldoInicial).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.SaldoTeorico).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.SaldoDeclarado).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Diferencia).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.NotaApertura).HasMaxLength(300).IsUnicode(false);
+            entity.Property(e => e.NotaCierre).HasMaxLength(300).IsUnicode(false);
+
+            entity.HasIndex(e => new { e.IdCuenta, e.IdEstado }).HasDatabaseName("IX_CajasSesiones_Cuenta_Estado");
+
+            entity.HasOne(d => d.IdCuentaNavigation).WithMany(p => p.CajasSesiones)
+                .HasForeignKey(d => d.IdCuenta)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CajasSesiones_Cuentas");
+
+            entity.HasOne(d => d.IdLocalNavigation).WithMany()
+                .HasForeignKey(d => d.IdLocal)
+                .HasConstraintName("FK_CajasSesiones_Locales");
+
+            entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany()
+                .HasForeignKey(d => d.IdUnidadNegocio)
+                .HasConstraintName("FK_CajasSesiones_UnidadesNegocio");
+
+            entity.HasOne(d => d.IdUsuarioAbreNavigation).WithMany()
+                .HasForeignKey(d => d.IdUsuarioAbre)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CajasSesiones_UsuarioAbre");
+
+            entity.HasOne(d => d.IdUsuarioCierraNavigation).WithMany()
+                .HasForeignKey(d => d.IdUsuarioCierra)
+                .HasConstraintName("FK_CajasSesiones_UsuarioCierra");
         });
 
         modelBuilder.Entity<CajasTransferenciasCuenta>(entity =>
@@ -347,6 +426,150 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.Moneda)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasDefaultValue("ARS");
+            entity.Property(e => e.SaldoInicial).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Banco).HasMaxLength(100).IsUnicode(false);
+            entity.Property(e => e.Cbu).HasMaxLength(30).IsUnicode(false);
+            entity.Property(e => e.Alias).HasMaxLength(60).IsUnicode(false);
+            entity.Property(e => e.Titular).HasMaxLength(120).IsUnicode(false);
+            entity.Property(e => e.Color).HasMaxLength(20).IsUnicode(false);
+            entity.Property(e => e.Icono).HasMaxLength(40).IsUnicode(false);
+            entity.Property(e => e.IdTipo).HasDefaultValue(1);
+            entity.Property(e => e.Activa).HasDefaultValue(true);
+            entity.Property(e => e.PermiteNegativo).HasDefaultValue(true);
+
+            entity.HasOne(d => d.IdTipoNavigation).WithMany(p => p.Cuentas)
+                .HasForeignKey(d => d.IdTipo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Cuentas_CuentasTipos");
+
+            entity.HasOne(d => d.IdLocalNavigation).WithMany()
+                .HasForeignKey(d => d.IdLocal)
+                .HasConstraintName("FK_Cuentas_Locales");
+        });
+
+        modelBuilder.Entity<CuentasTipo>(entity =>
+        {
+            entity.ToTable("CuentasTipos");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(70)
+                .IsUnicode(false);
+            entity.HasIndex(e => e.Nombre).IsUnique().HasDatabaseName("UQ_CuentasTipos_Nombre");
+        });
+
+        modelBuilder.Entity<MediosPago>(entity =>
+        {
+            entity.ToTable("MediosPago");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(70)
+                .IsUnicode(false);
+            entity.Property(e => e.AfectaCaja).HasDefaultValue(true);
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.HasIndex(e => e.Nombre).IsUnique().HasDatabaseName("UQ_MediosPago_Nombre");
+
+            entity.HasOne(d => d.IdCuentaDefectoNavigation).WithMany(p => p.MediosPagos)
+                .HasForeignKey(d => d.IdCuentaDefecto)
+                .HasConstraintName("FK_MediosPago_Cuentas");
+        });
+
+        modelBuilder.Entity<GastosCategoria>(entity =>
+        {
+            entity.ToTable("GastosCategorias");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Color).HasMaxLength(20).IsUnicode(false);
+            entity.Property(e => e.Icono).HasMaxLength(40).IsUnicode(false);
+            entity.Property(e => e.Activa).HasDefaultValue(true);
+            entity.HasIndex(e => e.Nombre).IsUnique().HasDatabaseName("UQ_GastosCategorias_Nombre");
+
+            entity.HasOne(d => d.IdPadreNavigation).WithMany(p => p.Hijas)
+                .HasForeignKey(d => d.IdPadre)
+                .HasConstraintName("FK_GastosCategorias_Padre");
+        });
+
+        modelBuilder.Entity<Gasto>(entity =>
+        {
+            entity.ToTable("Gastos");
+            entity.Property(e => e.Fecha).HasColumnType("date");
+            entity.Property(e => e.FechaVencimiento).HasColumnType("date");
+            entity.Property(e => e.FechaRegistra)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.FechaModifica).HasColumnType("datetime");
+            entity.Property(e => e.Concepto).HasMaxLength(200).IsUnicode(false);
+            entity.Property(e => e.Detalle).HasMaxLength(500).IsUnicode(false);
+            entity.Property(e => e.ComprobanteTipo).HasMaxLength(30).IsUnicode(false);
+            entity.Property(e => e.ComprobanteNumero).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.MotivoAnula).HasMaxLength(200).IsUnicode(false);
+            entity.Property(e => e.NotaInterna).HasMaxLength(300).IsUnicode(false);
+            entity.Property(e => e.Importe).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ImportePagado).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.IdEstado).HasDefaultValue(1);
+
+            entity.HasIndex(e => e.Fecha).HasDatabaseName("IX_Gastos_Fecha");
+            entity.HasIndex(e => new { e.IdEstado, e.FechaVencimiento }).HasDatabaseName("IX_Gastos_Estado_Vencimiento");
+
+            entity.HasOne(d => d.IdCategoriaNavigation).WithMany(p => p.Gastos)
+                .HasForeignKey(d => d.IdCategoria)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Gastos_GastosCategorias");
+
+            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.Gastos)
+                .HasForeignKey(d => d.IdProveedor)
+                .HasConstraintName("FK_Gastos_Proveedores");
+
+            entity.HasOne(d => d.IdLocalNavigation).WithMany()
+                .HasForeignKey(d => d.IdLocal)
+                .HasConstraintName("FK_Gastos_Locales");
+
+            entity.HasOne(d => d.IdUnidadNegocioNavigation).WithMany()
+                .HasForeignKey(d => d.IdUnidadNegocio)
+                .HasConstraintName("FK_Gastos_UnidadesNegocio");
+
+            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany()
+                .HasForeignKey(d => d.IdUsuarioRegistra)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Gastos_UsuarioRegistra");
+
+            entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany()
+                .HasForeignKey(d => d.IdUsuarioModifica)
+                .HasConstraintName("FK_Gastos_UsuarioModifica");
+        });
+
+        modelBuilder.Entity<GastosPago>(entity =>
+        {
+            entity.ToTable("GastosPagos");
+            entity.Property(e => e.Fecha).HasColumnType("date");
+            entity.Property(e => e.FechaRegistra)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Importe).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.NotaInterna).HasMaxLength(300).IsUnicode(false);
+
+            entity.HasIndex(e => e.IdGasto).HasDatabaseName("IX_GastosPagos_Gasto");
+
+            entity.HasOne(d => d.IdGastoNavigation).WithMany(p => p.GastosPagos)
+                .HasForeignKey(d => d.IdGasto)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_GastosPagos_Gastos");
+
+            entity.HasOne(d => d.IdCuentaNavigation).WithMany(p => p.GastosPagos)
+                .HasForeignKey(d => d.IdCuenta)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_GastosPagos_Cuentas");
+
+            entity.HasOne(d => d.IdMedioPagoNavigation).WithMany(p => p.GastosPagos)
+                .HasForeignKey(d => d.IdMedioPago)
+                .HasConstraintName("FK_GastosPagos_MediosPago");
+
+            entity.HasOne(d => d.IdUsuarioRegistraNavigation).WithMany()
+                .HasForeignKey(d => d.IdUsuarioRegistra)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_GastosPagos_UsuarioRegistra");
         });
 
         modelBuilder.Entity<EstadosUsuario>(entity =>
@@ -627,6 +850,10 @@ public partial class SistemaKyoGroupContext : DbContext
         MapEntidadHistorial<CuentaHistorial>(modelBuilder, "Cuentas_Historial");
         MapEntidadHistorial<ImportacionHistorial>(modelBuilder, "Importaciones_Historial");
         MapEntidadHistorial<RubroHistorial>(modelBuilder, "Rubros_Historial");
+        MapEntidadHistorial<GastoHistorial>(modelBuilder, "Gastos_Historial");
+        MapEntidadHistorial<CategoriaGastoHistorial>(modelBuilder, "GastosCategorias_Historial");
+        MapEntidadHistorial<MedioPagoHistorial>(modelBuilder, "MediosPago_Historial");
+        MapEntidadHistorial<CuentaTipoHistorial>(modelBuilder, "CuentasTipos_Historial");
 
         modelBuilder.Entity<Rubro>(entity =>
         {
@@ -1036,11 +1263,23 @@ public partial class SistemaKyoGroupContext : DbContext
             entity.Property(e => e.NotaInterna)
                 .HasMaxLength(200)
                 .IsUnicode(false);
+            entity.Property(e => e.ComprobanteNumero)
+                .HasMaxLength(50)
+                .IsUnicode(false);
 
             entity.HasOne(d => d.IdCuentaNavigation).WithMany(p => p.ProveedoresPagos)
                 .HasForeignKey(d => d.IdCuenta)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ComprasPagos_Cuentas");
+
+            entity.HasOne(d => d.IdMedioPagoNavigation).WithMany(p => p.ProveedoresPagos)
+                .HasForeignKey(d => d.IdMedioPago)
+                .HasConstraintName("FK_ProveedoresPagos_MediosPago");
+
+            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.ProveedoresPagos)
+                .HasForeignKey(d => d.IdProveedor)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ProveedoresPagos_Proveedores");
 
             entity.HasOne(d => d.IdUsuarioModificaNavigation).WithMany(p => p.ProveedoresPagoIdUsuarioModificaNavigations)
                 .HasForeignKey(d => d.IdUsuarioModifica)
